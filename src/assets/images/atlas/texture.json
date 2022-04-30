@@ -1,0 +1,255 @@
+{
+  "frames": {
+    "Ilustracion_sin_titulo-1.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1493,
+        "h": 1726
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 641,
+        "y": 982,
+        "w": 1493,
+        "h": 1726
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-10.png": {
+      "frame": {
+        "x": 0,
+        "y": 1726,
+        "w": 2175,
+        "h": 951
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 2010,
+        "w": 2175,
+        "h": 951
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-2.png": {
+      "frame": {
+        "x": 0,
+        "y": 2677,
+        "w": 1722,
+        "h": 1625
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 418,
+        "y": 1089,
+        "w": 1722,
+        "h": 1625
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-8.png": {
+      "frame": {
+        "x": 1493,
+        "y": 0,
+        "w": 1667,
+        "h": 2924
+      },
+      "rotated": true,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 420,
+        "y": 55,
+        "w": 1667,
+        "h": 2924
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-3.png": {
+      "frame": {
+        "x": 0,
+        "y": 4302,
+        "w": 1846,
+        "h": 1636
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 305,
+        "y": 1087,
+        "w": 1846,
+        "h": 1636
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-4.png": {
+      "frame": {
+        "x": 2175,
+        "y": 1667,
+        "w": 2056,
+        "h": 1534
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 1181,
+        "w": 2056,
+        "h": 1534
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-5.png": {
+      "frame": {
+        "x": 4417,
+        "y": 0,
+        "w": 2014,
+        "h": 1685
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 254,
+        "y": 997,
+        "w": 2014,
+        "h": 1685
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-6.png": {
+      "frame": {
+        "x": 0,
+        "y": 5938,
+        "w": 1855,
+        "h": 1640
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 216,
+        "y": 983,
+        "w": 1855,
+        "h": 1640
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-7.png": {
+      "frame": {
+        "x": 6431,
+        "y": 0,
+        "w": 1271,
+        "h": 2670
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 630,
+        "y": 475,
+        "w": 1271,
+        "h": 2670
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Ilustracion_sin_titulo-9.png": {
+      "frame": {
+        "x": 0,
+        "y": 7578,
+        "w": 2103,
+        "h": 1287
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 166,
+        "y": 853,
+        "w": 2103,
+        "h": 1287
+      },
+      "sourceSize": {
+        "w": 2480,
+        "h": 3508
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.6",
+    "image": "texture.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 7702,
+      "h": 8865
+    },
+    "scale": 1
+  }
+}

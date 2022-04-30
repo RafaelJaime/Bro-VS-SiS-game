@@ -1,0 +1,230 @@
+{
+	"textures": [
+		{
+			"image": "matilde-final.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 3921,
+				"h": 7760
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "Ilustracion_sin_titulo-9 (1).png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 245,
+						"y": 1475,
+						"w": 2010,
+						"h": 956
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 2010,
+						"h": 956
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-8.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 382,
+						"y": 433,
+						"w": 1877,
+						"h": 2501
+					},
+					"frame": {
+						"x": 2013,
+						"y": 1,
+						"w": 1877,
+						"h": 2501
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-10.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 235,
+						"y": 1962,
+						"w": 1965,
+						"h": 900
+					},
+					"frame": {
+						"x": 1,
+						"y": 959,
+						"w": 1965,
+						"h": 900
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-5.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 401,
+						"y": 1109,
+						"w": 1807,
+						"h": 1634
+					},
+					"frame": {
+						"x": 1,
+						"y": 1861,
+						"w": 1807,
+						"h": 1634
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-4.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 380,
+						"y": 942,
+						"w": 1751,
+						"h": 1774
+					},
+					"frame": {
+						"x": 1810,
+						"y": 2504,
+						"w": 1751,
+						"h": 1774
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-6.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 449,
+						"y": 1072,
+						"w": 1718,
+						"h": 1551
+					},
+					"frame": {
+						"x": 1,
+						"y": 3497,
+						"w": 1718,
+						"h": 1551
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-7.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 554,
+						"y": 435,
+						"w": 1272,
+						"h": 2368
+					},
+					"frame": {
+						"x": 1,
+						"y": 5050,
+						"w": 1272,
+						"h": 2368
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-1.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 435,
+						"y": 972,
+						"w": 1594,
+						"h": 1739
+					},
+					"frame": {
+						"x": 1721,
+						"y": 4280,
+						"w": 1594,
+						"h": 1739
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-2.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 427,
+						"y": 968,
+						"w": 1124,
+						"h": 1738
+					},
+					"frame": {
+						"x": 1275,
+						"y": 6021,
+						"w": 1124,
+						"h": 1738
+					}
+				},
+				{
+					"filename": "Ilustracion_sin_titulo-3.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 2480,
+						"h": 3508
+					},
+					"spriteSourceSize": {
+						"x": 435,
+						"y": 1030,
+						"w": 1519,
+						"h": 1687
+					},
+					"frame": {
+						"x": 2401,
+						"y": 6021,
+						"w": 1519,
+						"h": 1687
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:3220704b56d444b2bf4a0ccd259fffd3:5d224bfbccdff82d272ae2ce400ea373:4c7eebb8db08a7703e24d75d4530a99f$"
+	}
+}
