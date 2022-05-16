@@ -1,16 +1,16 @@
-import { MenuScene } from "./scenes/MenuScene.js";
-import { CreditScene } from "./scenes/CreditScene.js";
-import { InstructionsScene } from "./scenes/InstructionsScene.js";
-import { GameScene } from "./scenes/GameScene.js";
-import { LoadScene } from "./scenes/LoadScene.js";
+import { MenuScene } from './scenes/MenuScene.js'
+import { CreditScene } from './scenes/CreditScene.js'
+import { InstructionsScene } from './scenes/InstructionsScene.js'
+import { GameScene } from './scenes/GameScene.js'
+import { LoadScene } from './scenes/LoadScene.js'
 const config = {
   type: Phaser.AUTO,
   width: 800,
   height: 600,
-  parent: "output",
+  parent: 'output',
   scene: [LoadScene, MenuScene, GameScene, InstructionsScene, CreditScene],
   physics: {
-    default: "arcade",
+    default: 'arcade',
     arcade: {
       width: 1400,
       checkCollision: {
@@ -22,5 +22,5 @@ const config = {
       debugShowVelocity: false,
     },
   },
-};
-let game = new Phaser.Game(config);
+}
+let game = new Phaser.Game(config)
