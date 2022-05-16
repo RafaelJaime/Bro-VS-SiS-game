@@ -17,7 +17,6 @@ First version of the game, added on first commit
   - [ ] Animación al terminar el juego, con los dos personajes muriendo, permitiéndote volver atrás
 - [ ] New characters
 - [ ] New character select screen
-  - usando enumeraciones para poder añadir personajes facilmente
 - [ ] Re do instruction screen
 - [ ] Re do main menu screen
   - usando enumeraciones para poder añadir automaticamente más botones

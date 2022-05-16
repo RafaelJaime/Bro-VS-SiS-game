@@ -1,8 +1,7 @@
-export class GameScene extends Phaser.Scene {
+import { BaseScene } from '../components/BaseScene.js'
+export class GameScene extends BaseScene {
   constructor() {
-    super({
-      key: 'GameScene',
-    })
+    super('GameScene')
   }
   create() {
     this.cursors = this.input.keyboard.createCursorKeys()

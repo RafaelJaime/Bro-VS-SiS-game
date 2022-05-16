@@ -1,8 +1,7 @@
-export class CreditScene extends Phaser.Scene {
+import { BaseScene } from '../components/BaseScene.js'
+export class CreditScene extends BaseScene {
   constructor() {
-    super({
-      key: 'CreditScene',
-    })
+    super('CreditScene')
   }
   create() {
     this.creditMusic = this.sound.add('creditMusic', {

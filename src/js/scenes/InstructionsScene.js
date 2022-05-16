@@ -1,8 +1,7 @@
-export class InstructionsScene extends Phaser.Scene {
+import { BaseScene } from '../components/BaseScene.js'
+export class InstructionsScene extends BaseScene {
   constructor() {
-    super({
-      key: 'InstructionsScene',
-    })
+    super('InstructionsScene')
   }
   create() {
     this.botonVolver()
