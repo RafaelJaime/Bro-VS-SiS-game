@@ -10,7 +10,9 @@ export class BaseScene extends Phaser.Scene {
   preload() {}
   create() {}
   update() {
-    this.parallaxBackground.tilePositionX -= 1
+    if (this.parallaxBackgroundIsActive) {
+      this.parallaxBackground.tilePositionX -= 1
+    }
   }
 
   preloadAssets() {
@@ -50,7 +52,7 @@ export class BaseScene extends Phaser.Scene {
     this.load.image(Constants.assets.images.jkl2, 'images/jkl2.png')
     this.load.image(Constants.assets.images.center, 'images/caja-pizza.png')
     this.load.audio(Constants.assets.audios.title, 'audios/The Mystic.mp3')
-    this.load.audio(Constants.assets.audios.credit, 'audios/audioCreditos.mp3')
+    this.load.audio(Constants.assets.audios.credit, 'audios/creditMusic.mp3')
     this.load.audio(Constants.assets.audios.button, 'sounds/button.mp3')
   }
 
@@ -105,14 +107,14 @@ export class BaseScene extends Phaser.Scene {
   }
 
   setParallaxBackground(image, scale) {
-    this.parallaxBackground = this.add
+    return (this.parallaxBackground = this.add
       .tileSprite(0, 0, 2000, 1000, image)
       .setOrigin(0, 0)
       .setScale(scale)
-      .setPipeline(Constants.pipeline)
+      .setPipeline(Constants.pipeline))
   }
 
-  addButton(x, y, image, depth) {
+  addButton(x, y, image, depth, action = null, navigate = null) {
     this.buttonSound = this.sound.add(Constants.assets.audios.button, {
       loop: false,
       volume: 0.3,
@@ -130,10 +132,14 @@ export class BaseScene extends Phaser.Scene {
       this.buttonSound.play()
       boton1.tint = Constants.colors.yellow
     })
-    boton1.on(Constants.events.pointer.up, () => {})
+    boton1.on(Constants.events.pointer.up, () => {
+      if (navigate != null) {
+        this.scene.start(navigate)
+      }
+    })
   }
 
-  addImage(x, y, image, depth) {
+  addImage(x, y, image, depth = null) {
     this.add
       .image(x, y, image)
       .setScale(0.13)
@@ -143,11 +149,42 @@ export class BaseScene extends Phaser.Scene {
   }
 
   addText(x, y, text, font, color = Constants.colors.black, depth = 2) {
-    this.add
+    return this.add
       .text(x, y, text, {
         font: font,
         fill: color,
       })
       .setDepth(depth)
+  }
+
+  setDefaultBackground() {
+    this.parallaxBackground = this.setParallaxBackground(
+      Constants.assets.images.title2,
+      0.68
+    )
+    this.parallaxBackgroundIsActive = true
+    this.setBackground(Constants.assets.images.title, 0.68)
+  }
+
+  addReturnButton() {
+    var botonVolver = this.add
+      .image(70, 560, 'volver')
+      .setDepth(2)
+      .setScale(0.04)
+      .setInteractive()
+    this.buttonSound = this.sound.add(Constants.assets.audios.button, {
+      loop: false,
+      volume: 0.3,
+    })
+    botonVolver.on(Constants.events.pointer.out, () => {
+      botonVolver.clearTint()
+    })
+    botonVolver.on(Constants.events.pointer.over, () => {
+      this.buttonSound.play()
+      botonVolver.tint = Constants.colors.yellow
+    })
+    botonVolver.on(Constants.events.pointer.up, () => {
+      this.scene.start(Constants.scenes.menu)
+    })
   }
 }

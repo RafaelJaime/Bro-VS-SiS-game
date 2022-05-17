@@ -5,24 +5,35 @@ export class Constants {
     static primary20 = '20px monospace'
     static primary18 = '18px monospace'
     static primaryBold25 = 'bold 25px monospace'
+    static secondaryBold25 = 'bold 25px sans-serif'
+    static secondaryBold50 = 'bold 50px sans-serif'
+    static size32 = '32px'
+    static size26 = '26px'
   }
   static colors = class Colors {
+    static white = '#fff'
     static black = 0xffffff
     static gray = 0x222222
     static lightGray = 0x555555
+    static darkGray = 0xaaaaaa
     static yellow = 0xffffff00
+    static red = 0xff0000
   }
 
   static scenes = class Scenes {
     static load = 'LoadScene'
     static menu = 'MenuScene'
     static game = 'GameScene'
-    static instructions = 'instructionsScene'
+    static instructions = 'InstructionsScene'
     static credit = 'CreditScene'
   }
 
   static texts = class Texts {
     static version = 'v0.5'
+    static player1 = 'Player 1'
+    static player1 = 'Player 2'
+    static movement = 'Movimiento'
+    static habilities = 'Habilidades'
   }
 
   static events = class EventsStates {
