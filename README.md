@@ -3,10 +3,10 @@
 ## 2020
 
 First version of the game, added on first commit
-![alt text](src/gameImages/img1.jpg)
-![alt text](src/gameImages/img2.jpg)
-![alt text](src/gameImages/img3.jpg)
-![alt text](src/gameImages/img4.jpg)
+![alt text](src/assets/gameImages/img1.jpg)
+![alt text](src/assets/gameImages/img2.jpg)
+![alt text](src/assets/gameImages/img3.jpg)
+![alt text](src/assets/gameImages/img4.jpg)
 
 ## 2022
 
