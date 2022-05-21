@@ -8,11 +8,7 @@ export class MenuScene extends BaseScene {
 
   create() {
     this.lights.enable().setAmbientColor(Constants.colors.lightGray)
-    this.music = this.sound.add(Constants.assets.audios.title, {
-      loop: true,
-      volume: 0.005,
-    })
-    this.music.play()
+    this.playMusic(Constants.assets.audios.title, 0.005, true)
     this.setDefaultBackground()
     this.textos()
     this.botones()
@@ -36,7 +32,7 @@ export class MenuScene extends BaseScene {
       300,
       Constants.assets.images.button1,
       1.5,
-      this.music.stop,
+      true,
       Constants.scenes.game
     )
     this.addButton(
@@ -44,7 +40,7 @@ export class MenuScene extends BaseScene {
       368,
       Constants.assets.images.button2,
       1.4,
-      this.music.stop,
+      true,
       Constants.scenes.instructions
     )
     this.addButton(
@@ -52,7 +48,7 @@ export class MenuScene extends BaseScene {
       443,
       Constants.assets.images.button3,
       1.4,
-      this.music.stop,
+      true,
       Constants.scenes.credit
     )
   }

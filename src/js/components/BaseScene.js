@@ -114,7 +114,7 @@ export class BaseScene extends Phaser.Scene {
       .setPipeline(Constants.pipeline))
   }
 
-  addButton(x, y, image, depth, action = null, navigate = null) {
+  addButton(x, y, image, depth, stopMusic, navigate = null) {
     this.buttonSound = this.sound.add(Constants.assets.audios.button, {
       loop: false,
       volume: 0.3,
@@ -133,6 +133,9 @@ export class BaseScene extends Phaser.Scene {
       boton1.tint = Constants.colors.yellow
     })
     boton1.on(Constants.events.pointer.up, () => {
+      if (stopMusic) {
+        this.stopMusic()
+      }
       if (navigate != null) {
         this.scene.start(navigate)
       }
@@ -166,7 +169,7 @@ export class BaseScene extends Phaser.Scene {
     this.setBackground(Constants.assets.images.title, 0.68)
   }
 
-  addReturnButton() {
+  addReturnButton(stopMusic = false) {
     var botonVolver = this.add
       .image(70, 560, 'volver')
       .setDepth(2)
@@ -184,7 +187,22 @@ export class BaseScene extends Phaser.Scene {
       botonVolver.tint = Constants.colors.yellow
     })
     botonVolver.on(Constants.events.pointer.up, () => {
+      if (stopMusic) {
+        this.stopMusic()
+      }
       this.scene.start(Constants.scenes.menu)
     })
+  }
+
+  playMusic(music, volume, loop = false) {
+    this.music = this.sound.add(music, {
+      loop: loop,
+      volume: volume,
+    })
+    this.music.play()
+  }
+
+  stopMusic() {
+    this.music.stop()
   }
 }

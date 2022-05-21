@@ -34,6 +34,11 @@ export class Constants {
     static player1 = 'Player 2'
     static movement = 'Movimiento'
     static habilities = 'Habilidades'
+    static credits = 'Créditos'
+    static developer = 'Desarrollado por: Rafael Jaime Moreno'
+    static artist = 'Arte por: Matilde Jaime Moreno'
+    static musician = 'Música libre de copyright'
+    static thanks = 'Special thanks to you for playing'
   }
 
   static events = class EventsStates {

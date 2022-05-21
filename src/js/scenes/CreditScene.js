@@ -6,33 +6,30 @@ export class CreditScene extends BaseScene {
     super(Constants.scenes.credit)
   }
   create() {
-    // this.creditMusic = this.sound.add('creditMusic', {loop: true,volume: 0.3,})
-    // this.creditMusic.play()
-    this.addReturnButton()
+    this.playMusic(Constants.assets.audios.credit, 0.3, true)
+    this.addReturnButton(true)
     this.addTexts()
     this.addAnimations()
   }
 
   addTexts() {
-    this.creditsText = this.add.text(0, 0, 'Créditos', {
+    this.creditsText = this.add.text(0, 0, Constants.texts.credits, {
       fontSize: Constants.fonts.size32,
       fill: Constants.colors.white,
     })
-    this.centerText1 = this.add.text(
-      0,
-      0,
-      'Desarrollado por: Rafael Jaime Moreno',
-      { fontSize: Constants.fonts.size26, fill: Constants.colors.white }
-    )
-    this.centerText2 = this.add.text(0, 0, 'Arte por: Matilde Jaime Moreno', {
+    this.centerText1 = this.add.text(0, 0, Constants.texts.developer, {
       fontSize: Constants.fonts.size26,
       fill: Constants.colors.white,
     })
-    this.centerText3 = this.add.text(0, 0, 'Música libre de copyright', {
+    this.centerText2 = this.add.text(0, 0, Constants.texts.artist, {
       fontSize: Constants.fonts.size26,
       fill: Constants.colors.white,
     })
-    this.madeByText = this.add.text(0, 0, 'Special thanks to you for playing', {
+    this.centerText3 = this.add.text(0, 0, Constants.texts.musician, {
+      fontSize: Constants.fonts.size26,
+      fill: Constants.colors.white,
+    })
+    this.madeByText = this.add.text(0, 0, Constants.texts.thanks, {
       fontSize: Constants.fonts.size26,
       fill: Constants.colors.white,
     })
@@ -103,7 +100,7 @@ export class CreditScene extends BaseScene {
       completeDelay: 500,
       onComplete: function () {
         this.madeByTween.destroy
-        this.creditMusic.stop()
+        this.stopMusic()
         this.scene.start(Constants.scenes.menu)
       }.bind(this),
     })
