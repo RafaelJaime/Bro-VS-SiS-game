@@ -71,6 +71,30 @@ export class MenuScene extends BaseScene {
         this.madeByTween.destroy
       }.bind(this),
     })
+    this.madeByTween = this.tweens.add({
+      targets: this.player1,
+      y: 310,
+      ease: 'Power1',
+      duration: 2000,
+      delay: 750,
+      yoyo: true,
+      repeat: -1,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
+    this.madeByTween = this.tweens.add({
+      targets: this.player1,
+      x: 720,
+      ease: 'Power2',
+      duration: 2000,
+      delay: 750,
+      yoyo: true,
+      repeat: -1,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
 
     // P2
     this.player2 = this.add
@@ -85,6 +109,30 @@ export class MenuScene extends BaseScene {
       ease: 'Power1',
       duration: 750,
       delay: 750,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
+    this.madeByTween = this.tweens.add({
+      targets: this.player2,
+      x: 120,
+      ease: 'Power1',
+      duration: 2000,
+      delay: 1500,
+      yoyo: true,
+      repeat: -1,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
+    this.madeByTween = this.tweens.add({
+      targets: this.player2,
+      y: 340,
+      ease: 'Power1',
+      duration: 2000,
+      delay: 1500,
+      yoyo: true,
+      repeat: -1,
       onComplete: function () {
         this.madeByTween.destroy
       }.bind(this),
