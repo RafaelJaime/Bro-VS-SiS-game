@@ -21,4 +21,4 @@ First version of the game, added on first commit
 - [ ] Re do instruction screen
 - [ ] Re do main menu screen
   - usando enumeraciones para poder añadir automaticamente más botones
-- [ ] Reorganizate code
+- [ x ] Reorganizate code
