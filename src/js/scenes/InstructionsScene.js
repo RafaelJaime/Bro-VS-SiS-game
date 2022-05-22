@@ -241,11 +241,59 @@ export class InstructionsScene extends BaseScene {
       }.bind(this),
     })
     this.madeByTween = this.tweens.add({
+      targets: this.player1,
+      y: 310,
+      ease: 'Power1',
+      duration: 2500,
+      delay: 750,
+      yoyo: true,
+      repeat: -1,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
+    this.madeByTween = this.tweens.add({
+      targets: this.player1,
+      x: 160,
+      ease: 'Power2',
+      duration: 2500,
+      delay: 750,
+      yoyo: true,
+      repeat: -1,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
+    this.madeByTween = this.tweens.add({
       targets: this.player2,
       x: 700,
       ease: 'Power1',
       duration: 750,
       delay: 750,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
+    this.madeByTween = this.tweens.add({
+      targets: this.player2,
+      x: 710,
+      ease: 'Power1',
+      duration: 3000,
+      delay: 1500,
+      yoyo: true,
+      repeat: -1,
+      onComplete: function () {
+        this.madeByTween.destroy
+      }.bind(this),
+    })
+    this.madeByTween = this.tweens.add({
+      targets: this.player2,
+      y: 340,
+      ease: 'Power1',
+      duration: 3000,
+      delay: 1500,
+      yoyo: true,
+      repeat: -1,
       onComplete: function () {
         this.madeByTween.destroy
       }.bind(this),
