@@ -9,12 +9,56 @@ export class InstructionsScene extends BaseScene {
     this.addReturnButton()
     this.setDefaultBackground()
     // Imagen central
-    this.add.image(400, 400, Constants.assets.images.center).setScale(0.8)
+    //this.add.image(400, 400, Constants.assets.images.center).setScale(0.8)
     // Texto central
-    this.texto()
+    //this.texto()
     // Personajes laterales y animacion
     this.lights.enable().setAmbientColor(Constants.colors.darkGray)
     this.personajes()
+    // Jugador 1 = Cuadrado y cuadraditos
+    // this.add.rectangle(330, 330, 160, 160, Constants.colors.white).setDepth(4)
+    this.generateRectangles(270, 266, 0x6666ff, 0x4242a3)
+
+    // Jugador 2 = Cuadrado y cuadraditos
+    // this.add.rectangle(520, 500, 160, 160, Constants.colors.white).setDepth(4)
+    this.generateRectangles(440, 456, 0xff5733, 0xc70039)
+  }
+
+  generateRectangles(row, column, color1, color2) {
+    let row1 = row + 40 * 0
+    let row2 = row1 + 40 * 1
+    let column1 = column + 32 * 0
+    let column2 = column1 + 32 * 1
+    let column3 = column1 + 32 * 2
+    let column4 = column1 + 32 * 3
+    let column5 = column1 + 32 * 4
+    this.add.rectangle(column1, row1, 32, 40, color1).setDepth(4)
+    this.add.rectangle(column2, row1, 32, 40, color2).setDepth(4)
+    this.addText(
+      column2 - 12,
+      row1 - 10,
+      'W',
+      Constants.fonts.secondaryBold25,
+      Constants.colors.black,
+      5
+    )
+    // https://www.htmlsymbols.xyz/arrow-symbols/sans-serif-arrows
+    this.add.rectangle(column3, row1, 32, 40, color1).setDepth(4)
+    this.add.rectangle(column4, row1, 32, 40, color2).setDepth(4)
+    this.add.rectangle(column5, row1, 32, 40, color1).setDepth(4)
+    this.add.rectangle(column1, row2, 32, 40, color2).setDepth(4)
+    this.addText(
+      column1 - 8,
+      row2 - 10,
+      'A',
+      Constants.fonts.secondaryBold25,
+      Constants.colors.black,
+      5
+    )
+    this.add.rectangle(column2, row2, 32, 40, color1).setDepth(4)
+    this.add.rectangle(column3, row2, 32, 40, color2).setDepth(4)
+    this.add.rectangle(column4, row2, 32, 40, color1).setDepth(4)
+    this.add.rectangle(column5, row2, 32, 40, color2).setDepth(4)
   }
 
   texto() {
