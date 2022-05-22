@@ -15,14 +15,32 @@ export class InstructionsScene extends BaseScene {
     // Personajes laterales y animacion
     this.lights.enable().setAmbientColor(Constants.colors.darkGray)
     this.personajes()
+    this.addText(
+      280,
+      0,
+      Constants.texts.instructions,
+      Constants.fonts.secondaryBold50,
+      Constants.colors.black,
+      5
+    )
     // Jugador 1 = Cuadrado y cuadraditos
     // this.add.rectangle(330, 330, 160, 160, Constants.colors.white).setDepth(4)
-    this.generateRectangles(270, 266, 0x6666ff, 0x4242a3)
+    this.generateRectangles(
+      270,
+      266,
+      Constants.colors.lightBlue,
+      Constants.colors.darkBlue
+    )
     this.addP1Text()
 
     // Jugador 2 = Cuadrado y cuadraditos
     // this.add.rectangle(520, 500, 160, 160, Constants.colors.white).setDepth(4)
-    this.generateRectangles(440, 456, 0xff5733, 0xc70039)
+    this.generateRectangles(
+      440,
+      456,
+      Constants.colors.lightRed,
+      Constants.colors.darkRed
+    )
     this.addP2Text()
   }
 

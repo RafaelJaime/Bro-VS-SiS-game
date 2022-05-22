@@ -18,6 +18,10 @@ export class Constants {
     static darkGray = 0xaaaaaa
     static yellow = 0xffffff00
     static red = 0xff0000
+    static lightBlue = 0x6666ff
+    static darkBlue = 0x4242a3
+    static lightRed = 0xff5733
+    static darkRed = 0xc70039
   }
 
   static scenes = class Scenes {
@@ -39,6 +43,7 @@ export class Constants {
     static artist = 'Arte por: Matilde Jaime Moreno'
     static musician = 'Música libre de copyright'
     static thanks = 'Special thanks to you for playing'
+    static instructions = 'Instrucciones'
   }
 
   static events = class EventsStates {
