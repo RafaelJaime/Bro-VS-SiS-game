@@ -1,8 +1,9 @@
-export class GameScene extends Phaser.Scene {
+import { BaseScene } from '../components/BaseScene.js'
+import { Constants } from '../components/Constants.js'
+
+export class GameScene extends BaseScene {
   constructor() {
-    super({
-      key: 'GameScene',
-    })
+    super(Constants.scenes.game)
   }
   create() {
     this.cursors = this.input.keyboard.createCursorKeys()
@@ -10,7 +11,11 @@ export class GameScene extends Phaser.Scene {
       'W,A,S,D,J,K, ' + Phaser.Input.Keyboard.KeyCodes.SPACE
     )
     this.fondos()
-    this.flat = this.physics.add.staticImage(600, 600, 'plataforma')
+    this.flat = this.physics.add.staticImage(
+      600,
+      600,
+      Constants.assets.images.platform
+    )
     this.vida()
     this.contador()
     this.musica()
@@ -28,12 +33,21 @@ export class GameScene extends Phaser.Scene {
     this.myCam.setBounds(0, 0, 1400, 0)
     this.myCam.startFollow(this.cameraFollow)
   }
+
   vida() {
-    this.backgroundBar = this.add.image(110, 35, 'red-bar').setScrollFactor(0)
-    this.healthBar1 = this.add.image(110, 35, 'green-bar').setScrollFactor(0)
+    this.backgroundBar = this.add
+      .image(110, 35, Constants.assets.images.redBar)
+      .setScrollFactor(0)
+    this.healthBar1 = this.add
+      .image(110, 35, Constants.assets.images.greenBar)
+      .setScrollFactor(0)
     this.healthBar1.tint = 0xffa500
-    this.backgroundBar2 = this.add.image(690, 35, 'red-bar').setScrollFactor(0)
-    this.healthBar2 = this.add.image(690, 35, 'green-bar').setScrollFactor(0)
+    this.backgroundBar2 = this.add
+      .image(690, 35, Constants.assets.images.redBar)
+      .setScrollFactor(0)
+    this.healthBar2 = this.add
+      .image(690, 35, Constants.assets.images.greenBar)
+      .setScrollFactor(0)
     this.healthBar2.tint = 0x0000ff
     this.healthLabel = this.add
       .text(10, 5, 'Player 1', {
@@ -83,12 +97,12 @@ export class GameScene extends Phaser.Scene {
       .setScale(0.68)
   }
   musica() {
-    this.music = this.sound.add('bomba', {
+    this.music = this.sound.add(Constants.assets.audios.bomb, {
       loop: true,
       volume: 0.3,
     })
     this.music.play()
-    this.buttonSound = this.sound.add('boton', {
+    this.buttonSound = this.sound.add(Constants.assets.audios.button, {
       loop: false,
       volume: 0.3,
     })
