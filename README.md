@@ -20,7 +20,6 @@ First version of the game, added on first commit
 - [ ] New characters
 - [ ] New character select screen
 - [x] Re do instruction screen
-- [ ] Re do main menu screen
-  - usando enumeraciones para poder añadir automaticamente más botones
-  - Añadir movimiento a las figuras quietas
+- [x] Re do main menu screen
+  - Should return here
 - [x] Reorganizate code
