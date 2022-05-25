@@ -33,7 +33,7 @@ export class MenuScene extends BaseScene {
       Constants.assets.images.button1,
       1.5,
       true,
-      Constants.scenes.game
+      /* Constants.scenes.game */ 'NewGameScene'
     )
     this.addButton(
       430,
