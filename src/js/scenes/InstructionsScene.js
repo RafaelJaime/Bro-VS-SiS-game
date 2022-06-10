@@ -8,10 +8,6 @@ export class InstructionsScene extends BaseScene {
   create() {
     this.addReturnButton()
     this.setDefaultBackground()
-    // Imagen central
-    //this.add.image(400, 400, Constants.assets.images.center).setScale(0.8)
-    // Texto central
-    //this.texto()
     // Personajes laterales y animacion
     this.lights.enable().setAmbientColor(Constants.colors.darkGray)
     this.personajes()
@@ -24,7 +20,6 @@ export class InstructionsScene extends BaseScene {
       5
     )
     // Jugador 1 = Cuadrado y cuadraditos
-    // this.add.rectangle(330, 330, 160, 160, Constants.colors.white).setDepth(4)
     this.generateRectangles(
       270,
       266,
@@ -34,7 +29,6 @@ export class InstructionsScene extends BaseScene {
     this.addP1Text()
 
     // Jugador 2 = Cuadrado y cuadraditos
-    // this.add.rectangle(520, 500, 160, 160, Constants.colors.white).setDepth(4)
     this.generateRectangles(
       440,
       456,
@@ -224,12 +218,12 @@ export class InstructionsScene extends BaseScene {
       .setPipeline(Constants.pipeline)
       .setScale(0.2)
     this.player2 = this.add
-      .sprite(1000, 350, Constants.assets.images.player22)
+      .sprite(Constants.game.width + 200, 350, Constants.assets.images.player22)
       .setDepth(1)
       .setPipeline(Constants.pipeline)
       .setScale(0.18)
-    this.addLight(0, 600, 800, 23 * 10, 10)
-    this.addLight(800, 600, 800, 1 * 10, 10)
+    this.addLight(0, Constants.game.height, 800, 23 * 10, 10)
+    this.addLight(Constants.game.width, Constants.game.height, 800, 1 * 10, 10)
     this.madeByTween = this.tweens.add({
       targets: this.player1,
       x: 150,
@@ -266,7 +260,7 @@ export class InstructionsScene extends BaseScene {
     })
     this.madeByTween = this.tweens.add({
       targets: this.player2,
-      x: 700,
+      x: Constants.game.width - 100,
       ease: 'Power1',
       duration: 750,
       delay: 750,
@@ -276,7 +270,7 @@ export class InstructionsScene extends BaseScene {
     })
     this.madeByTween = this.tweens.add({
       targets: this.player2,
-      x: 710,
+      x: Constants.game.width - 90,
       ease: 'Power1',
       duration: 8000,
       delay: 1500,

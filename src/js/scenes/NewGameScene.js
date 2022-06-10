@@ -10,17 +10,18 @@ class Player {
 
 export class NewGameScene extends GameBaseScene {
   constructor() {
-    super('NewGameScene')
+    super(Constants.scenes.newGame)
   }
   create() {
     super.create()
     this.background()
     this.camera()
+    this.playersHealthBars()
 
-    //Ground
+    // Flat
     this.flat = this.physics.add.staticImage(
-      600,
-      600,
+      Constants.game.width / 2,
+      Constants.game.height,
       Constants.assets.images.platform
     )
   }
@@ -51,6 +52,16 @@ export class NewGameScene extends GameBaseScene {
     this.myCam = this.cameras.main
     this.myCam.setBounds(0, 0, 1400, 0)
     this.myCam.startFollow(this.cameraFollow)
+  }
+
+  playersHealthBars() {
+    this.setHealthBar('Player 1', 170, 50, Constants.colors.sisterRed)
+    this.setHealthBar(
+      'Player 2',
+      Constants.game.width - 170,
+      50,
+      Constants.colors.brotherBlue
+    )
   }
 
   musica() {

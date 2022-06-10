@@ -86,12 +86,22 @@ export class BaseScene extends Phaser.Scene {
     var progressBox = this.add.graphics()
     progressBox
       .fillStyle(Constants.colors.gray, 0.8)
-      .fillRect(240, 270, 320, 50)
+      .fillRect(
+        Constants.game.width / 2 - 160,
+        Constants.game.height / 2 - 30,
+        320,
+        50
+      )
     this.load.on(Constants.events.progress, function (value) {
       progressBar
         .clear()
         .fillStyle(Constants.colors.black, 1)
-        .fillRect(250, 280, 300 * value, 30)
+        .fillRect(
+          Constants.game.width / 2 - 150,
+          Constants.game.height / 2 - 20,
+          300 * value,
+          30
+        )
     })
     this.load.on(Constants.events.complete, function () {
       progressBar.destroy()
@@ -173,7 +183,7 @@ export class BaseScene extends Phaser.Scene {
 
   addReturnButton(stopMusic = false) {
     var botonVolver = this.add
-      .image(70, 560, 'volver')
+      .image(70, Constants.game.height - 40, 'volver')
       .setDepth(2)
       .setScale(0.04)
       .setInteractive()

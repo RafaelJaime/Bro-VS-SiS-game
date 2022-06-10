@@ -12,16 +12,14 @@ export class GameBaseScene extends Phaser.Scene {
 
   create() {
     this.parallaxBackgrounds = this.add.group()
+    this.healthBars = this.add.group()
     this.returnButton()
     this.retryButton()
     this.addDetaultParallaxBackground()
   }
 
   update() {
-    for (let i = 0; i < this.parallaxBackgrounds.getLength(); i++) {
-      const parallaxBackground = this.parallaxBackgrounds.getChildren()[i]
-      parallaxBackground.tilePositionX += 0.5
-    }
+    this.updateParallaxBackgrounds()
   }
 
   // Public methods
@@ -36,6 +34,13 @@ export class GameBaseScene extends Phaser.Scene {
 
   addParallaxBackground(background) {
     this.parallaxBackgrounds.add(background)
+  }
+
+  updateParallaxBackgrounds() {
+    for (let i = 0; i < this.parallaxBackgrounds.getLength(); i++) {
+      const parallaxBackground = this.parallaxBackgrounds.getChildren()[i]
+      parallaxBackground.tilePositionX += 0.5
+    }
   }
 
   // Private methods
@@ -84,9 +89,33 @@ export class GameBaseScene extends Phaser.Scene {
   addDetaultParallaxBackground() {
     this.addParallaxBackground(
       this.add
-        .tileSprite(0, 0, 2000, 1000, 'title2')
+        .tileSprite(0, 0, 2000, 1000, Constants.assets.images.title2)
         .setOrigin(0, 0)
         .setScale(0.68)
     )
+  }
+
+  setHealthBar(text = 'Player', x, y, color) {
+    this.add
+      .rectangle(x, y - 10, 340, 80, color)
+      .setAlpha(0.3)
+      .setStrokeStyle(10, color, 0.5)
+    this.add.rectangle(x, y - 10, 340, 80, Constants.colors.white).setAlpha(0.3)
+    this.backgroundHealthBar = this.add
+      .image(x, y, Constants.assets.images.redBar)
+      .setScrollFactor(0)
+      .setScale(1.5)
+    this.healthBars.add(this.add.rectangle(x, y, 300, 30, color))
+    this.healthLabel = this.add
+      .text(x - 150, y - 40, text, {
+        fontSize: '20px',
+        fill: Constants.colors.black,
+      })
+      .setScrollFactor(0)
+  }
+
+  udpateHealthBar(position, take = 10, of = 100) {
+    this.healthBars.getChildren()[position].width -= (300 * take) / of
+    console.log(this.healthBars.getChildren())
   }
 }

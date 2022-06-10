@@ -18,6 +18,7 @@ First version of the game, added on first commit
   - [ ] Juego de plataformas, juego de esquivar objetos y terminar un mapa
   - [ ] Animación al terminar el juego, con los dos personajes muriendo, permitiéndote volver atrás
   - [ ] Combos
+  - [ ] 3, 2, 1 Fight con animaciones
 - [ ] New characters
 - [ ] New character select screen
 - [x] Re do instruction screen

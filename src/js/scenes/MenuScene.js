@@ -16,10 +16,15 @@ export class MenuScene extends BaseScene {
   }
 
   textos() {
-    this.addImage(400, 130, Constants.assets.images.front, 1)
-    this.addLight(430, 130, 200, 240, 1)
+    this.addImage(
+      Constants.game.width / 2,
+      130,
+      Constants.assets.images.front,
+      1
+    )
+    this.addLight(Constants.game.width / 2 + 30, 130, 200, 240, 1)
     this.addText(
-      700,
+      Constants.game.width - 100,
       570,
       Constants.texts.version,
       Constants.fonts.primaryBold25
@@ -28,24 +33,24 @@ export class MenuScene extends BaseScene {
 
   botones() {
     this.addButton(
-      400,
-      300,
+      Constants.game.width / 2,
+      Constants.game.height / 2,
       Constants.assets.images.button1,
       1.5,
       true,
-      /* Constants.scenes.game cambiar esto*/ 'NewGameScene'
+      Constants.scenes.newGame
     )
     this.addButton(
-      430,
-      368,
+      Constants.game.width / 2 + 30,
+      Constants.game.height / 2 + 68,
       Constants.assets.images.button2,
       1.4,
       true,
       Constants.scenes.instructions
     )
     this.addButton(
-      378,
-      443,
+      Constants.game.width / 2 - 22,
+      Constants.game.height / 2 + 143,
       Constants.assets.images.button3,
       1.4,
       true,
@@ -60,10 +65,16 @@ export class MenuScene extends BaseScene {
       .setDepth(1)
       .setScale(0.18)
       .setPipeline(Constants.pipeline)
-    this.addLight(1000, 600, 800, 20 * 10, 20)
+    this.addLight(
+      Constants.game.width + 200,
+      Constants.game.height,
+      800,
+      20 * 10,
+      20
+    )
     this.madeByTween = this.tweens.add({
       targets: this.player1,
-      x: 700,
+      x: Constants.game.width - 100,
       ease: 'Power1',
       duration: 750,
       delay: 0,
@@ -73,7 +84,7 @@ export class MenuScene extends BaseScene {
     })
     this.madeByTween = this.tweens.add({
       targets: this.player1,
-      y: 310,
+      y: Constants.game.height / 2 + 10,
       ease: 'Power1',
       duration: 8000,
       delay: 750,
@@ -85,7 +96,7 @@ export class MenuScene extends BaseScene {
     })
     this.madeByTween = this.tweens.add({
       targets: this.player1,
-      x: 720,
+      x: Constants.game.width - 80,
       ease: 'Power2',
       duration: 8000,
       delay: 750,
@@ -102,7 +113,7 @@ export class MenuScene extends BaseScene {
       .setDepth(1)
       .setPipeline(Constants.pipeline)
       .setScale(0.18)
-    this.addLight(0, 600, 2000, 1 * 10, 5)
+    this.addLight(0, Constants.game.height, 2000, 1 * 10, 5)
     this.madeByTween = this.tweens.add({
       targets: this.player2,
       x: 100,
@@ -127,7 +138,7 @@ export class MenuScene extends BaseScene {
     })
     this.madeByTween = this.tweens.add({
       targets: this.player2,
-      y: 340,
+      y: Constants.game.height / 2 + 40,
       ease: 'Power1',
       duration: 8000,
       delay: 1500,

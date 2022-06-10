@@ -1,6 +1,11 @@
 export class Constants {
   static pipeline = 'Light2D'
 
+  static game = class Game {
+    static width = 800
+    static height = 600
+  }
+
   static fonts = class Fonts {
     static primary20 = '20px monospace'
     static primary18 = '18px monospace'
@@ -12,7 +17,8 @@ export class Constants {
   }
 
   static colors = class Colors {
-    static white = '#fff'
+    static whiteString = '#fff'
+    static white = 0xffffff
     static black = 0xffffff
     static gray = 0x222222
     static lightGray = 0x555555
@@ -23,6 +29,8 @@ export class Constants {
     static darkBlue = 0x4242a3
     static lightRed = 0xff5733
     static darkRed = 0xc70039
+    static sisterRed = 0xe63c2e
+    static brotherBlue = 0x0000ff
   }
 
   static scenes = class Scenes {

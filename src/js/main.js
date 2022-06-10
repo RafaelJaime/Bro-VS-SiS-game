@@ -4,10 +4,12 @@ import { InstructionsScene } from './scenes/InstructionsScene.js'
 import { GameScene } from './scenes/GameScene.js'
 import { NewGameScene } from './scenes/NewGameScene.js'
 import { LoadScene } from './scenes/LoadScene.js'
+import { Constants } from './components/Constants.js'
+
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: Constants.game.width,
+  height: Constants.game.height,
   parent: 'output',
   scene: [
     LoadScene,
