@@ -10,7 +10,7 @@ export class LoadScene extends BaseScene {
     this.loadProgressBar()
   }
   create() {
-    this.scene.start('NewGameScene')
+    this.scene.start(Constants.scenes.newGame)
   }
   update() {}
 }

@@ -24,6 +24,7 @@ export class BaseScene extends Phaser.Scene {
   menuCreditInstructionsAssets() {
     this.load.image(Constants.assets.images.title, 'images/fondo_cocina.png')
     this.load.image(Constants.assets.images.title2, 'images/fondo_nubes.png')
+    this.load.image(Constants.assets.images.title3, 'images/cocina.png')
     this.load.image(Constants.assets.images.front, 'images/imagen_titulo.png')
     this.load.image(Constants.assets.images.button1, 'images/button1.png')
     this.load.image(Constants.assets.images.button2, 'images/button2.png')
@@ -167,6 +168,7 @@ export class BaseScene extends Phaser.Scene {
     )
     this.parallaxBackgroundIsActive = true
     this.setBackground(Constants.assets.images.title, 0.68)
+    this.setBackground(Constants.assets.images.title3, 0.68)
   }
 
   addReturnButton(stopMusic = false) {

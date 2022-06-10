@@ -10,6 +10,7 @@ export class Constants {
     static size32 = '32px'
     static size26 = '26px'
   }
+
   static colors = class Colors {
     static white = '#fff'
     static black = 0xffffff
@@ -28,6 +29,7 @@ export class Constants {
     static load = 'LoadScene'
     static menu = 'MenuScene'
     static game = 'GameScene'
+    static newGame = 'NewGameScene'
     static instructions = 'InstructionsScene'
     static credit = 'CreditScene'
   }
@@ -61,6 +63,7 @@ export class Constants {
     static images = class Images {
       static title = 'title'
       static title2 = 'title2'
+      static title3 = 'title3'
       static front = 'front'
       static button1 = 'button1'
       static button2 = 'button2'

@@ -17,6 +17,7 @@ First version of the game, added on first commit
   - Based on [JavaScript fighting game](https://www.youtube.com/watch?v=vyqbNFMDRGQ)
   - [ ] Juego de plataformas, juego de esquivar objetos y terminar un mapa
   - [ ] Animación al terminar el juego, con los dos personajes muriendo, permitiéndote volver atrás
+  - [ ] Combos
 - [ ] New characters
 - [ ] New character select screen
 - [x] Re do instruction screen
