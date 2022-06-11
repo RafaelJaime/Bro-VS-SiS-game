@@ -19,6 +19,7 @@ First version of the game, added on first commit
   - [ ] Animación al terminar el juego, con los dos personajes muriendo, permitiéndote volver atrás
   - [ ] Combos
   - [ ] 3, 2, 1 Fight con animaciones
+  - [ ] timer, últimos 10 segundos por 2 como clashroyal
 - [ ] New characters
 - [ ] New character select screen
 - [x] Re do instruction screen

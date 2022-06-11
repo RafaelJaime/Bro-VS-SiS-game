@@ -20,6 +20,23 @@ export class GameBaseScene extends Phaser.Scene {
 
   update() {
     this.updateParallaxBackgrounds()
+    if (this.timerIsActive) {
+      if (this.timedEvent.getRepeatCount() > 9) {
+        this.timerText.setText(this.timedEvent.getRepeatCount())
+      } else {
+        if (!this.delayChanged) {
+          this.timedEvent.delay =
+            Phaser.Math.Between(
+              0,
+              Constants.gameModes.twoVtwo.finalProbability
+            ) == 0
+              ? Constants.gameModes.twoVtwo.timeDelayFinalFast
+              : Constants.gameModes.twoVtwo.timeDelayFinalSlow
+          this.delayChanged = true
+        }
+        this.timerText.setText('0' + this.timedEvent.getRepeatCount())
+      }
+    }
   }
 
   // Public methods
@@ -41,6 +58,39 @@ export class GameBaseScene extends Phaser.Scene {
       const parallaxBackground = this.parallaxBackgrounds.getChildren()[i]
       parallaxBackground.tilePositionX += 0.5
     }
+  }
+
+  timer(
+    repeat = Constants.gameModes.twoVtwo.time,
+    delay = Constants.gameModes.twoVtwo.timeDelay
+  ) {
+    this.add
+      .rectangle(
+        Constants.game.width / 2,
+        40,
+        120,
+        80,
+        Constants.colors.blackHEX
+      )
+      .setAlpha(0.3)
+      .setStrokeStyle(10, Constants.colors.blackHEX, 0.5)
+    this.add
+      .rectangle(Constants.game.width / 2, 40, 120, 80, Constants.colors.white)
+      .setAlpha(0.3)
+    this.timerText = this.add
+      .text(Constants.game.width / 2 - 20, 15, '', {
+        fontSize: '40px bold',
+        fill: 'rgba(100,100,100, 1)',
+      })
+      .setScrollFactor(0)
+      .setStroke('rgba(100,100,100, 1)', 3)
+    this.timedEvent = this.time.addEvent({
+      delay: delay,
+      callback: this.onEvent,
+      callbackScope: this,
+      repeat: repeat,
+    })
+    this.timerIsActive = true
   }
 
   // Private methods

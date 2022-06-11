@@ -17,6 +17,7 @@ export class NewGameScene extends GameBaseScene {
     this.background()
     this.camera()
     this.playersHealthBars()
+    this.timer()
 
     // Flat
     this.flat = this.physics.add.staticImage(

@@ -6,6 +6,16 @@ export class Constants {
     static height = 600
   }
 
+  static gameModes = class GameMode {
+    static twoVtwo = class TwoVTwo {
+      static time = 99
+      static timeDelay = 1000
+      static timeDelayFinalFast = 500
+      static timeDelayFinalSlow = 1000
+      static finalProbability = 9
+    }
+  }
+
   static fonts = class Fonts {
     static primary20 = '20px monospace'
     static primary18 = '18px monospace'
@@ -20,6 +30,7 @@ export class Constants {
     static whiteString = '#fff'
     static white = 0xffffff
     static black = 0xffffff
+    static blackHEX = 0x000000
     static gray = 0x222222
     static lightGray = 0x555555
     static darkGray = 0xaaaaaa
