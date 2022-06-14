@@ -4,6 +4,12 @@ export class Constants {
   static game = class Game {
     static width = 800
     static height = 600
+    static arcadeEngine = 'arcade'
+    static matterEngine = 'matter'
+    static debug = true
+    static debugShowBody = false
+    static debugShowStaticBody = false
+    static debugShowVelocity = false
   }
 
   static gameModes = class GameMode {

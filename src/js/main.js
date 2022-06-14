@@ -5,6 +5,7 @@ import { GameScene } from './scenes/GameScene.js'
 import { NewGameScene } from './scenes/NewGameScene.js'
 import { LoadScene } from './scenes/LoadScene.js'
 import { Constants } from './components/Constants.js'
+import { pruebaScene } from './scenes/prueba.js'
 
 const config = {
   type: Phaser.AUTO,
@@ -20,16 +21,16 @@ const config = {
     NewGameScene,
   ],
   physics: {
-    default: 'arcade',
+    default: Constants.game.arcadeEngine,
     arcade: {
       width: 1400,
       checkCollision: {
         up: false,
       },
-      debug: false,
-      debugShowBody: false,
-      debugShowStaticBody: false,
-      debugShowVelocity: false,
+      debug: Constants.game.debug,
+      debugShowBody: Constants.game.debugShowBody,
+      debugShowStaticBody: Constants.game.debugShowStaticBody,
+      debugShowVelocity: Constants.game.debugShowVelocity,
     },
   },
 }
