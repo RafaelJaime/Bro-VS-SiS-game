@@ -63,7 +63,6 @@ export class BaseScene extends Phaser.Scene {
       Constants.assets.images.platform,
       'images/plataformacuadrados.png'
     )
-    this.load.image(Constants.assets.images.greenBar, 'images/green-bar.png')
     this.load.image(Constants.assets.images.redBar, 'images/red-bar.png')
     this.load.spritesheet(Constants.assets.images.rafael, 'images/rafael.png', {
       frameWidth: 1492,

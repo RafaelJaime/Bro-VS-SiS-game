@@ -105,7 +105,6 @@ export class Constants {
       static jkl2 = 'jkl2'
       static center = 'center'
       static platform = 'platform'
-      static greenBar = 'greenBar'
       static redBar = 'redBar'
       static rafael = 'rafael'
       static matilde = 'matilde'
