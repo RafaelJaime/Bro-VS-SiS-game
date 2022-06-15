@@ -4,11 +4,6 @@ Game made using [Phaser](https://phaser.io) v3.50.1:
 
 ## 2022
 
-- [Phaser](https://phaser.io) - Phaser is a 2D game framework.
-- [FreeTexturePacker](http://free-tex-packer.com/) - An open source tool that allows you to pack multiple images into one atlas for you games or sites.
-- [GIMP](https://www.gimp.org) - Free and open-source raster graphics editor.
-- [Visual Studio Code](https://code.visualstudio.com/) - Source-code editor.
-
 ### Upgrade game:
 
 - [ ] Upgrade gameplay
@@ -26,6 +21,11 @@ Game made using [Phaser](https://phaser.io) v3.50.1:
 - [x] Reorganizate code
 
 ### Open Source Tools
+
+- [Phaser](https://phaser.io) - Phaser is a 2D game framework.
+- [FreeTexturePacker](http://free-tex-packer.com/) - An open source tool that allows you to pack multiple images into one atlas for you games or sites.
+- [GIMP](https://www.gimp.org) - Free and open-source raster graphics editor.
+- [Visual Studio Code](https://code.visualstudio.com/) - Source-code editor.
 
 ## 2020 - 2021
 
