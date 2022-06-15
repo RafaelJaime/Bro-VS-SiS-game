@@ -7,7 +7,7 @@ export class Constants {
     static arcadeEngine = 'arcade'
     static matterEngine = 'matter'
     static debug = true
-    static debugShowBody = false
+    static debugShowBody = true
     static debugShowStaticBody = false
     static debugShowVelocity = false
   }

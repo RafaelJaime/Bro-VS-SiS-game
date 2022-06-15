@@ -18,6 +18,22 @@ export class NewGameScene extends GameBaseScene {
     this.camera()
     this.playersHealthBars()
     this.timer()
+    this.anims.create({
+      key: 'idle',
+      frames: this.anims.generateFrameNames('matilde', {
+        prefix: 'idle/frame',
+        start: 0,
+        end: 5,
+        zeroPad: 4,
+      }),
+      frameRate: 8,
+      repeat: -1,
+    })
+    var lancelot = this.add.sprite(500, 536)
+
+    lancelot.setOrigin(0.5, 1)
+    lancelot.setScale(8)
+    lancelot.play('idle')
 
     // Flat
     this.flat = this.physics.add.staticImage(
