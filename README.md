@@ -7,7 +7,7 @@ Game made using [Phaser](https://phaser.io) v3.50.1:
 ### Upgrade game:
 
 - [ ] Upgrade gameplay
-  - Based on [JavaScript fighting game](https://www.youtube.com/watch?v=vyqbNFMDRGQ)
+  - Based on [JavaScript fighting game](https://www.youtube.com/watch?v=vyqbNFMDRGQ), [Phaser fighting game](https://github.com/jamaalsawyerd/game-jam-2020)
   - [ ] Juego de plataformas, juego de esquivar objetos y terminar un mapa
   - [ ] Animación al terminar el juego, con los dos personajes muriendo, permitiéndote volver atrás
   - [ ] Combos
