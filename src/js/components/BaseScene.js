@@ -76,11 +76,6 @@ export class BaseScene extends Phaser.Scene {
         frameHeight: 1724,
       }
     )
-    this.load.spritesheet(
-      'matilde2',
-      'images/matilde.png',
-      'images/matilde-final.json'
-    )
     this.load.image(Constants.assets.images.bluebeam, 'images/bluebeam.png')
     this.load.image(Constants.assets.images.orangebeam, 'images/orangebeam.png')
   }

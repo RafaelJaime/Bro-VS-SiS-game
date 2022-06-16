@@ -13,7 +13,6 @@ const config = {
   height: Constants.game.height,
   parent: 'output',
   scene: [
-    pruebaScene,
     LoadScene,
     MenuScene,
     GameScene,

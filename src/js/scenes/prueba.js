@@ -54,20 +54,34 @@ export class pruebaScene extends Phaser.Scene {
 
     this.anims.create({
       key: 'idle',
-      frames: [
-        { frame: 'r_001', key: 'matilde2' },
-        { frame: 'r_002', key: 'matilde2' },
-        { frame: 'r_003', key: 'matilde2' },
-        { frame: 'r_004', key: 'matilde2' },
-      ],
-      /*frames: this.anims.generateFrameNames('matilde2', {
+      frames: this.anims.generateFrameNames('matilde2', {
         prefix: 'r_',
         start: 1,
-        end: 13,
+        end: 2,
         zeroPad: 3,
-      }),*/
+      }),
       frameRate: 4,
       repeat: -1,
+    })
+    this.anims.create({
+      key: 'shoot',
+      frames: this.anims.generateFrameNames('matilde2', {
+        prefix: 'r_',
+        start: 5,
+        end: 6,
+        zeroPad: 3,
+      }),
+      frameRate: 8,
+    })
+    this.anims.create({
+      key: 'kick',
+      frames: this.anims.generateFrameNames('matilde2', {
+        prefix: 'r_',
+        start: 7,
+        end: 8,
+        zeroPad: 3,
+      }),
+      frameRate: 8,
     })
     console.log(
       this.anims.generateFrameNames('matilde2', {
@@ -77,7 +91,6 @@ export class pruebaScene extends Phaser.Scene {
         zeroPad: 3,
       })
     )
-    console.log(Phaser.VERSION)
     var lancelot = this.physics.add
       .sprite(300, 336)
       .setOrigin(0.5, 1)
@@ -95,16 +108,29 @@ export class pruebaScene extends Phaser.Scene {
       }
     )
 
-    /*this.input.on(
+    this.player = this.physics.add
+      .sprite(100, 100, 'matilde2', 'r_001')
+      .setScale(0.1)
+      .setCollideWorldBounds(true)
+      .play('idle')
+    this.player.body.setGravityY(1000).updateFromGameObject()
+
+    this.input.on(
       'pointerdown',
       function () {
+        this.player.play('kick', true).on('animationcomplete', () => {
+          this.player.anims.play('idle', true)
+        })
         if (lancelot.anims.getName() === 'idle') {
           lancelot.playAfterRepeat('guardStart')
           lancelot.chain(['guard', 'guardEnd', 'idle'])
         }
       },
       this
-    )*/
+    )
   }
   update() {}
+  doSomething() {
+    this.player.play('idle')
+  }
 }
