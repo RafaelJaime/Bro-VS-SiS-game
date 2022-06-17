@@ -47,10 +47,6 @@ export class BaseScene extends Phaser.Scene {
       'images/Ilustracion_r2.png'
     )
     this.load.image(Constants.assets.images.volver, 'images/button4.png')
-    this.load.image(Constants.assets.images.wasd1, 'images/wasd1.png')
-    this.load.image(Constants.assets.images.wasd2, 'images/wasd2.png')
-    this.load.image(Constants.assets.images.jkl1, 'images/jkl.png')
-    this.load.image(Constants.assets.images.jkl2, 'images/jkl2.png')
     this.load.image(Constants.assets.images.center, 'images/caja-pizza.png')
     this.load.audio(Constants.assets.audios.title, 'audios/The Mystic.mp3')
     this.load.audio(Constants.assets.audios.credit, 'audios/creditMusic.mp3')

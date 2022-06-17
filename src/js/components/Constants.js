@@ -99,10 +99,6 @@ export class Constants {
       static player22 = 'player22'
       static player12 = 'player12'
       static volver = 'volver'
-      static wasd1 = 'wasd1'
-      static wasd2 = 'wasd2'
-      static jkl1 = 'jkl1'
-      static jkl2 = 'jkl2'
       static center = 'center'
       static platform = 'platform'
       static redBar = 'redBar'
@@ -118,5 +114,12 @@ export class Constants {
       static credit = 'credit'
       static button = 'button'
     }
+  }
+}
+
+export class Player {
+  constructor(name, color) {
+    this.name = name
+    this.color = color
   }
 }
