@@ -4,6 +4,7 @@ import { InstructionsScene } from './scenes/InstructionsScene.js'
 import { GameScene } from './scenes/GameScene.js'
 import { NewGameScene } from './scenes/NewGameScene.js'
 import { LoadScene } from './scenes/LoadScene.js'
+import { CharacterSelectScene } from './scenes/CharacterSelectScene.js'
 import { Constants } from './components/Constants.js'
 import { pruebaScene } from './scenes/prueba.js'
 
@@ -19,6 +20,7 @@ const config = {
     InstructionsScene,
     CreditScene,
     NewGameScene,
+    CharacterSelectScene,
   ],
   physics: {
     default: Constants.game.arcadeEngine,

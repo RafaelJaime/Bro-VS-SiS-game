@@ -57,6 +57,7 @@ export class Constants {
     static newGame = 'NewGameScene'
     static instructions = 'InstructionsScene'
     static credit = 'CreditScene'
+    static characterSelect = 'CharacterSelectScene'
   }
 
   static texts = class Texts {
@@ -99,7 +100,6 @@ export class Constants {
       static player22 = 'player22'
       static player12 = 'player12'
       static volver = 'volver'
-      static center = 'center'
       static platform = 'platform'
       static redBar = 'redBar'
       static rafael = 'rafael'
