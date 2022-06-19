@@ -38,7 +38,8 @@ export class MenuScene extends BaseScene {
       Constants.assets.images.button1,
       1.5,
       true,
-      Constants.scenes.newGame
+      false,
+      Constants.scenes.characterSelect
     )
     this.addButton(
       Constants.game.width / 2 + 30,
@@ -46,6 +47,7 @@ export class MenuScene extends BaseScene {
       Constants.assets.images.button2,
       1.4,
       true,
+      false,
       Constants.scenes.instructions
     )
     this.addButton(
@@ -53,6 +55,7 @@ export class MenuScene extends BaseScene {
       Constants.game.height / 2 + 143,
       Constants.assets.images.button3,
       1.4,
+      true,
       true,
       Constants.scenes.credit
     )

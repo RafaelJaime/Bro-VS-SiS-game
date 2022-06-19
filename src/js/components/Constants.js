@@ -62,6 +62,8 @@ export class Constants {
 
   static texts = class Texts {
     static version = 'v0.5'
+    static rafael = 'Rafael'
+    static matilde = 'Matilde'
     static player1 = 'Player 1'
     static player1 = 'Player 2'
     static movement = 'Movimiento'
@@ -95,6 +97,7 @@ export class Constants {
       static button2 = 'button2'
       static button3 = 'button3'
       static button5 = 'button5'
+      static button6 = 'button6'
       static player11 = 'player11'
       static player21 = 'player21'
       static player22 = 'player22'
@@ -104,6 +107,8 @@ export class Constants {
       static redBar = 'redBar'
       static rafael = 'rafael'
       static matilde = 'matilde'
+      static rafaelAtlas = 'rafaelAtlas'
+      static matildeAtlas = 'matildeAtlas'
       static bluebeam = 'bluebeam'
       static orangebeam = 'orangebeam'
     }
@@ -115,11 +120,93 @@ export class Constants {
       static button = 'button'
     }
   }
-}
 
-export class Player {
-  constructor(name, color) {
+  static numberRow = 2
+
+  static getCharacterArray() {
+    var characterArray = []
+    characterArray.push(
+      new PlayerObject(
+        Constants.texts.rafael,
+        Constants.colors.brotherBlue,
+        Constants.assets.images.rafaelAtlas,
+        'r_'
+      )
+    )
+    characterArray.push(
+      new PlayerObject(
+        Constants.texts.rafael,
+        Constants.colors.blackHEX,
+        Constants.assets.images.rafaelAtlas,
+        'r_'
+      )
+    )
+    characterArray.push(
+      new PlayerObject(
+        Constants.texts.matilde,
+        Constants.colors.yellow,
+        Constants.assets.images.matildeAtlas,
+        'm_'
+      )
+    )
+    characterArray.push(
+      new PlayerObject(
+        Constants.texts.matilde,
+        Constants.colors.sisterRed,
+        Constants.assets.images.matildeAtlas,
+        'm_'
+      )
+    )
+    return characterArray
+  }
+}
+export class PlayerObject {
+  constructor(name, color, image, prefix) {
     this.name = name
     this.color = color
+    this.image = image
+    this.prefix = prefix
+    this.defaultImage = this.prefix + '014'
   }
+}
+
+export class Player extends Phaser.GameObjects.Sprite {
+  static animation = class Animations {
+    static face = 'face'
+  }
+
+  constructor(scene, x, y, playerObject) {
+    super(scene, x, y, playerObject.image)
+    this.player = playerObject
+    scene.add.existing(this)
+    this.create()
+  }
+
+  preload() {}
+
+  create() {
+    this.anims.create({
+      key: 'idle',
+      frames: this.anims.generateFrameNames(this.player.image, {
+        prefix: this.player.prefix,
+        start: 1,
+        end: 2,
+        zeroPad: 3,
+      }),
+      frameRate: 4,
+      repeat: -1,
+    })
+    this.anims.create({
+      key: 'face',
+      frames: this.anims.generateFrameNames(this.player.image, {
+        prefix: this.player.prefix,
+        start: 14,
+        end: 14,
+        zeroPad: 3,
+      }),
+      frameRate: 4,
+    })
+  }
+
+  preUpdate(time, delta) {}
 }

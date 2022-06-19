@@ -1,4 +1,4 @@
-import { Constants } from '../components/Constants.js'
+import { Constants, Player } from '../components/Constants.js'
 
 export class BaseScene extends Phaser.Scene {
   constructor(key) {
@@ -11,7 +11,7 @@ export class BaseScene extends Phaser.Scene {
   create() {}
   update() {
     if (this.parallaxBackgroundIsActive) {
-      this.parallaxBackground.tilePositionX -= 1
+      this.parallaxBackground.tilePositionX -= 0.5
     }
   }
 
@@ -30,6 +30,7 @@ export class BaseScene extends Phaser.Scene {
     this.load.image(Constants.assets.images.button2, 'images/button2.png')
     this.load.image(Constants.assets.images.button3, 'images/button3.png')
     this.load.image(Constants.assets.images.button5, 'images/button5.png')
+    this.load.image(Constants.assets.images.button6, 'images/button6.png')
     this.load.image(
       Constants.assets.images.player21,
       'images/Ilustracion_m1.png'
@@ -45,6 +46,16 @@ export class BaseScene extends Phaser.Scene {
     this.load.image(
       Constants.assets.images.player12,
       'images/Ilustracion_r2.png'
+    )
+    this.load.atlas(
+      Constants.assets.images.rafaelAtlas,
+      'images/atlas/rafael.png',
+      'images/atlas/rafael.json'
+    )
+    this.load.atlas(
+      Constants.assets.images.matildeAtlas,
+      'images/atlas/matilde.png',
+      'images/atlas/matilde.json'
     )
     this.load.image(Constants.assets.images.volver, 'images/button4.png')
     this.load.audio(Constants.assets.audios.title, 'audios/The Mystic.mp3')
@@ -103,23 +114,32 @@ export class BaseScene extends Phaser.Scene {
     })
   }
 
-  setBackground(image, scale) {
+  setBackground(image, scale, pipeline = true) {
     this.add
       .tileSprite(0, 0, 2000, 1000, image)
       .setOrigin(0, 0)
       .setScale(scale)
-      .setPipeline(Constants.pipeline)
+      .setPipeline(pipeline ? Constants.pipeline : null)
   }
 
-  setParallaxBackground(image, scale) {
+  setParallaxBackground(image, scale, pipeline = true) {
     return (this.parallaxBackground = this.add
-      .tileSprite(0, 0, 2000, 1000, image)
+      .tileSprite(0, 24, 2000, 1000, image)
       .setOrigin(0, 0)
       .setScale(scale)
-      .setPipeline(Constants.pipeline))
+      .setPipeline(pipeline ? Constants.pipeline : null)).setAlpha(0.6)
   }
 
-  addButton(x, y, image, depth, stopMusic, navigate = null) {
+  addButton(
+    x,
+    y,
+    image,
+    depth,
+    pipeline = true,
+    stopMusic,
+    navigate = null,
+    scale = 0.1
+  ) {
     this.buttonSound = this.sound.add(Constants.assets.audios.button, {
       loop: false,
       volume: 0.3,
@@ -127,9 +147,9 @@ export class BaseScene extends Phaser.Scene {
     var boton1 = this.add
       .image(x, y, image)
       .setDepth(depth)
-      .setScale(0.1)
-      .setPipeline(Constants.pipeline)
+      .setScale(scale)
       .setInteractive()
+      .setPipeline(pipeline ? Constants.pipeline : null)
     boton1.on(Constants.events.pointer.out, () => {
       boton1.clearTint()
     })
@@ -145,6 +165,7 @@ export class BaseScene extends Phaser.Scene {
         this.scene.start(navigate)
       }
     })
+    return boton1
   }
 
   addImage(x, y, image, depth = null) {
@@ -165,14 +186,15 @@ export class BaseScene extends Phaser.Scene {
       .setDepth(depth)
   }
 
-  setDefaultBackground() {
+  setDefaultBackground(pipeline = true) {
     this.parallaxBackground = this.setParallaxBackground(
       Constants.assets.images.title2,
-      0.68
+      0.68,
+      pipeline
     )
     this.parallaxBackgroundIsActive = true
-    this.setBackground(Constants.assets.images.title, 0.68)
-    this.setBackground(Constants.assets.images.title3, 0.68)
+    this.setBackground(Constants.assets.images.title, 0.68, pipeline)
+    this.setBackground(Constants.assets.images.title3, 0.68, pipeline)
   }
 
   addReturnButton(stopMusic = false) {
@@ -209,6 +231,6 @@ export class BaseScene extends Phaser.Scene {
   }
 
   stopMusic() {
-    this.music.stop()
+    this.game.sound.stopAll()
   }
 }

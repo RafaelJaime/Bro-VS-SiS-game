@@ -93,6 +93,30 @@ export class GameBaseScene extends Phaser.Scene {
     this.timerIsActive = true
   }
 
+  addReturnButton(stopMusic = false) {
+    var botonVolver = this.add
+      .image(70, Constants.game.height - 40, 'volver')
+      .setDepth(2)
+      .setScale(0.04)
+      .setInteractive()
+    this.buttonSound = this.sound.add(Constants.assets.audios.button, {
+      loop: false,
+      volume: 0.3,
+    })
+    botonVolver.on(Constants.events.pointer.out, () => {
+      botonVolver.clearTint()
+    })
+    botonVolver.on(Constants.events.pointer.over, () => {
+      this.buttonSound.play()
+      botonVolver.tint = Constants.colors.yellow
+    })
+    botonVolver.on(Constants.events.pointer.up, () => {
+      if (stopMusic) {
+        this.stopMusic()
+      }
+      this.scene.start(Constants.scenes.menu)
+    })
+  }
   // Private methods
 
   returnButton() {

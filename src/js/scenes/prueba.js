@@ -1,3 +1,5 @@
+import { Player, PlayerObject } from '../components/Constants.js'
+
 export class pruebaScene extends Phaser.Scene {
   constructor() {
     super({
@@ -41,6 +43,14 @@ export class pruebaScene extends Phaser.Scene {
       .setDebugBodyColor(0xffff00)
     this.circle1.body.setSize(100, 170)
 
+    /*var player = new Player(
+      this,
+      0,
+      0,
+      new PlayerObject('Paquito', 'red', 'matilde2', 'r_')
+    )
+    player.playIdle()
+*/
     // Choque
     this.circle2 = this.physics.add
       .image(100, 300)
@@ -99,7 +109,7 @@ export class pruebaScene extends Phaser.Scene {
       frames: this.anims.generateFrameNames('matilde2', {
         prefix: 'r_',
         start: 1,
-        end: 3,
+        end: 2,
         zeroPad: 3,
       }),
       frameRate: 4,

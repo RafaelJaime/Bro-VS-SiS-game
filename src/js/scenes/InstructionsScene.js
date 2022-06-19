@@ -6,7 +6,7 @@ export class InstructionsScene extends BaseScene {
     super(Constants.scenes.instructions)
   }
   create() {
-    this.addReturnButton()
+    this.addReturnButton(true)
     this.setDefaultBackground()
     // Personajes laterales y animacion
     this.lights.enable().setAmbientColor(Constants.colors.darkGray)

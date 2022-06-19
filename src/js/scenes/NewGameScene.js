@@ -15,6 +15,7 @@ export class NewGameScene extends GameBaseScene {
   create() {
     super.create()
     this.background()
+    this.addReturnButton()
     this.camera()
     this.playersHealthBars()
     this.timer()

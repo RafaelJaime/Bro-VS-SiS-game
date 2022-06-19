@@ -13,6 +13,7 @@ Game made using [Phaser](https://phaser.io) v3.50.1:
   - [ ] Combos
   - [ ] 3, 2, 1 Fight con animaciones
   - [ ] timer, últimos 10 segundos por 2 como clashroyal
+  - [ ] Sistema de animación chulo
 - [ ] New characters
 - [ ] New character select screen
 - [x] Re do instruction screen

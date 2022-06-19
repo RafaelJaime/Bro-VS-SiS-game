@@ -10,6 +10,7 @@ export class LoadScene extends BaseScene {
     this.loadProgressBar()
   }
   create() {
+    super.create()
     this.scene.start(Constants.scenes.characterSelect)
   }
   update() {}
