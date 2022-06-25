@@ -9,6 +9,9 @@ import { Constants } from './components/Constants.js'
 import { pruebaScene } from './scenes/prueba.js'
 
 const config = {
+  title: Constants.game.gameName,
+  url: Constants.game.url,
+  version: Constants.game.version,
   type: Phaser.AUTO,
   width: Constants.game.width,
   height: Constants.game.height,

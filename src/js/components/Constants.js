@@ -4,6 +4,9 @@ export class Constants {
   static game = class Game {
     static width = 800
     static height = 600
+    static name = 'Bro vs Sis'
+    static url = ''
+    static version = '0.5'
     static arcadeEngine = 'arcade'
     static matterEngine = 'matter'
     static debug = true
