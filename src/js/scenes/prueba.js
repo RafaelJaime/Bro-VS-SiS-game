@@ -1,5 +1,3 @@
-import { Player, PlayerObject } from '../components/Constants.js'
-
 export class pruebaScene extends Phaser.Scene {
   constructor() {
     super({

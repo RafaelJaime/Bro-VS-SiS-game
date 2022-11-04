@@ -1,3 +1,5 @@
+import { PlayerObject } from '../components/Objects/PlayerObject.js'
+
 export class Constants {
   static pipeline = 'Light2D'
 
@@ -67,6 +69,7 @@ export class Constants {
     static version = 'v0.5'
     static rafael = 'Rafael'
     static matilde = 'Matilde'
+    static unknownPlayer = 'unknown'
     static player1 = 'Player 1'
     static player1 = 'Player 2'
     static movement = 'Movimiento'
@@ -111,6 +114,7 @@ export class Constants {
       static rafael = 'rafael'
       static matilde = 'matilde'
       static rafaelAtlas = 'rafaelAtlas'
+      static unknownAtlas = 'unknownAtlas'
       static matildeAtlas = 'matildeAtlas'
       static bluebeam = 'bluebeam'
       static orangebeam = 'orangebeam'
@@ -130,50 +134,55 @@ export class Constants {
     var characterArray = []
     characterArray.push(
       new PlayerObject(
-        Constants.texts.rafael,
-        Constants.colors.brotherBlue,
-        Constants.assets.images.rafaelAtlas,
-        'r_'
-      )
-    )
-    characterArray.push(
-      new PlayerObject(
-        Constants.texts.rafael,
-        Constants.colors.blackHEX,
-        Constants.assets.images.rafaelAtlas,
-        'r_'
-      )
-    )
-    characterArray.push(
-      new PlayerObject(
-        Constants.texts.matilde,
-        Constants.colors.yellow,
-        Constants.assets.images.matildeAtlas,
-        'm_'
-      )
-    )
-    characterArray.push(
-      new PlayerObject(
         Constants.texts.matilde,
         Constants.colors.sisterRed,
         Constants.assets.images.matildeAtlas,
-        'm_'
+        'm_',
+        ''
+      )
+    )
+    characterArray.push(
+      new PlayerObject(
+        Constants.texts.rafael,
+        Constants.colors.brotherBlue,
+        Constants.assets.images.rafaelAtlas,
+        'r_',
+        ''
+      )
+    )
+    characterArray.push(
+      new PlayerObject(
+        Constants.texts.unknownPlayer,
+        Constants.colors.blackHEX,
+        Constants.assets.images.unknownAtlas,
+        'unkown_',
+        '.png',
+        false
+      )
+    )
+    characterArray.push(
+      new PlayerObject(
+        Constants.texts.unknownPlayer,
+        Constants.colors.blackHEX,
+        Constants.assets.images.unknownAtlas,
+        'unkown_',
+        '.png',
+        false
       )
     )
     return characterArray
   }
 }
-export class PlayerObject {
-  constructor(name, color, image, prefix) {
-    this.name = name
-    this.color = color
-    this.image = image
-    this.prefix = prefix
-    this.defaultImage = this.prefix + '014'
-  }
+
+/*export class Player extends Phaser.GameObjects.Sprite {
+  
+class Player {
+  health = 100
+  abilitiesCd = 0
+  flipX = true
+  sprite = null
 }
 
-export class Player extends Phaser.GameObjects.Sprite {
   static animation = class Animations {
     static face = 'face'
   }
@@ -192,6 +201,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       key: 'idle',
       frames: this.anims.generateFrameNames(this.player.image, {
         prefix: this.player.prefix,
+        suffix: this.player.suffix === undefined ? '' : this.player.suffix,
         start: 1,
         end: 2,
         zeroPad: 3,
@@ -203,6 +213,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       key: 'face',
       frames: this.anims.generateFrameNames(this.player.image, {
         prefix: this.player.prefix,
+        suffix: this.player.suffix,
         start: 14,
         end: 14,
         zeroPad: 3,
@@ -213,3 +224,4 @@ export class Player extends Phaser.GameObjects.Sprite {
 
   preUpdate(time, delta) {}
 }
+*/

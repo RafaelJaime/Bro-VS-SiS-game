@@ -29,6 +29,7 @@ const config = {
     default: Constants.game.arcadeEngine,
     arcade: {
       width: 1400,
+      gravity: { y: 1000 },
       checkCollision: {
         up: false,
       },

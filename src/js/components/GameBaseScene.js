@@ -190,6 +190,5 @@ export class GameBaseScene extends Phaser.Scene {
 
   udpateHealthBar(position, take = 10, of = 100) {
     this.healthBars.getChildren()[position].width -= (300 * take) / of
-    console.log(this.healthBars.getChildren())
   }
 }

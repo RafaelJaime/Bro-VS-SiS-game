@@ -1,49 +1,66 @@
 import { Constants } from '../components/Constants.js'
 import { GameBaseScene } from '../components/GameBaseScene.js'
-
-class Player {
-  health = 100
-  abilitiesCd = 0
-  flipX = true
-  sprite = null
-}
+import { Player } from '../components/Objects/Player.js'
 
 export class NewGameScene extends GameBaseScene {
+  init(data) {
+    this.decision = [data.player1, data.player2]
+    console.log(this.decision)
+  }
+
   constructor() {
     super(Constants.scenes.newGame)
   }
   create() {
     super.create()
-    this.background()
+    this.staticsObjects = this.physics.add.staticGroup()
+
+    this.setBackground()
+    this.setFlat()
     this.addReturnButton()
     this.camera()
     this.playersHealthBars()
     this.timer()
-    var lancelot = this.add.sprite(500, 536)
 
-    lancelot.setOrigin(0.5, 1)
-    lancelot.setScale(8)
-    lancelot.play('idle')
-
-    // Flat
-    this.flat = this.physics.add.staticImage(
-      Constants.game.width / 2,
-      Constants.game.height,
-      Constants.assets.images.platform
+    // Player
+    this.player1 = new Player(
+      this,
+      300,
+      100,
+      Constants.assets.images.rafaelAtlas,
+      true,
+      this.decision[0]
     )
+    this.physics.add.collider([this.player1], this.staticsObjects)
+    this.cursor = this.input.keyboard.createCursorKeys()
   }
 
   update(time) {
     super.update()
+    this.player1.update()
     // Camera y tile
     this.background3.tilePositionX = this.cameraFollow.x / 3
     this.background.tilePositionX = this.cameraFollow.x / 2
     this.cameraFollow.x -= 1
+
+    if (this.cursor.left.isDown && !this.cursor.down.isDown) {
+      this.player1.moveL()
+    } else if (this.cursor.right.isDown && !this.cursor.down.isDown) {
+      this.player1.moveR()
+    } else if (
+      this.cursor.up.isDown &&
+      this.player1.body.touching.down &&
+      !this.cursor.down.isDown
+    ) {
+      this.player1.jump()
+    } else {
+      this.player1.stay()
+    }
   }
 
   // METHODS
 
-  background() {
+  setBackground() {
     this.background = this.add
       .tileSprite(0, 0, 3000, 1000, 'title')
       .setOrigin(0, 0)
@@ -62,20 +79,28 @@ export class NewGameScene extends GameBaseScene {
   }
 
   playersHealthBars() {
-    this.setHealthBar('Player 1', 170, 50, Constants.colors.sisterRed)
+    this.setHealthBar(this.decision[0].name, 170, 50, this.decision[0].color)
     this.setHealthBar(
-      'Player 2',
+      this.decision[1].name,
       Constants.game.width - 170,
       50,
-      Constants.colors.brotherBlue
+      this.decision[1].color
     )
   }
 
-  musica() {
+  music() {
     this.music = this.sound.add(Constants.assets.audios.bomb, {
       loop: true,
       volume: 0.3,
     })
     this.music.play()
+  }
+
+  setFlat() {
+    this.staticsObjects.create(
+      Constants.game.width / 2,
+      Constants.game.height,
+      Constants.assets.images.platform
+    )
   }
 }

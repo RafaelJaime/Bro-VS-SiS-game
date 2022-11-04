@@ -1,4 +1,4 @@
-import { Constants, Player } from '../components/Constants.js'
+import { Constants } from '../components/Constants.js'
 
 export class BaseScene extends Phaser.Scene {
   constructor(key) {
@@ -51,6 +51,11 @@ export class BaseScene extends Phaser.Scene {
       Constants.assets.images.rafaelAtlas,
       'images/atlas/rafael.png',
       'images/atlas/rafael.json'
+    )
+    this.load.atlas(
+      Constants.assets.images.unknownAtlas,
+      'images/atlas/unknown.png',
+      'images/atlas/unknown.json'
     )
     this.load.atlas(
       Constants.assets.images.matildeAtlas,
@@ -120,6 +125,7 @@ export class BaseScene extends Phaser.Scene {
       .setOrigin(0, 0)
       .setScale(scale)
       .setPipeline(pipeline ? Constants.pipeline : null)
+      .setAlpha(1.5)
   }
 
   setParallaxBackground(image, scale, pipeline = true) {
@@ -138,7 +144,8 @@ export class BaseScene extends Phaser.Scene {
     pipeline = true,
     stopMusic,
     navigate = null,
-    scale = 0.1
+    scale = 0.1,
+    params = null
   ) {
     this.buttonSound = this.sound.add(Constants.assets.audios.button, {
       loop: false,
@@ -162,7 +169,7 @@ export class BaseScene extends Phaser.Scene {
         this.stopMusic()
       }
       if (navigate != null) {
-        this.scene.start(navigate)
+        this.scene.start(navigate, params)
       }
     })
     return boton1
@@ -223,14 +230,16 @@ export class BaseScene extends Phaser.Scene {
   }
 
   playMusic(music, volume, loop = false) {
-    this.music = this.sound.add(music, {
-      loop: loop,
-      volume: volume,
-    })
-    this.music.play()
+    if (this.game.sound.get(music) === null) {
+      this.music = this.sound.add(music, {
+        loop: loop,
+        volume: volume,
+      })
+      this.music.play()
+    }
   }
 
   stopMusic() {
-    this.game.sound.stopAll()
+    this.game.sound.removeAll()
   }
 }
