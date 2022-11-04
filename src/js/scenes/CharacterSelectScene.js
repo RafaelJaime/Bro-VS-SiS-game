@@ -133,11 +133,11 @@ export class CharacterSelectScene extends BaseScene {
     if (this.decision.length <= 1) {
       this.decision.push(character)
       this.add
-        .rectangle(320, 540, 350, 80, character.color)
+        .rectangle(270, 540, 250, 90, character.color)
         .setAlpha(0.5)
         .setStrokeStyle(10, character.color, 0.5)
       this.add
-        .rectangle(320, 540, 350, 80, Constants.colors.white)
+        .rectangle(270, 540, 250, 90, Constants.colors.white)
         .setAlpha(0.3)
       var finalText = []
       for (let index = 0; index < this.decision.length; index++) {
