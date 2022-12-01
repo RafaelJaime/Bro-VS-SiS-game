@@ -1,6 +1,11 @@
 export class Player extends Phaser.GameObjects.Sprite {
   static animation = class animation {
     static face = 'face'
+    static die = 'muerte'
+    static run = 'run'
+    static specialHability = 'specialHability'
+    static idle = 'idle'
+    static upjump = 'upjump'
   }
 
   constructor(scene, x, y, texture, play, playerObject) {
@@ -13,8 +18,6 @@ export class Player extends Phaser.GameObjects.Sprite {
       this.scene.physics.world.enable(this)
     }
 
-    this.createAnimations()
-
     if (this.body != null) {
       this.body.setSize(900, 1680)
       this.body.setOffset(740, 1000)
@@ -25,16 +28,19 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.jumping = false
   }
 
-  update() {}
+  update() {
+    this.anims.play(Player.animation.idle)
+  }
 
   moveL(flip = false) {
+    this.anims.play(Player.animation.run)
     this.flipX = flip
     this.moving = true
     this.body.setVelocityX(-300)
   }
 
   moveR(flip = false) {
-    this.jugador2.anims.play('normal2')
+    this.anims.play(Player.animation.run)
     this.flipX = flip
     this.moving = true
     this.body.setVelocityX(300)
@@ -63,6 +69,66 @@ export class Player extends Phaser.GameObjects.Sprite {
         end: 14,
         zeroPad: 3,
       }),
+      frameRate: 4,
+    })
+    this.anims.create({
+      key: Player.animation.run,
+      frames: this.anims.generateFrameNames(this.player.image, {
+        prefix: this.player.prefix,
+        suffix: this.player.suffix,
+        start: 8,
+        end: 9,
+        zeroPad: 3,
+      }),
+      repeat: -1,
+      frameRate: 4,
+    })
+    this.anims.create({
+      key: Player.animation.specialHability,
+      frames: this.anims.generateFrameNames(this.player.image, {
+        prefix: this.player.prefix,
+        suffix: this.player.suffix,
+        start: 6,
+        end: 7,
+        zeroPad: 3,
+      }),
+      repeat: -1,
+      frameRate: 9,
+    })
+    this.anims.create({
+      key: Player.animation.idle,
+      frames: this.anims.generateFrameNames(this.player.image, {
+        prefix: this.player.prefix,
+        suffix: this.player.suffix,
+        start: 1,
+        end: 2,
+        zeroPad: 3,
+      }),
+      repeat: -1,
+      frameRate: 4,
+    })
+    this.anims.create({
+      key: Player.animation.upjump,
+      frames: this.anims.generateFrameNames(this.player.image, {
+        prefix: this.player.prefix,
+        suffix: this.player.suffix,
+        start: 10,
+        end: 10,
+        zeroPad: 3,
+      }),
+      repeat: -1,
+      frameRate: 4,
+    })
+    this.anims.create({
+      key: Player.animation.die,
+      frames: this.anims.generateFrameNames(this.player.image, {
+        prefix: this.player.prefix,
+        suffix: this.player.suffix,
+        start: 12,
+        end: 13,
+        zeroPad: 3,
+      }),
+      repeat: -1,
       frameRate: 4,
     })
   }

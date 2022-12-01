@@ -11,7 +11,10 @@ export class LoadScene extends BaseScene {
   }
   create() {
     super.create()
-    this.scene.start(Constants.scenes.characterSelect)
+    this.scene.start(Constants.scenes.newGame, {
+      player1: Constants.getCharacterArray()[0],
+      player2: Constants.getCharacterArray()[1],
+    })
   }
   update() {}
 }

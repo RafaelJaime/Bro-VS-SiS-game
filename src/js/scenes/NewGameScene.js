@@ -31,8 +31,26 @@ export class NewGameScene extends GameBaseScene {
       true,
       this.decision[0]
     )
+    this.player1.createAnimations()
     this.physics.add.collider([this.player1], this.staticsObjects)
     this.cursor = this.input.keyboard.createCursorKeys()
+    /*this.anims.create({
+      key: 'idle',
+      frames: this.anims.generateFrameNames(
+        Constants.assets.images.matildeAtlas,
+        {
+          prefix: 'm_',
+          suffix: '.png',
+          start: 1,
+          end: 2,
+          zeroPad: 3,
+        }
+      ),
+      frameRate: 4,
+      repeat: -1,
+    })*/
+    //this.prueba = this.add.sprite(0, 0, Constants.assets.images.matildeAtlas)
+    //this.prueba.play('idle')
   }
 
   update(time) {
