@@ -15,23 +15,23 @@ export class CreditScene extends BaseScene {
   addTexts() {
     this.creditsText = this.add.text(0, 0, Constants.texts.credits, {
       fontSize: Constants.fonts.size32,
-      fill: Constants.colors.white,
+      fill: Constants.colors.whiteString,
     })
     this.centerText1 = this.add.text(0, 0, Constants.texts.developer, {
       fontSize: Constants.fonts.size26,
-      fill: Constants.colors.white,
+      fill: Constants.colors.whiteString,
     })
     this.centerText2 = this.add.text(0, 0, Constants.texts.artist, {
       fontSize: Constants.fonts.size26,
-      fill: Constants.colors.white,
+      fill: Constants.colors.whiteString,
     })
     this.centerText3 = this.add.text(0, 0, Constants.texts.musician, {
       fontSize: Constants.fonts.size26,
-      fill: Constants.colors.white,
+      fill: Constants.colors.whiteString,
     })
     this.madeByText = this.add.text(0, 0, Constants.texts.thanks, {
       fontSize: Constants.fonts.size26,
-      fill: Constants.colors.white,
+      fill: Constants.colors.whiteString,
     })
 
     var width = this.cameras.main.width

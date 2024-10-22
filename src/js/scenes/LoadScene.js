@@ -10,7 +10,11 @@ export class LoadScene extends BaseScene {
     this.loadProgressBar()
   }
   create() {
-    this.scene.start(Constants.scenes.menu)
+    super.create()
+    this.scene.start(Constants.scenes.newGame, {
+      player1: Constants.getCharacterArray()[0],
+      player2: Constants.getCharacterArray()[1],
+    })
   }
   update() {}
 }
