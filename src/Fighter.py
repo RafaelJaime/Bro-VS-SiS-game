@@ -26,14 +26,44 @@ class Fighter:
         self.hit_flash = 0
         self.hit_flash_max = 5
         self.is_defeated = False
-        self.defeat_animation = 0  # Counter for defeat animation
-        self.projectiles = []  # Lista para almacenar las bolas de energía
-        self.shoot_cooldown = 0  # Cooldown para disparar
+        self.defeat_animation = 0
+        self.projectiles = []
+        self.shoot_cooldown = 0
+        self.is_ai = False  # New flag for AI control
+        self.ai_decision_timer = 0  # Timer for AI decision making
+        self.ai_current_action = None  # Current AI action
         
         # Create secondary colors for effects
         r, g, b = self.color
         self.secondary_color = (min(r + 50, 255), min(g + 50, 255), min(b + 50, 255))
-    
+
+    def ai_make_decision(self, opponent):
+        """AI decision making logic"""
+        dx = opponent.rect.centerx - self.rect.centerx
+        dy = opponent.rect.centery - self.rect.centery
+        distance = (dx**2 + dy**2)**0.5
+
+        # Reset decision timer
+        self.ai_decision_timer = random.randint(10, 30)  # Random delay between decisions
+
+        # If opponent is close, decide between attack and jump
+        if distance < 100:
+            if random.random() < 0.7:  # 70% chance to attack when close
+                return 'attack'
+            else:
+                return 'jump'
+        
+        # If opponent is at medium range, maybe shoot
+        elif distance < 300:
+            if random.random() < 0.4:  # 40% chance to shoot
+                return 'shoot'
+        
+        # Move towards opponent with some randomness
+        if dx > 0:
+            return 'move_right'
+        else:
+            return 'move_left'
+
     def move(self, opponent):
         # Store opponent reference for shoot method
         self._current_opponent = opponent
@@ -41,51 +71,76 @@ class Fighter:
         # Reset movement variables
         dx = 0
         dy = 0
-        
-        # Get keypresses
-        key = pygame.key.get_pressed()
 
-        # Shooting mechanic
-        if self.shoot_cooldown > 0:
-            self.shoot_cooldown -= 1
+        if self.is_ai:
+            # AI decision making
+            if self.ai_decision_timer <= 0:
+                self.ai_current_action = self.ai_make_decision(opponent)
+            else:
+                self.ai_decision_timer -= 1
 
-        # Check for shoot button (G for player 1, L for player 2)
-        if (self.name == "Player 1" and key[pygame.K_g] or 
-            self.name == "Player 2" and key[pygame.K_l]) and self.shoot_cooldown == 0:
-            self.shoot()
-            self.shoot_cooldown = 30  # Half second cooldown
+            # Execute AI action
+            if self.ai_current_action == 'move_right':
+                dx = 5
+                if not self.jumping and random.random() < 0.2:
+                    self.add_dust_particle(self.rect.right, self.rect.bottom)
+            elif self.ai_current_action == 'move_left':
+                dx = -5
+                if not self.jumping and random.random() < 0.2:
+                    self.add_dust_particle(self.rect.left, self.rect.bottom)
+            elif self.ai_current_action == 'jump' and not self.jumping:
+                self.vel_y = -15
+                self.jumping = True
+                self.add_jump_effect()
+            elif self.ai_current_action == 'attack' and self.attack_cooldown == 0:
+                self.attacking = True
+                self.attack_cooldown = 20
+                self.add_attack_windup_effect()
+                self.attack(opponent)
+            elif self.ai_current_action == 'shoot' and self.shoot_cooldown == 0:
+                self.shoot()
+                self.shoot_cooldown = 30
+        else:
+            # Regular player controls
+            key = pygame.key.get_pressed()
+
+            # Shooting mechanic
+            if self.shoot_cooldown > 0:
+                self.shoot_cooldown -= 1
+
+            # Check for shoot button (G for player 1, L for player 2)
+            if (self.name == "Player 1" and key[pygame.K_g] or 
+                self.name == "Player 2" and key[pygame.K_l]) and self.shoot_cooldown == 0:
+                self.shoot()
+                self.shoot_cooldown = 30
+
+            # Can only perform actions if not attacking
+            if not self.attacking:
+                # Movement controls
+                if key[self.controls['left']]:
+                    dx = -5
+                    if not self.jumping and random.random() < 0.2:
+                        self.add_dust_particle(self.rect.left, self.rect.bottom)
+                if key[self.controls['right']]:
+                    dx = 5
+                    if not self.jumping and random.random() < 0.2:
+                        self.add_dust_particle(self.rect.right, self.rect.bottom)
+                
+                # Jump
+                if key[self.controls['up']] and not self.jumping:
+                    self.vel_y = -15
+                    self.jumping = True
+                    self.add_jump_effect()
+                
+                # Attack
+                if key[self.controls['attack']] and self.attack_cooldown == 0:
+                    self.attacking = True
+                    self.attack_cooldown = 20
+                    self.add_attack_windup_effect()
+                    self.attack(opponent)
 
         # Update projectiles
         self.update_projectiles(opponent)
-        
-        # Can only perform actions if not attacking
-        if not self.attacking:
-            # Movement controls
-            if key[self.controls['left']]:
-                dx = -5
-                # Add dust particles when moving
-                if not self.jumping and random.random() < 0.2:
-                    self.add_dust_particle(self.rect.left, self.rect.bottom)
-            if key[self.controls['right']]:
-                dx = 5
-                # Add dust particles when moving
-                if not self.jumping and random.random() < 0.2:
-                    self.add_dust_particle(self.rect.right, self.rect.bottom)
-            
-            # Jump
-            if key[self.controls['up']] and not self.jumping:
-                self.vel_y = -15
-                self.jumping = True
-                # Add jump effect
-                self.add_jump_effect()
-            
-            # Attack
-            if key[self.controls['attack']] and self.attack_cooldown == 0:
-                self.attacking = True
-                self.attack_cooldown = 20
-                # Add attack wind-up effect
-                self.add_attack_windup_effect()
-                self.attack(opponent)
         
         # Apply gravity
         self.vel_y += 1
