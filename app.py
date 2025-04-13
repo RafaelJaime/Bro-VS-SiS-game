@@ -183,10 +183,8 @@ def main():
             
             # Draw player names and scores
             draw_text(screen, f"{player1.name}", font, BLUE, 20, 10)
-            draw_text(screen, f"Score: {player1.score}", font, WHITE, 20, 35)
             
             draw_text(screen, f"{player2.name}", font, RED, WIDTH - 150, 10)
-            draw_text(screen, f"Score: {player2.score}", font, WHITE, WIDTH - 150, 35)
             
             # Draw health bars in the top UI panel
             health_bar_width = 200
@@ -194,8 +192,8 @@ def main():
             player2.draw_health_bar(screen, WIDTH - 350, 18, health_bar_width)
             
             # Draw controls info with shadow
-            draw_text(screen, "P1: WASD + F to attack", font, WHITE, 20, HEIGHT - 40)
-            draw_text(screen, "P2: Arrows + K to attack", font, WHITE, WIDTH - 350, HEIGHT - 40)
+            draw_text(screen, "P1: WASD + F attack + G shoot", font, WHITE, 20, HEIGHT - 40)
+            draw_text(screen, "P2: Arrows + K attack + L shoot", font, WHITE, WIDTH - 380, HEIGHT - 40)
         
         elif game_state == GAME_OVER:
             # Draw fighters in their current state (winner standing, loser defeated)

@@ -4,6 +4,7 @@ import random
 from src.Colors import GREEN, YELLOW, ORANGE, RED, WHITE, BLUE
 from src.Particle import Particle
 from src.ScreenShake import screen_shake
+from src.Projectile import Projectile
 
 WIDTH, HEIGHT = 800, 600
 
@@ -26,6 +27,8 @@ class Fighter:
         self.hit_flash_max = 5
         self.is_defeated = False
         self.defeat_animation = 0  # Counter for defeat animation
+        self.projectiles = []  # Lista para almacenar las bolas de energía
+        self.shoot_cooldown = 0  # Cooldown para disparar
         
         # Create secondary colors for effects
         r, g, b = self.color
@@ -38,6 +41,19 @@ class Fighter:
         
         # Get keypresses
         key = pygame.key.get_pressed()
+
+        # Shooting mechanic
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1
+
+        # Check for shoot button (G for player 1, L for player 2)
+        if (self.name == "Player 1" and key[pygame.K_g] or 
+            self.name == "Player 2" and key[pygame.K_l]) and self.shoot_cooldown == 0:
+            self.shoot()
+            self.shoot_cooldown = 30  # Half second cooldown
+
+        # Update projectiles
+        self.update_projectiles(opponent)
         
         # Can only perform actions if not attacking
         if not self.attacking:
@@ -152,6 +168,63 @@ class Fighter:
         # Update particles
         self.update_particles()
     
+    def shoot(self):
+        # Direction based on player position
+        direction = 1 if self.rect.centerx < WIDTH/2 else -1
+        
+        # Create new projectile
+        projectile = Projectile(
+            self.rect.centerx + (direction * self.rect.width/2),
+            self.rect.centery,
+            direction,
+            self.color
+        )
+        self.projectiles.append(projectile)
+        
+        # Add shoot effect
+        self.add_shoot_effect(direction)
+
+    def update_projectiles(self, opponent):
+        i = 0
+        while i < len(self.projectiles):
+            projectile = self.projectiles[i]
+            projectile.move()
+            
+            # Check if projectile is off screen
+            if projectile.x < 0 or projectile.x > WIDTH:
+                self.projectiles.pop(i)
+                continue
+            
+            # Check collision with opponent
+            if projectile.check_collision(opponent) and opponent.hit_cooldown == 0:
+                opponent.health -= 5
+                opponent.hit_cooldown = 15
+                opponent.hit_flash = opponent.hit_flash_max
+                screen_shake.start(3)
+                self.add_hit_effect(projectile.x, projectile.y)
+                self.projectiles.pop(i)
+                continue
+            
+            i += 1
+
+    def add_shoot_effect(self, direction):
+        # Add particles for shoot effect
+        for _ in range(10):
+            angle = random.uniform(-0.5, 0.5) + (0 if direction > 0 else math.pi)
+            speed = random.uniform(2, 6)
+            vel_x = math.cos(angle) * speed
+            vel_y = math.sin(angle) * speed
+            
+            self.particles.append(Particle(
+                self.rect.centerx + (direction * self.rect.width/2),
+                self.rect.centery,
+                self.color,
+                random.uniform(2, 4),
+                (vel_x, vel_y),
+                False,
+                15
+            ))
+
     def attack(self, opponent):
         # Create an attack hitbox
         attack_rect = pygame.Rect(0, 0, 0, 0)
@@ -334,12 +407,16 @@ class Fighter:
                 
                 # Create a surface with alpha for the attack zone
                 s = pygame.Surface((attack_rect.width, attack_rect.height), pygame.SRCALPHA)
-                s.fill((0, 255, 0, 128))  # Semi-transparent green
+                #s.fill((0, 255, 0, 128))  # Semi-transparent green
                 surface.blit(s, (attack_rect.x + camera_offset[0], attack_rect.y + camera_offset[1]))
         
         # Draw all particles
         for particle in self.particles:
             particle.draw(surface)
+        
+        # Draw projectiles
+        for projectile in self.projectiles:
+            projectile.draw(surface, camera_offset)
     
     def draw_defeated(self, surface, camera_offset=[0, 0]):
         # Animate the defeat sequence
@@ -379,21 +456,23 @@ class Fighter:
         pygame.draw.rect(surface, (40, 40, 40), (x, y, width, height), 1)
         
         # Calculate health bar width
-        health_width = int(width * (self.health / 100))
+        health_width = max(int(width * (self.health / 100)), 0)
         
-        # Draw health bar with gradient effect
-        if self.health > 50:
-            color = GREEN
-        elif self.health > 25:
-            color = YELLOW
-        else:
-            color = RED
+        # Only draw health bar if there is health remaining
+        if health_width > 0:
+            # Draw health bar with gradient effect
+            if self.health > 50:
+                color = GREEN
+            elif self.health > 25:
+                color = YELLOW
+            else:
+                color = RED
+                
+            pygame.draw.rect(surface, color, (x, y, health_width, height))
             
-        pygame.draw.rect(surface, color, (x, y, health_width, height))
-        
-        # Add highlight
-        highlight_height = height // 3
-        highlight_color = (255, 255, 255, 100)
-        s = pygame.Surface((health_width, highlight_height), pygame.SRCALPHA)
-        s.fill(highlight_color)
-        surface.blit(s, (x, y))
+            # Add highlight only if there is health
+            highlight_height = height // 3
+            if highlight_height > 0:  # Ensure highlight height is at least 1 pixel
+                s = pygame.Surface((health_width, highlight_height), pygame.SRCALPHA)
+                s.fill((255, 255, 255, 100))
+                surface.blit(s, (x, y))
