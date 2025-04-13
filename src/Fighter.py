@@ -35,6 +35,9 @@ class Fighter:
         self.secondary_color = (min(r + 50, 255), min(g + 50, 255), min(b + 50, 255))
     
     def move(self, opponent):
+        # Store opponent reference for shoot method
+        self._current_opponent = opponent
+        
         # Reset movement variables
         dx = 0
         dy = 0
@@ -136,9 +139,8 @@ class Fighter:
                 
                 # Apply damage to opponent when landing on them
                 if self.vel_y > 5:
-                    opponent.health -= 5
-                    opponent.hit_flash = opponent.hit_flash_max
-                    screen_shake.start(4)
+                    if opponent.take_damage(5, self):
+                        screen_shake.start(4)
             else:
                 # For other vertical collisions
                 if dy > 0:  # Moving down
@@ -169,8 +171,13 @@ class Fighter:
         self.update_particles()
     
     def shoot(self):
-        # Direction based on player position
+        # Store opponent reference when move() is called
+        opponent = getattr(self, '_current_opponent', None)
+        
+        # Determine direction based on opponent or default to facing direction
         direction = 1 if self.rect.centerx < WIDTH/2 else -1
+        if opponent:
+            direction = 1 if self.rect.centerx < opponent.rect.centerx else -1
         
         # Create new projectile
         projectile = Projectile(
@@ -196,14 +203,12 @@ class Fighter:
                 continue
             
             # Check collision with opponent
-            if projectile.check_collision(opponent) and opponent.hit_cooldown == 0:
-                opponent.health -= 5
-                opponent.hit_cooldown = 15
-                opponent.hit_flash = opponent.hit_flash_max
-                screen_shake.start(3)
-                self.add_hit_effect(projectile.x, projectile.y)
-                self.projectiles.pop(i)
-                continue
+            if projectile.check_collision(opponent):
+                if opponent.take_damage(5, self, (projectile.x, projectile.y)):
+                    opponent.hit_cooldown = 15
+                    screen_shake.start(3)
+                    self.projectiles.pop(i)
+                    continue
             
             i += 1
 
@@ -236,25 +241,38 @@ class Fighter:
             attack_rect = pygame.Rect(self.rect.left - 50, self.rect.y, 50, self.rect.height)
         
         # Check for collision with opponent
-        if attack_rect.colliderect(opponent.rect) and opponent.hit_cooldown == 0:
-            opponent.health -= 10
-            opponent.hit_cooldown = 30
-            opponent.hit_flash = opponent.hit_flash_max
-            
-            # Add hit effect
-            self.add_hit_effect(opponent.rect.centerx, opponent.rect.centery)
-            
-            # Screen shake
-            screen_shake.start(8)
-            
-            if opponent.health <= 0:
-                self.score += 1
-                opponent.health = 0  # Ensure health doesn't go below 0
-                opponent.is_defeated = True
-                
-                # Add KO effect
-                self.add_ko_effect(opponent.rect.centerx, opponent.rect.centery)
+        if attack_rect.colliderect(opponent.rect):
+            if opponent.take_damage(10, self):
+                opponent.hit_cooldown = 30
+                screen_shake.start(8)
     
+    def take_damage(self, amount, attacker, hit_pos=None):
+        """
+        Aplica daño al luchador y maneja todos los efectos relacionados
+        amount: cantidad de daño a recibir
+        attacker: el luchador que causa el daño
+        hit_pos: tupla (x,y) con la posición del impacto. Si es None, usa el centro del personaje
+        """
+        if self.hit_cooldown > 0:
+            return False
+            
+        self.health -= amount
+        if self.health <= 0:
+            self.health = 0
+            self.is_defeated = True
+            attacker.score += 1
+            # Usar el centro del personaje si no hay posición de impacto
+            pos = hit_pos if hit_pos else (self.rect.centerx, self.rect.centery)
+            attacker.add_ko_effect(*pos)
+        
+        self.hit_flash = self.hit_flash_max
+        
+        # Si no se proporciona posición de impacto, usar el centro
+        if hit_pos:
+            attacker.add_hit_effect(*hit_pos)
+        
+        return True
+
     def add_dust_particle(self, x, y):
         for _ in range(2):
             vel_x = random.uniform(-1, 1)

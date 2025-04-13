@@ -153,7 +153,7 @@ def main():
             height_var = random.randint(-2, 2)
             pygame.draw.line(screen, (200, 200, 200), 
                              (x + camera_offset[0], HEIGHT - 50 + camera_offset[1]), 
-                             (x + camera_offset[0], HEIGHT - 45 + height_var + camera_offset[1]), 2)
+                             (x + camera_offset[0], HEIGHT - 15 + height_var + camera_offset[1]), 2)
         
         if game_state == PLAYING:
             # Check if game is over
@@ -237,7 +237,7 @@ def main():
             exit_button.draw(screen)
             
             # Draw credits
-            credit_text = "Use WASD/Arrows to move, F/K to attack"
+            credit_text = "Use WASD/Arrows to move, F/K to attack, G/L to shoot"
             small_font = pygame.font.SysFont('Arial', 20)
             draw_text(screen, credit_text, small_font, (180, 180, 180), WIDTH // 2 - small_font.size(credit_text)[0] // 2, HEIGHT - 100)
         
