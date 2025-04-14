@@ -294,14 +294,39 @@ class Fighter:
             vel_x = math.cos(angle) * speed
             vel_y = math.sin(angle) * speed
             
+            color = self.color if random.random() < 0.6 else self.secondary_color
+            
             self.particles.append(Particle(
                 self.rect.centerx + (direction * self.rect.width/2),
                 self.rect.centery,
-                self.color,
+                color,
                 random.uniform(2, 4),
                 (vel_x, vel_y),
                 False,
                 15
+            ))
+
+    def add_attack_windup_effect(self):
+        # Direction of attack
+        direction = 1 if self.rect.centerx < WIDTH / 2 else -1
+        
+        # Create swipe effect particles
+        for i in range(10):
+            angle = math.pi * 0.25 * direction
+            speed = random.uniform(3, 7)
+            vel_x = math.cos(angle) * speed * direction
+            vel_y = math.sin(angle) * speed
+            
+            size = random.uniform(2, 5)
+            lifetime = random.randint(5, 15)
+            color = self.color if random.random() < 0.6 else self.secondary_color
+            
+            offset_x = direction * self.rect.width / 2
+            
+            self.particles.append(Particle(
+                self.rect.centerx + offset_x, 
+                self.rect.centery - self.rect.height / 4, 
+                color, size, (vel_x, vel_y), False, lifetime
             ))
 
     def attack(self, opponent):
@@ -391,29 +416,6 @@ class Fighter:
                 color, size, (vel_x, vel_y), True, lifetime
             ))
     
-    def add_attack_windup_effect(self):
-        # Direction of attack
-        direction = 1 if self.rect.centerx < WIDTH / 2 else -1
-        
-        # Create swipe effect particles
-        for i in range(10):
-            angle = math.pi * 0.25 * direction
-            speed = random.uniform(3, 7)
-            vel_x = math.cos(angle) * speed * direction
-            vel_y = math.sin(angle) * speed
-            
-            size = random.uniform(2, 5)
-            lifetime = random.randint(5, 15)
-            color = self.secondary_color
-            
-            offset_x = direction * self.rect.width / 2
-            
-            self.particles.append(Particle(
-                self.rect.centerx + offset_x, 
-                self.rect.centery - self.rect.height / 4, 
-                color, size, (vel_x, vel_y), False, lifetime
-            ))
-    
     def add_hit_effect(self, x, y):
         # Circular hit effect
         for _ in range(20):
@@ -425,11 +427,11 @@ class Fighter:
             size = random.uniform(2, 5)
             lifetime = random.randint(10, 30)
             
-            # Use opponent color and some variations
+            # Use attacker's color and some variations
             if random.random() < 0.7:
-                color = RED if self.color == BLUE else BLUE
+                color = self.color
             else:
-                color = random.choice([YELLOW, ORANGE])
+                color = self.secondary_color
             
             self.particles.append(Particle(x, y, color, size, (vel_x, vel_y), False, lifetime))
     

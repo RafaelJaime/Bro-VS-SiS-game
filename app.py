@@ -5,6 +5,7 @@ from src.Fighter import Fighter
 from src.Button import Button
 from src.Colors import BLACK, WHITE, RED, BLUE
 from src.ScreenShake import screen_shake
+from src.screens.character_select import character_select_screen
 
 # Initialize pygame
 pygame.init()
@@ -77,6 +78,7 @@ def main():
     GAME_OVER = 1
     MAIN_MENU = 2
     DIFFICULTY_SELECT = 3
+    CHARACTER_SELECT = 4  # New state
 
     # Game modes
     MODE_PVP = 0
@@ -126,17 +128,40 @@ def main():
                     player2.rect.y = HEIGHT - 150
                     game_state = PLAYING
                 elif menu_button.is_clicked(event):
+                    # Reset AI states when returning to main menu
+                    player1.is_ai = False
+                    player2.is_ai = False
                     game_state = MAIN_MENU
             
             elif game_state == MAIN_MENU:
                 if start_button.is_clicked(event):
-                    game_state = DIFFICULTY_SELECT  # Change to difficulty selection instead of starting game
+                    # Reset AI states when starting new game
+                    player1.is_ai = False
+                    player2.is_ai = False
+                    game_state = DIFFICULTY_SELECT
                 elif exit_button.is_clicked(event):
                     run = False
             
             elif game_state == DIFFICULTY_SELECT:
                 if pvp_button.is_clicked(event):
                     game_mode = MODE_PVP
+                    game_state = CHARACTER_SELECT  # Go to character select instead of PLAYING
+                elif pvc_button.is_clicked(event):
+                    game_mode = MODE_PVC
+                    game_state = CHARACTER_SELECT  # Go to character select instead of PLAYING
+                elif cvc_button.is_clicked(event):
+                    game_mode = MODE_CVC
+                    game_state = CHARACTER_SELECT  # Go to character select instead of PLAYING
+                elif back_button.is_clicked(event):
+                    game_state = MAIN_MENU
+
+            elif game_state == CHARACTER_SELECT:
+                # Call character select screen
+                p1_color, p2_color = character_select_screen(screen, WIDTH, HEIGHT)
+                if p1_color is not None and p2_color is not None:
+                    # Update player colors and start game
+                    player1.color = p1_color
+                    player2.color = p2_color
                     # Reset game and start
                     player1.health = 100
                     player2.health = 100
@@ -150,44 +175,15 @@ def main():
                     player2.rect.x = 700
                     player1.rect.y = HEIGHT - 150
                     player2.rect.y = HEIGHT - 150
+                    if game_mode == MODE_PVC:
+                        player2.is_ai = True
+                    elif game_mode == MODE_CVC:
+                        player1.is_ai = True
+                        player2.is_ai = True
                     game_state = PLAYING
-                elif pvc_button.is_clicked(event):
-                    game_mode = MODE_PVC
-                    # Similar reset but set player2 as AI
-                    player1.health = 100
-                    player2.health = 100
-                    player1.is_defeated = False
-                    player2.is_defeated = False
-                    player1.score = 0
-                    player2.score = 0
-                    player1.defeat_animation = 0
-                    player2.defeat_animation = 0
-                    player1.rect.x = 100
-                    player2.rect.x = 700
-                    player1.rect.y = HEIGHT - 150
-                    player2.rect.y = HEIGHT - 150
-                    player2.is_ai = True
-                    game_state = PLAYING
-                elif cvc_button.is_clicked(event):
-                    game_mode = MODE_CVC
-                    # Similar reset but set both as AI
-                    player1.health = 100
-                    player2.health = 100
-                    player1.is_defeated = False
-                    player2.is_defeated = False
-                    player1.score = 0
-                    player2.score = 0
-                    player1.defeat_animation = 0
-                    player2.defeat_animation = 0
-                    player1.rect.x = 100
-                    player2.rect.x = 700
-                    player1.rect.y = HEIGHT - 150
-                    player2.rect.y = HEIGHT - 150
-                    player1.is_ai = True
-                    player2.is_ai = True
-                    game_state = PLAYING
-                elif back_button.is_clicked(event):
-                    game_state = MAIN_MENU
+                elif p1_color is None and p2_color is None:
+                    # Back button was pressed
+                    game_state = DIFFICULTY_SELECT
         
         # Update screen shake
         camera_offset = screen_shake.update()
@@ -236,9 +232,8 @@ def main():
             pygame.draw.line(screen, (70, 70, 70), (0, 60), (WIDTH, 60), 2)
             
             # Draw player names and scores
-            draw_text(screen, f"{player1.name}", font, BLUE, 20, 10)
-            
-            draw_text(screen, f"{player2.name}", font, RED, WIDTH - 150, 10)
+            draw_text(screen, f"{player1.name}", font, player1.color, 20, 10)
+            draw_text(screen, f"{player2.name}", font, player2.color, WIDTH - 150, 10)
             
             # Draw health bars in the top UI panel
             health_bar_width = 200
@@ -253,6 +248,7 @@ def main():
                 draw_text(screen, "Controls: WASD + F attack + G shoot", font, WHITE, 20, HEIGHT - 40)
             elif game_mode == MODE_CVC:
                 draw_text(screen, "AI Battle - Press ESC to exit", font, WHITE, WIDTH // 2 - 150, HEIGHT - 40)
+        
         
         elif game_state == GAME_OVER:
             # Draw fighters in their current state (winner standing, loser defeated)
