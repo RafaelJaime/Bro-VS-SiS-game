@@ -38,7 +38,7 @@ class Fighter:
         
         # Create secondary colors for effects
         r, g, b = self.color
-        self.secondary_color = (min(r + 50, 255), min(g + 50, 255), min(b + 50, 255))
+        self.secondary_color = RED
 
     def ai_make_decision(self, opponent):
         """AI decision making logic"""
@@ -326,7 +326,7 @@ class Fighter:
             self.particles.append(Particle(
                 self.rect.centerx + offset_x, 
                 self.rect.centery - self.rect.height / 4, 
-                color, size, (vel_x, vel_y), False, lifetime
+                self.color, size, (vel_x, vel_y), False, lifetime
             ))
 
     def attack(self, opponent):
@@ -433,7 +433,7 @@ class Fighter:
             else:
                 color = self.secondary_color
             
-            self.particles.append(Particle(x, y, color, size, (vel_x, vel_y), False, lifetime))
+            self.particles.append(Particle(x, y, self.color, size, (vel_x, vel_y), False, lifetime))
     
     def add_ko_effect(self, x, y):
         # Explosion effect for KO

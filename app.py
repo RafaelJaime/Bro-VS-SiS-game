@@ -15,8 +15,6 @@ WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pygame Fighter")
 
-
-
 # Function to draw text
 def draw_text(surface, text, font, text_col, x, y, shadow=True):
     if shadow:
@@ -73,12 +71,17 @@ def main():
     cvc_button = Button(WIDTH // 2 - 200, HEIGHT // 2 + 90, 400, 50, "Computer vs Computer", (130, 70, 180), (160, 100, 210))
     back_button = Button(WIDTH // 2 - 75, HEIGHT // 2 + 160, 150, 50, "Back", (180, 70, 70), (210, 100, 100))
     
+    # Create buttons for pause menu
+    continue_button = Button(WIDTH // 2 - 100, HEIGHT // 2 - 30, 200, 50, "Continue", (70, 130, 180), (100, 160, 210))
+    pause_menu_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 50, "Main Menu", (180, 70, 70), (210, 100, 100))
+    
     # Game states
     PLAYING = 0
     GAME_OVER = 1
     MAIN_MENU = 2
     DIFFICULTY_SELECT = 3
-    CHARACTER_SELECT = 4  # New state
+    CHARACTER_SELECT = 4
+    PAUSE = 5  # Nuevo estado para el menú de pausa
 
     # Game modes
     MODE_PVP = 0
@@ -110,7 +113,16 @@ def main():
                 run = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    run = False
+                    if game_state == PLAYING:
+                        game_state = PAUSE
+                    elif game_state == PAUSE:
+                        game_state = PLAYING
+                    elif game_state == MAIN_MENU:
+                        run = False  # Salir del juego en el menú principal
+                    elif game_state == DIFFICULTY_SELECT:
+                        game_state = MAIN_MENU  # Volver al menú principal desde la selección de modo
+                    elif game_state == CHARACTER_SELECT:
+                        game_state = DIFFICULTY_SELECT  # Volver a la selección de modo desde la selección de personaje
             
             # Handle button clicks
             if game_state == GAME_OVER:
@@ -184,6 +196,12 @@ def main():
                 elif p1_color is None and p2_color is None:
                     # Back button was pressed
                     game_state = DIFFICULTY_SELECT
+
+            elif game_state == PAUSE:
+                if continue_button.is_clicked(event):
+                    game_state = PLAYING
+                elif pause_menu_button.is_clicked(event):
+                    game_state = MAIN_MENU
         
         # Update screen shake
         camera_offset = screen_shake.update()
@@ -308,6 +326,11 @@ def main():
             draw_text(screen, subtitle_text, subtitle_font, (200, 200, 200), 
                      WIDTH // 2 - subtitle_font.size(subtitle_text)[0] // 2, HEIGHT // 4 + 70)
             
+            # Draw ESC instruction
+            esc_text = "Press ESC to go back"
+            draw_text(screen, esc_text, subtitle_font, (200, 200, 200),
+                     WIDTH // 2 - subtitle_font.size(esc_text)[0] // 2, HEIGHT - 30)
+            
             # Update and draw buttons
             pvp_button.update(mouse_pos)
             pvc_button.update(mouse_pos)
@@ -318,6 +341,26 @@ def main():
             pvc_button.draw(screen)
             cvc_button.draw(screen)
             back_button.draw(screen)
+        
+        elif game_state == PAUSE:
+            # Keep drawing the game in the background
+            player1.draw(screen, camera_offset)
+            player2.draw(screen, camera_offset)
+            
+            # Draw semi-transparent overlay
+            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 150))
+            screen.blit(overlay, (0, 0))
+            
+            # Draw pause menu text
+            pause_text = "PAUSED"
+            draw_text(screen, pause_text, title_font, WHITE, WIDTH // 2 - title_font.size(pause_text)[0] // 2, HEIGHT // 4)
+            
+            # Update and draw buttons
+            continue_button.update(mouse_pos)
+            pause_menu_button.update(mouse_pos)
+            continue_button.draw(screen)
+            pause_menu_button.draw(screen)
         
         pygame.display.update()
     
