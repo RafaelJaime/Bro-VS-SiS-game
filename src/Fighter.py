@@ -32,6 +32,9 @@ class Fighter:
         self.is_ai = False  # New flag for AI control
         self.ai_decision_timer = 0  # Timer for AI decision making
         self.ai_current_action = None  # Current AI action
+        self.knockback_x = 0
+        self.knockback_y = 0
+        self.knockback_resistance = 0.8  # Resistencia al knockback (menor = más duración)
         
         # Create secondary colors for effects
         r, g, b = self.color
@@ -72,72 +75,88 @@ class Fighter:
         dx = 0
         dy = 0
 
-        if self.is_ai:
-            # AI decision making
-            if self.ai_decision_timer <= 0:
-                self.ai_current_action = self.ai_make_decision(opponent)
-            else:
-                self.ai_decision_timer -= 1
+        # Aplicar knockback si existe
+        has_knockback = self.knockback_x != 0 or self.knockback_y != 0
+        if has_knockback:
+            dx += self.knockback_x
+            dy += self.knockback_y
+            # Reducir el knockback gradualmente
+            self.knockback_x *= self.knockback_resistance
+            self.knockback_y *= self.knockback_resistance
+            # Resetear knockback cuando es muy pequeño
+            if abs(self.knockback_x) < 0.1:
+                self.knockback_x = 0
+            if abs(self.knockback_y) < 0.1:
+                self.knockback_y = 0
 
-            # Execute AI action
-            if self.ai_current_action == 'move_right':
-                dx = 5
-                if not self.jumping and random.random() < 0.2:
-                    self.add_dust_particle(self.rect.right, self.rect.bottom)
-            elif self.ai_current_action == 'move_left':
-                dx = -5
-                if not self.jumping and random.random() < 0.2:
-                    self.add_dust_particle(self.rect.left, self.rect.bottom)
-            elif self.ai_current_action == 'jump' and not self.jumping:
-                self.vel_y = -15
-                self.jumping = True
-                self.add_jump_effect()
-            elif self.ai_current_action == 'attack' and self.attack_cooldown == 0:
-                self.attacking = True
-                self.attack_cooldown = 20
-                self.add_attack_windup_effect()
-                self.attack(opponent)
-            elif self.ai_current_action == 'shoot' and self.shoot_cooldown == 0:
-                self.shoot()
-                self.shoot_cooldown = 30
-        else:
-            # Regular player controls
-            key = pygame.key.get_pressed()
+        # Solo permitir movimiento del jugador si no hay knockback significativo
+        if not has_knockback or (abs(self.knockback_x) < 2 and abs(self.knockback_y) < 2):
+            if self.is_ai:
+                # AI decision making
+                if self.ai_decision_timer <= 0:
+                    self.ai_current_action = self.ai_make_decision(opponent)
+                else:
+                    self.ai_decision_timer -= 1
 
-            # Shooting mechanic
-            if self.shoot_cooldown > 0:
-                self.shoot_cooldown -= 1
-
-            # Check for shoot button (G for player 1, L for player 2)
-            if (self.name == "Player 1" and key[pygame.K_g] or 
-                self.name == "Player 2" and key[pygame.K_l]) and self.shoot_cooldown == 0:
-                self.shoot()
-                self.shoot_cooldown = 30
-
-            # Can only perform actions if not attacking
-            if not self.attacking:
-                # Movement controls
-                if key[self.controls['left']]:
-                    dx = -5
-                    if not self.jumping and random.random() < 0.2:
-                        self.add_dust_particle(self.rect.left, self.rect.bottom)
-                if key[self.controls['right']]:
+                # Execute AI action
+                if self.ai_current_action == 'move_right':
                     dx = 5
                     if not self.jumping and random.random() < 0.2:
                         self.add_dust_particle(self.rect.right, self.rect.bottom)
-                
-                # Jump
-                if key[self.controls['up']] and not self.jumping:
+                elif self.ai_current_action == 'move_left':
+                    dx = -5
+                    if not self.jumping and random.random() < 0.2:
+                        self.add_dust_particle(self.rect.left, self.rect.bottom)
+                elif self.ai_current_action == 'jump' and not self.jumping:
                     self.vel_y = -15
                     self.jumping = True
                     self.add_jump_effect()
-                
-                # Attack
-                if key[self.controls['attack']] and self.attack_cooldown == 0:
+                elif self.ai_current_action == 'attack' and self.attack_cooldown == 0:
                     self.attacking = True
                     self.attack_cooldown = 20
                     self.add_attack_windup_effect()
                     self.attack(opponent)
+                elif self.ai_current_action == 'shoot' and self.shoot_cooldown == 0:
+                    self.shoot()
+                    self.shoot_cooldown = 30
+            else:
+                # Regular player controls
+                key = pygame.key.get_pressed()
+
+                # Shooting mechanic
+                if self.shoot_cooldown > 0:
+                    self.shoot_cooldown -= 1
+
+                # Check for shoot button (G for player 1, L for player 2)
+                if (self.name == "Player 1" and key[pygame.K_g] or 
+                    self.name == "Player 2" and key[pygame.K_l]) and self.shoot_cooldown == 0:
+                    self.shoot()
+                    self.shoot_cooldown = 30
+
+                # Can only perform actions if not attacking
+                if not self.attacking:
+                    # Movement controls
+                    if key[self.controls['left']]:
+                        dx = -5
+                        if not self.jumping and random.random() < 0.2:
+                            self.add_dust_particle(self.rect.left, self.rect.bottom)
+                    if key[self.controls['right']]:
+                        dx = 5
+                        if not self.jumping and random.random() < 0.2:
+                            self.add_dust_particle(self.rect.right, self.rect.bottom)
+                    
+                    # Jump
+                    if key[self.controls['up']] and not self.jumping:
+                        self.vel_y = -15
+                        self.jumping = True
+                        self.add_jump_effect()
+                    
+                    # Attack
+                    if key[self.controls['attack']] and self.attack_cooldown == 0:
+                        self.attacking = True
+                        self.attack_cooldown = 20
+                        self.add_attack_windup_effect()
+                        self.attack(opponent)
 
         # Update projectiles
         self.update_projectiles(opponent)
@@ -302,12 +321,6 @@ class Fighter:
                 screen_shake.start(8)
     
     def take_damage(self, amount, attacker, hit_pos=None):
-        """
-        Aplica daño al luchador y maneja todos los efectos relacionados
-        amount: cantidad de daño a recibir
-        attacker: el luchador que causa el daño
-        hit_pos: tupla (x,y) con la posición del impacto. Si es None, usa el centro del personaje
-        """
         if self.hit_cooldown > 0:
             return False
             
@@ -316,13 +329,28 @@ class Fighter:
             self.health = 0
             self.is_defeated = True
             attacker.score += 1
-            # Usar el centro del personaje si no hay posición de impacto
             pos = hit_pos if hit_pos else (self.rect.centerx, self.rect.centery)
             attacker.add_ko_effect(*pos)
         
+        # Aplicar knockback
+        knockback_force = amount * 2  # La fuerza del knockback depende del daño
+        if hit_pos:
+            # Calcular dirección del knockback desde el punto de impacto
+            dx = self.rect.centerx - hit_pos[0]
+            dy = self.rect.centery - hit_pos[1]
+            # Normalizar el vector
+            length = math.sqrt(dx * dx + dy * dy)
+            if length > 0:
+                self.knockback_x = (dx / length) * knockback_force
+                self.knockback_y = (dy / length) * knockback_force * 0.5  # Menos knockback vertical
+        else:
+            # Si no hay punto de impacto, usar la posición relativa del atacante
+            direction = 1 if attacker.rect.centerx < self.rect.centerx else -1
+            self.knockback_x = direction * knockback_force
+            self.knockback_y = -knockback_force * 0.3  # Pequeño impulso hacia arriba
+        
         self.hit_flash = self.hit_flash_max
         
-        # Si no se proporciona posición de impacto, usar el centro
         if hit_pos:
             attacker.add_hit_effect(*hit_pos)
         
