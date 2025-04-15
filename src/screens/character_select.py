@@ -4,6 +4,7 @@ import math
 from src.Button import Button
 from src.Colors import WHITE, BLACK, RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE
 from src.Particle import Particle
+from src.Background import Background
 
 def draw_text(surface, text, font, text_col, x, y, shadow=True):
     if shadow:
@@ -51,15 +52,8 @@ def character_select_screen(screen, WIDTH, HEIGHT):
     p1_locked = False
     p2_locked = False
     
-    # Create background stars
-    stars = []
-    for _ in range(100):
-        x = random.randint(0, WIDTH)
-        y = random.randint(0, HEIGHT)
-        size = random.uniform(0.5, 2)
-        brightness = random.randint(100, 255)
-        color = (brightness, brightness, brightness)
-        stars.append([x, y, size, color])
+    # Create background
+    background = Background(WIDTH, HEIGHT)
     
     # Create particles list
     particles = []
@@ -140,12 +134,9 @@ def character_select_screen(screen, WIDTH, HEIGHT):
             if back_button.is_clicked(event):
                 return None, None
 
-        # Draw background
-        screen.fill((20, 20, 30))
-        
-        # Draw stars
-        for star in stars:
-            pygame.draw.circle(screen, star[3], (star[0], star[1]), star[2])
+        # Draw background using Background class
+        background.draw(screen)
+        background.update()
         
         # Draw UI panel at the top
         pygame.draw.rect(screen, (30, 30, 40), (0, 0, WIDTH, 80))
@@ -172,14 +163,14 @@ def character_select_screen(screen, WIDTH, HEIGHT):
             pygame.draw.rect(screen, (50, 50, 60), 
                             (portrait_x, portrait_y, portrait_width, portrait_height))
             
-            # Draw character silhouette
+            # Draw character silhouette (reduciendo la altura en -40 en lugar de -30 para dejar más espacio al nombre)
             pygame.draw.rect(screen, character["color"], 
-                            (portrait_x + 10, portrait_y + 10, portrait_width - 20, portrait_height - 30))
+                            (portrait_x + 10, portrait_y + 10, portrait_width - 20, portrait_height - 40))
             
             # Draw character name
             name_text = character["name"]
             name_surface = info_font.render(name_text, True, WHITE)
-            name_rect = name_surface.get_rect(centerx=portrait_x + portrait_width // 2, y=portrait_y + portrait_height - 15)
+            name_rect = name_surface.get_rect(centerx=portrait_x + portrait_width // 2, y=portrait_y + portrait_height - 25)
             screen.blit(name_surface, name_rect)
             
             # Draw selection frames

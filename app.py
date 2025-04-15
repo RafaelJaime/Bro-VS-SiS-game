@@ -1,11 +1,11 @@
 import pygame
 import sys
-import random
-from src.Fighter import Fighter
-from src.Button import Button
-from src.Colors import BLACK, WHITE, RED, BLUE
-from src.ScreenShake import screen_shake
+from src.screens.main_menu import MainMenu
+from src.screens.difficulty_select import DifficultySelect
 from src.screens.character_select import character_select_screen
+from src.screens.game_play import GamePlay
+from src.screens.pause_menu import PauseMenu
+from src.screens.game_over import GameOver
 
 # Initialize pygame
 pygame.init()
@@ -15,352 +15,117 @@ WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pygame Fighter")
 
-# Function to draw text
-def draw_text(surface, text, font, text_col, x, y, shadow=True):
-    if shadow:
-        shadow_img = font.render(text, True, BLACK)
-        surface.blit(shadow_img, (x + 2, y + 2))
-    
-    img = font.render(text, True, text_col)
-    surface.blit(img, (x, y))
+# Game states
+class GameState:
+    PLAYING = "PLAYING"
+    GAME_OVER = "GAME_OVER"
+    MAIN_MENU = "MAIN_MENU"
+    DIFFICULTY_SELECT = "DIFFICULTY_SELECT"
+    CHARACTER_SELECT = "CHARACTER_SELECT"
+    PAUSE = "PAUSE"
+    EXIT = "EXIT"
 
-# Main function
+# Game modes
+MODE_PVP = 0
+MODE_PVC = 1
+MODE_CVC = 2
+
 def main():
     clock = pygame.time.Clock()
-    font = pygame.font.SysFont('Arial', 30)
     
-    # Create ground
-    ground = pygame.Rect(0, HEIGHT - 50, WIDTH, 50)
-    
-    
-    # Create fighters
-    player1_controls = {
-        'left': pygame.K_a,
-        'right': pygame.K_d,
-        'up': pygame.K_w,
-        'attack': pygame.K_f
-    }
-    
-    player2_controls = {
-        'left': pygame.K_LEFT,
-        'right': pygame.K_RIGHT,
-        'up': pygame.K_UP,
-        'attack': pygame.K_k
-    }
-    
-    player1 = Fighter(100, HEIGHT - 150, 50, 100, BLUE, player1_controls, "Player 1")
-    player2 = Fighter(700, HEIGHT - 150, 50, 100, RED, player2_controls, "Player 2")
-    
-    # Background stars
-    stars = []
-    for _ in range(80):  # Increased number of stars for larger screen
-        x = random.randint(0, WIDTH)
-        y = random.randint(0, HEIGHT - 50)
-        size = random.uniform(0.5, 2)
-        brightness = random.randint(100, 255)
-        color = (brightness, brightness, brightness)
-        stars.append([x, y, size, color])
-    
-    # Create buttons for the game over screen
-    restart_button = Button(WIDTH // 2 - 160, HEIGHT // 2, 140, 50, "Restart", (70, 130, 180), (100, 160, 210))
-    menu_button = Button(WIDTH // 2 + 20, HEIGHT // 2, 140, 50, "Main Menu", (180, 70, 70), (210, 100, 100))
-    
-    # Difficulty selection buttons
-    pvp_button = Button(WIDTH // 2 - 200, HEIGHT // 2 - 50, 400, 50, "Player vs Player", (70, 130, 180), (100, 160, 210))
-    pvc_button = Button(WIDTH // 2 - 200, HEIGHT // 2 + 20, 400, 50, "Player vs Computer", (70, 180, 130), (100, 210, 160))
-    cvc_button = Button(WIDTH // 2 - 200, HEIGHT // 2 + 90, 400, 50, "Computer vs Computer", (130, 70, 180), (160, 100, 210))
-    back_button = Button(WIDTH // 2 - 75, HEIGHT // 2 + 160, 150, 50, "Back", (180, 70, 70), (210, 100, 100))
-    
-    # Create buttons for pause menu
-    continue_button = Button(WIDTH // 2 - 100, HEIGHT // 2 - 30, 200, 50, "Continue", (70, 130, 180), (100, 160, 210))
-    pause_menu_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 50, "Main Menu", (180, 70, 70), (210, 100, 100))
-    
-    # Game states
-    PLAYING = 0
-    GAME_OVER = 1
-    MAIN_MENU = 2
-    DIFFICULTY_SELECT = 3
-    CHARACTER_SELECT = 4
-    PAUSE = 5  # Nuevo estado para el menú de pausa
-
-    # Game modes
-    MODE_PVP = 0
-    MODE_PVC = 1  # Player vs Computer
-    MODE_CVC = 2  # Computer vs Computer
-
-    game_state = MAIN_MENU
-    game_mode = MODE_PVP  # Default mode
-    
-    # Main menu setup
-    title_font = pygame.font.SysFont('Arial', 60, True)
-    start_button = Button(WIDTH // 2 - 75, HEIGHT // 2, 150, 50, "Start Game", (70, 130, 180), (100, 160, 210))
-    exit_button = Button(WIDTH // 2 - 75, HEIGHT // 2 + 70, 150, 50, "Exit", (180, 70, 70), (210, 100, 100))
+    # Initialize screens
+    main_menu = MainMenu(screen, WIDTH, HEIGHT)
+    difficulty_select = DifficultySelect(screen, WIDTH, HEIGHT)
+    game_play = GamePlay(screen, WIDTH, HEIGHT)
+    pause_menu = PauseMenu(screen, WIDTH, HEIGHT)
+    game_over = GameOver(screen, WIDTH, HEIGHT)
     
     # Start with main menu
-    game_state = MAIN_MENU
+    current_state = GameState.MAIN_MENU
+    game_mode = MODE_PVP
     
     # Game loop
     run = True
     while run:
         clock.tick(60)
-        
-        # Get mouse position
         mouse_pos = pygame.mouse.get_pos()
         
-        # Event handler
+        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    if game_state == PLAYING:
-                        game_state = PAUSE
-                    elif game_state == PAUSE:
-                        game_state = PLAYING
-                    elif game_state == MAIN_MENU:
-                        run = False  # Salir del juego en el menú principal
-                    elif game_state == DIFFICULTY_SELECT:
-                        game_state = MAIN_MENU  # Volver al menú principal desde la selección de modo
-                    elif game_state == CHARACTER_SELECT:
-                        game_state = DIFFICULTY_SELECT  # Volver a la selección de modo desde la selección de personaje
+                continue
             
-            # Handle button clicks
-            if game_state == GAME_OVER:
-                if restart_button.is_clicked(event):
-                    # Reset the game
-                    player1.health = 100
-                    player2.health = 100
-                    player1.is_defeated = False
-                    player2.is_defeated = False
-                    player1.defeat_animation = 0
-                    player2.defeat_animation = 0
-                    player1.rect.x = 100
-                    player2.rect.x = 700
-                    player1.rect.y = HEIGHT - 150
-                    player2.rect.y = HEIGHT - 150
-                    game_state = PLAYING
-                elif menu_button.is_clicked(event):
-                    # Reset AI states when returning to main menu
-                    player1.is_ai = False
-                    player2.is_ai = False
-                    game_state = MAIN_MENU
-            
-            elif game_state == MAIN_MENU:
-                if start_button.is_clicked(event):
-                    # Reset AI states when starting new game
-                    player1.is_ai = False
-                    player2.is_ai = False
-                    game_state = DIFFICULTY_SELECT
-                elif exit_button.is_clicked(event):
+            # Handle state-specific events
+            if current_state == GameState.MAIN_MENU:
+                next_state = main_menu.handle_event(event)
+                if next_state == GameState.EXIT:
                     run = False
+                elif next_state:
+                    current_state = next_state
             
-            elif game_state == DIFFICULTY_SELECT:
-                if pvp_button.is_clicked(event):
-                    game_mode = MODE_PVP
-                    game_state = CHARACTER_SELECT  # Go to character select instead of PLAYING
-                elif pvc_button.is_clicked(event):
-                    game_mode = MODE_PVC
-                    game_state = CHARACTER_SELECT  # Go to character select instead of PLAYING
-                elif cvc_button.is_clicked(event):
-                    game_mode = MODE_CVC
-                    game_state = CHARACTER_SELECT  # Go to character select instead of PLAYING
-                elif back_button.is_clicked(event):
-                    game_state = MAIN_MENU
-
-            elif game_state == CHARACTER_SELECT:
-                # Call character select screen
+            elif current_state == GameState.DIFFICULTY_SELECT:
+                result = difficulty_select.handle_event(event)
+                if result:
+                    next_state, mode = result
+                    if next_state == GameState.CHARACTER_SELECT:
+                        game_mode = mode
+                    current_state = next_state
+            
+            elif current_state == GameState.CHARACTER_SELECT:
                 p1_color, p2_color = character_select_screen(screen, WIDTH, HEIGHT)
                 if p1_color is not None and p2_color is not None:
-                    # Update player colors and start game
-                    player1.color = p1_color
-                    player2.color = p2_color
-                    # Reset game and start
-                    player1.health = 100
-                    player2.health = 100
-                    player1.is_defeated = False
-                    player2.is_defeated = False
-                    player1.score = 0
-                    player2.score = 0
-                    player1.defeat_animation = 0
-                    player2.defeat_animation = 0
-                    player1.rect.x = 100
-                    player2.rect.x = 700
-                    player1.rect.y = HEIGHT - 150
-                    player2.rect.y = HEIGHT - 150
-                    if game_mode == MODE_PVC:
-                        player2.is_ai = True
-                    elif game_mode == MODE_CVC:
-                        player1.is_ai = True
-                        player2.is_ai = True
-                    game_state = PLAYING
+                    game_play.reset_game()
+                    game_play.set_player_colors(p1_color, p2_color)
+                    game_play.set_ai_mode(game_mode)
+                    current_state = GameState.PLAYING
                 elif p1_color is None and p2_color is None:
-                    # Back button was pressed
-                    game_state = DIFFICULTY_SELECT
-
-            elif game_state == PAUSE:
-                if continue_button.is_clicked(event):
-                    game_state = PLAYING
-                elif pause_menu_button.is_clicked(event):
-                    game_state = MAIN_MENU
+                    current_state = GameState.DIFFICULTY_SELECT
+            
+            elif current_state == GameState.PLAYING:
+                next_state = game_play.handle_event(event)
+                if next_state:
+                    current_state = next_state
+            
+            elif current_state == GameState.PAUSE:
+                next_state = pause_menu.handle_event(event)
+                if next_state:
+                    if next_state == GameState.MAIN_MENU:
+                        game_play.reset_game()
+                    current_state = next_state
+            
+            elif current_state == GameState.GAME_OVER:
+                next_state = game_over.handle_event(event)
+                if next_state:
+                    if next_state == GameState.PLAYING:
+                        game_play.reset_game()
+                    elif next_state == GameState.MAIN_MENU:
+                        game_play.reset_game()
+                    current_state = next_state
         
-        # Update screen shake
-        camera_offset = screen_shake.update()
+        # Update and render current screen based on state
+        if current_state == GameState.MAIN_MENU:
+            main_menu.update(mouse_pos)
         
-        # Draw background
-        screen.fill(BLACK)
+        elif current_state == GameState.DIFFICULTY_SELECT:
+            difficulty_select.update(mouse_pos)
         
-        # Draw stars
-        for star in stars:
-            pygame.draw.circle(screen, star[3], (star[0] + camera_offset[0], star[1] + camera_offset[1]), star[2])
+        elif current_state == GameState.PLAYING:
+            game_play.update(game_mode)
+            if game_play.check_game_over():
+                current_state = GameState.GAME_OVER
         
-        # Draw ground with offset
-        pygame.draw.rect(screen, WHITE, (ground.x + camera_offset[0], ground.y + camera_offset[1], ground.width, ground.height))
+        elif current_state == GameState.PAUSE:
+            # First update the game screen in the background
+            game_play.update(game_mode)
+            # Then draw the pause menu overlay
+            pause_menu.update(mouse_pos)
         
-        # Add ground texture
-        for x in range(0, WIDTH, 20):
-            height_var = random.randint(-2, 2)
-            pygame.draw.line(screen, (200, 200, 200), 
-                             (x + camera_offset[0], HEIGHT - 50 + camera_offset[1]), 
-                             (x + camera_offset[0], HEIGHT - 15 + height_var + camera_offset[1]), 2)
-        
-        if game_state == PLAYING:
-            # Check if game is over
-            if player1.is_defeated or player2.is_defeated:
-                # Wait for a short animation before showing game over screen
-                if (player1.is_defeated and player1.defeat_animation > 60) or \
-                   (player2.is_defeated and player2.defeat_animation > 60):
-                    game_state = GAME_OVER
-                    winner = player2 if player1.is_defeated else player1
-            
-            # Draw fighters
-            player1.draw(screen, camera_offset)
-            player2.draw(screen, camera_offset)
-            
-            # Only move fighters if neither is defeated
-            if not player1.is_defeated and not player2.is_defeated:
-                player1.move(player2)
-                player2.move(player1)
-            else:
-                # Still update particles when a player is defeated
-                player1.update_particles()
-                player2.update_particles()
-            
-            # Draw UI panel at the top
-            pygame.draw.rect(screen, (30, 30, 30), (0, 0, WIDTH, 60))
-            pygame.draw.line(screen, (70, 70, 70), (0, 60), (WIDTH, 60), 2)
-            
-            # Draw player names and scores
-            draw_text(screen, f"{player1.name}", font, player1.color, 20, 10)
-            draw_text(screen, f"{player2.name}", font, player2.color, WIDTH - 150, 10)
-            
-            # Draw health bars in the top UI panel
-            health_bar_width = 200
-            player1.draw_health_bar(screen, 150, 18, health_bar_width)
-            player2.draw_health_bar(screen, WIDTH - 350, 18, health_bar_width)
-            
-            # Draw controls info with shadow based on game mode
-            if game_mode == MODE_PVP:
-                draw_text(screen, "P1: WASD + F attack + G shoot", font, WHITE, 20, HEIGHT - 40)
-                draw_text(screen, "P2: Arrows + K attack + L shoot", font, WHITE, WIDTH - 380, HEIGHT - 40)
-            elif game_mode == MODE_PVC:
-                draw_text(screen, "Controls: WASD + F attack + G shoot", font, WHITE, 20, HEIGHT - 40)
-            elif game_mode == MODE_CVC:
-                draw_text(screen, "AI Battle - Press ESC to exit", font, WHITE, WIDTH // 2 - 150, HEIGHT - 40)
-        
-        
-        elif game_state == GAME_OVER:
-            # Draw fighters in their current state (winner standing, loser defeated)
-            player1.draw(screen, camera_offset)
-            player2.draw(screen, camera_offset)
-            
-            # Update particles
-            player1.update_particles()
-            player2.update_particles()
-            
-            # Draw semi-transparent overlay
-            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 150))
-            screen.blit(overlay, (0, 0))
-            
-            # Draw game over text
-            victory_text = f"{winner.name} Wins!"
-            draw_text(screen, victory_text, title_font, winner.color, WIDTH // 2 - title_font.size(victory_text)[0] // 2, HEIGHT // 2 - 100)
-            
-            # Update and draw buttons
-            restart_button.update(mouse_pos)
-            menu_button.update(mouse_pos)
-            restart_button.draw(screen)
-            menu_button.draw(screen)
-        
-        elif game_state == MAIN_MENU:
-            # Draw title
-            title_text = "PYGAME FIGHTER"
-            draw_text(screen, title_text, title_font, WHITE, WIDTH // 2 - title_font.size(title_text)[0] // 2, HEIGHT // 4)
-            
-            # Draw subtitle
-            subtitle_font = pygame.font.SysFont('Arial', 30)
-            subtitle_text = "The Ultimate Battle"
-            draw_text(screen, subtitle_text, subtitle_font, (200, 200, 200), 
-                     WIDTH // 2 - subtitle_font.size(subtitle_text)[0] // 2, HEIGHT // 4 + 70)
-            
-            # Update and draw buttons
-            start_button.update(mouse_pos)
-            exit_button.update(mouse_pos)
-            start_button.draw(screen)
-            exit_button.draw(screen)
-            
-            # Draw credits
-            credit_text = "Use WASD/Arrows to move, F/K to attack, G/L to shoot"
-            small_font = pygame.font.SysFont('Arial', 20)
-            draw_text(screen, credit_text, small_font, (200, 200, 200), 
-                     WIDTH // 2 - small_font.size(credit_text)[0] // 2, HEIGHT - 30)
-        
-        elif game_state == DIFFICULTY_SELECT:
-            # Draw title
-            title_text = "SELECT GAME MODE"
-            draw_text(screen, title_text, title_font, WHITE, WIDTH // 2 - title_font.size(title_text)[0] // 2, HEIGHT // 4)
-            
-            # Draw subtitle
-            subtitle_font = pygame.font.SysFont('Arial', 24)
-            subtitle_text = "Choose your battle mode"
-            draw_text(screen, subtitle_text, subtitle_font, (200, 200, 200), 
-                     WIDTH // 2 - subtitle_font.size(subtitle_text)[0] // 2, HEIGHT // 4 + 70)
-            
-            # Draw ESC instruction
-            esc_text = "Press ESC to go back"
-            draw_text(screen, esc_text, subtitle_font, (200, 200, 200),
-                     WIDTH // 2 - subtitle_font.size(esc_text)[0] // 2, HEIGHT - 30)
-            
-            # Update and draw buttons
-            pvp_button.update(mouse_pos)
-            pvc_button.update(mouse_pos)
-            cvc_button.update(mouse_pos)
-            back_button.update(mouse_pos)
-            
-            pvp_button.draw(screen)
-            pvc_button.draw(screen)
-            cvc_button.draw(screen)
-            back_button.draw(screen)
-        
-        elif game_state == PAUSE:
-            # Keep drawing the game in the background
-            player1.draw(screen, camera_offset)
-            player2.draw(screen, camera_offset)
-            
-            # Draw semi-transparent overlay
-            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 150))
-            screen.blit(overlay, (0, 0))
-            
-            # Draw pause menu text
-            pause_text = "PAUSED"
-            draw_text(screen, pause_text, title_font, WHITE, WIDTH // 2 - title_font.size(pause_text)[0] // 2, HEIGHT // 4)
-            
-            # Update and draw buttons
-            continue_button.update(mouse_pos)
-            pause_menu_button.update(mouse_pos)
-            continue_button.draw(screen)
-            pause_menu_button.draw(screen)
+        elif current_state == GameState.GAME_OVER:
+            # First update the game screen in the background
+            game_play.update(game_mode)
+            # Then draw the game over overlay
+            game_over.update(mouse_pos, game_play.get_winner())
         
         pygame.display.update()
     
