@@ -18,6 +18,11 @@ class MainMenu:
         # Create buttons
         self.start_button = Button(width // 2 - 75, height // 2, 150, 50, "Start Game", (70, 130, 180), (100, 160, 210))
         self.exit_button = Button(width // 2 - 75, height // 2 + 70, 150, 50, "Exit", (180, 70, 70), (210, 100, 100))
+        
+        # Button navigation
+        self.buttons = [self.start_button, self.exit_button]
+        self.current_button = 0
+        self.is_keyboard_mode = False
 
     def draw_text(self, text, font, text_col, x, y, shadow=True):
         if shadow:
@@ -28,6 +33,10 @@ class MainMenu:
         self.screen.blit(img, (x, y))
 
     def update(self, mouse_pos):
+        # Check if mouse moved to switch to mouse mode
+        if pygame.mouse.get_rel() != (0, 0):
+            self.is_keyboard_mode = False
+        
         # Draw background
         self.background.draw(self.screen)
         
@@ -41,11 +50,15 @@ class MainMenu:
         self.draw_text(subtitle_text, self.subtitle_font, (200, 200, 200),
                       self.width // 2 - self.subtitle_font.size(subtitle_text)[0] // 2, self.height // 4 + 70)
         
+        # Update button focus in keyboard mode
+        if self.is_keyboard_mode:
+            for i, button in enumerate(self.buttons):
+                button.is_focused = (i == self.current_button)
+        
         # Update and draw buttons
-        self.start_button.update(mouse_pos)
-        self.exit_button.update(mouse_pos)
-        self.start_button.draw(self.screen)
-        self.exit_button.draw(self.screen)
+        for button in self.buttons:
+            button.update(mouse_pos, self.is_keyboard_mode)
+            button.draw(self.screen)
         
         # Draw credits
         credit_text = "Use WASD/Arrows to move, F/K to attack, G/L to shoot"
@@ -53,8 +66,26 @@ class MainMenu:
                       self.width // 2 - self.small_font.size(credit_text)[0] // 2, self.height - 30)
 
     def handle_event(self, event):
-        if self.start_button.is_clicked(event):
-            return "DIFFICULTY_SELECT"
-        elif self.exit_button.is_clicked(event):
-            return "EXIT"
+        if event.type == pygame.KEYDOWN:
+            self.is_keyboard_mode = True
+            if event.key in [pygame.K_w, pygame.K_UP] and self.current_button > 0:
+                self.current_button -= 1
+            elif event.key in [pygame.K_s, pygame.K_DOWN] and self.current_button < len(self.buttons) - 1:
+                self.current_button += 1
+            
+            # Check for button activation
+            if self.buttons[self.current_button].is_clicked(event):
+                if self.current_button == 0:  # Start button
+                    return "DIFFICULTY_SELECT"
+                else:  # Exit button
+                    return "EXIT"
+        
+        # Handle mouse clicks
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            self.is_keyboard_mode = False
+            if self.start_button.is_clicked(event):
+                return "DIFFICULTY_SELECT"
+            elif self.exit_button.is_clicked(event):
+                return "EXIT"
+        
         return None

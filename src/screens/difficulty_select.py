@@ -20,6 +20,11 @@ class DifficultySelect:
         self.cvc_button = Button(width // 2 - 200, height // 2 + 90, 400, 50, "Computer vs Computer", (130, 70, 180), (160, 100, 210))
         self.back_button = Button(width // 2 - 75, height // 2 + 160, 150, 50, "Back", (180, 70, 70), (210, 100, 100))
 
+        # Button navigation
+        self.buttons = [self.pvp_button, self.pvc_button, self.cvc_button, self.back_button]
+        self.current_button = 0
+        self.is_keyboard_mode = False
+
     def draw_text(self, text, font, text_col, x, y, shadow=True):
         if shadow:
             shadow_img = font.render(text, True, (0, 0, 0))
@@ -29,6 +34,10 @@ class DifficultySelect:
         self.screen.blit(img, (x, y))
 
     def update(self, mouse_pos):
+        # Check if mouse moved to switch to mouse mode
+        if pygame.mouse.get_rel() != (0, 0):
+            self.is_keyboard_mode = False
+
         # Draw background
         self.background.draw(self.screen)
         
@@ -47,27 +56,47 @@ class DifficultySelect:
         self.draw_text(esc_text, self.subtitle_font, (200, 200, 200),
                       self.width // 2 - self.subtitle_font.size(esc_text)[0] // 2, self.height - 30)
         
-        # Update and draw buttons
-        self.pvp_button.update(mouse_pos)
-        self.pvc_button.update(mouse_pos)
-        self.cvc_button.update(mouse_pos)
-        self.back_button.update(mouse_pos)
+        # Update button focus in keyboard mode
+        if self.is_keyboard_mode:
+            for i, button in enumerate(self.buttons):
+                button.is_focused = (i == self.current_button)
         
-        self.pvp_button.draw(self.screen)
-        self.pvc_button.draw(self.screen)
-        self.cvc_button.draw(self.screen)
-        self.back_button.draw(self.screen)
+        # Update and draw buttons
+        for button in self.buttons:
+            button.update(mouse_pos, self.is_keyboard_mode)
+            button.draw(self.screen)
 
     def handle_event(self, event):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            return ("MAIN_MENU", None)
+        if event.type == pygame.KEYDOWN:
+            self.is_keyboard_mode = True
+            if event.key == pygame.K_ESCAPE:
+                return ("MAIN_MENU", None)
+            elif event.key in [pygame.K_w, pygame.K_UP] and self.current_button > 0:
+                self.current_button -= 1
+            elif event.key in [pygame.K_s, pygame.K_DOWN] and self.current_button < len(self.buttons) - 1:
+                self.current_button += 1
             
-        if self.pvp_button.is_clicked(event):
-            return ("CHARACTER_SELECT", 0)  # 0 = MODE_PVP
-        elif self.pvc_button.is_clicked(event):
-            return ("CHARACTER_SELECT", 1)  # 1 = MODE_PVC
-        elif self.cvc_button.is_clicked(event):
-            return ("CHARACTER_SELECT", 2)  # 2 = MODE_CVC
-        elif self.back_button.is_clicked(event):
-            return ("MAIN_MENU", None)
+            # Check for button activation
+            if self.buttons[self.current_button].is_clicked(event):
+                if self.current_button == 0:
+                    return ("CHARACTER_SELECT", 0)  # PVP
+                elif self.current_button == 1:
+                    return ("CHARACTER_SELECT", 1)  # PVC
+                elif self.current_button == 2:
+                    return ("CHARACTER_SELECT", 2)  # CVC
+                else:
+                    return ("MAIN_MENU", None)  # Back button
+        
+        # Handle mouse clicks
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            self.is_keyboard_mode = False
+            if self.pvp_button.is_clicked(event):
+                return ("CHARACTER_SELECT", 0)
+            elif self.pvc_button.is_clicked(event):
+                return ("CHARACTER_SELECT", 1)
+            elif self.cvc_button.is_clicked(event):
+                return ("CHARACTER_SELECT", 2)
+            elif self.back_button.is_clicked(event):
+                return ("MAIN_MENU", None)
+            
         return None

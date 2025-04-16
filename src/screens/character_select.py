@@ -19,9 +19,6 @@ def character_select_screen(screen, WIDTH, HEIGHT):
     # Font setup
     title_font = pygame.font.SysFont('Arial', 60, True)
     info_font = pygame.font.SysFont('Arial', 20)
-
-    # Create back button
-    back_button = Button(WIDTH // 2 - 75, HEIGHT // 2 + 160, 150, 50, "Back", (180, 70, 70), (210, 100, 100))
     
     # Character options with names, colors and stats
     characters = [
@@ -57,6 +54,9 @@ def character_select_screen(screen, WIDTH, HEIGHT):
     
     # Create particles list
     particles = []
+
+    # Keyboard navigation state
+    is_keyboard_mode = False
     
     running = True
     while running:
@@ -65,58 +65,56 @@ def character_select_screen(screen, WIDTH, HEIGHT):
         # Get mouse position for button update
         mouse_pos = pygame.mouse.get_pos()
         
+        # Check if mouse moved to switch to mouse mode
+        if pygame.mouse.get_rel() != (0, 0):
+            is_keyboard_mode = False
+        
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return None, None
             if event.type == pygame.KEYDOWN:
+                is_keyboard_mode = True
+                
                 if event.key == pygame.K_ESCAPE:
                     return None, None
                 
                 # Player 1 controls
                 if not p1_locked:
                     if event.key == pygame.K_a:
-                        old_selection = p1_selected
                         p1_selected = (p1_selected - 1) % len(characters)
-                        while p1_selected == p2_selected:  # Skip if color is selected by P2
+                        while p1_selected == p2_selected:
                             p1_selected = (p1_selected - 1) % len(characters)
                     elif event.key == pygame.K_d:
-                        old_selection = p1_selected
                         p1_selected = (p1_selected + 1) % len(characters)
-                        while p1_selected == p2_selected:  # Skip if color is selected by P2
+                        while p1_selected == p2_selected:
                             p1_selected = (p1_selected + 1) % len(characters)
                     elif event.key == pygame.K_w:
-                        old_selection = p1_selected
                         p1_selected = (p1_selected - grid_cols) % len(characters)
-                        while p1_selected == p2_selected:  # Skip if color is selected by P2
+                        while p1_selected == p2_selected:
                             p1_selected = (p1_selected - grid_cols) % len(characters)
                     elif event.key == pygame.K_s:
-                        old_selection = p1_selected
                         p1_selected = (p1_selected + grid_cols) % len(characters)
-                        while p1_selected == p2_selected:  # Skip if color is selected by P2
+                        while p1_selected == p2_selected:
                             p1_selected = (p1_selected + grid_cols) % len(characters)
                 
                 # Player 2 controls
                 if not p2_locked:
                     if event.key == pygame.K_LEFT:
-                        old_selection = p2_selected
                         p2_selected = (p2_selected - 1) % len(characters)
-                        while p2_selected == p1_selected:  # Skip if color is selected by P1
+                        while p2_selected == p1_selected:
                             p2_selected = (p2_selected - 1) % len(characters)
                     elif event.key == pygame.K_RIGHT:
-                        old_selection = p2_selected
                         p2_selected = (p2_selected + 1) % len(characters)
-                        while p2_selected == p1_selected:  # Skip if color is selected by P1
+                        while p2_selected == p1_selected:
                             p2_selected = (p2_selected + 1) % len(characters)
                     elif event.key == pygame.K_UP:
-                        old_selection = p2_selected
                         p2_selected = (p2_selected - grid_cols) % len(characters)
-                        while p2_selected == p1_selected:  # Skip if color is selected by P1
+                        while p2_selected == p1_selected:
                             p2_selected = (p2_selected - grid_cols) % len(characters)
                     elif event.key == pygame.K_DOWN:
-                        old_selection = p2_selected
                         p2_selected = (p2_selected + grid_cols) % len(characters)
-                        while p2_selected == p1_selected:  # Skip if color is selected by P1
+                        while p2_selected == p1_selected:
                             p2_selected = (p2_selected + grid_cols) % len(characters)
                 
                 # Lock selections
@@ -128,11 +126,6 @@ def character_select_screen(screen, WIDTH, HEIGHT):
                 # Start game when both players are locked
                 if p1_locked and p2_locked:
                     return characters[p1_selected]["color"], characters[p2_selected]["color"]
-            
-            # Update and handle back button
-            back_button.update(mouse_pos)
-            if back_button.is_clicked(event):
-                return None, None
 
         # Draw background using Background class
         background.draw(screen)
@@ -163,7 +156,7 @@ def character_select_screen(screen, WIDTH, HEIGHT):
             pygame.draw.rect(screen, (50, 50, 60), 
                             (portrait_x, portrait_y, portrait_width, portrait_height))
             
-            # Draw character silhouette (reduciendo la altura en -40 en lugar de -30 para dejar más espacio al nombre)
+            # Draw character silhouette
             pygame.draw.rect(screen, character["color"], 
                             (portrait_x + 10, portrait_y + 10, portrait_width - 20, portrait_height - 40))
             
@@ -186,7 +179,7 @@ def character_select_screen(screen, WIDTH, HEIGHT):
                                 (portrait_x - 4, portrait_y - 4, portrait_width + 8, portrait_height + 8), 3)
                 draw_text(screen, "P2", info_font, frame_color, portrait_x + portrait_width // 2 - 10, portrait_y - 25)
         
-        # Draw large character previews on left and right sides - adjusted positions
+        # Draw large character previews on left and right sides
         preview_width = 200
         preview_height = 400
         p1_preview_rect = pygame.Rect(0, HEIGHT//2 - preview_height//2, preview_width, preview_height)
@@ -199,9 +192,6 @@ def character_select_screen(screen, WIDTH, HEIGHT):
         for particle in particles:
             particle.draw(screen)
         update_particles(particles)
-
-        # Draw back button
-        back_button.draw(screen)
         
         # Draw ESC instruction
         esc_text = "Press ESC to go back"
