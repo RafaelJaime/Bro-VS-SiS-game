@@ -32,6 +32,11 @@ class GamePlay:
         self.player1 = Fighter(100, height - 150, 50, 100, BLUE, self.player1_controls, "Player 1")
         self.player2 = Fighter(700, height - 150, 50, 100, RED, self.player2_controls, "Player 2")
         
+        # Timer variables
+        self.match_timer = 60 * 60  # 60 seconds at 60fps
+        self.sudden_death = False
+        self.timer_font = pygame.font.SysFont('Arial', 40)
+        
         # Create background stars
         self.stars = []
         for _ in range(80):
@@ -108,6 +113,31 @@ class GamePlay:
             self.draw_text("Controls: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
         elif game_mode == 2:  # CVC
             self.draw_text("AI Battle - Press ESC to exit", self.font, WHITE, self.width // 2 - 150, self.height - 40)
+        
+        # Update and draw timer
+        if not self.player1.is_defeated and not self.player2.is_defeated:
+            self.match_timer -= 1
+            
+        if self.match_timer <= 0 and not self.sudden_death:
+            self.sudden_death = True
+            self.player1.health = 1
+            self.player2.health = 1
+            self.player1.sudden_death_mode = True
+            self.player2.sudden_death_mode = True
+            screen_shake.start(10)  # Añadir un efecto para indicar el inicio de muerte súbita
+            self.match_timer = 0  # Evitar que el contador se vuelva negativo
+            
+        # Mostrar timer
+        timer_text = f"{max(self.match_timer // 60, 0):02}"  # Usar max para evitar números negativos
+        timer_color = RED if self.sudden_death or self.match_timer < 600 else WHITE
+        self.draw_text(timer_text, self.timer_font, timer_color, self.width // 2 - 20, 10)
+        
+        # Mostrar mensaje de muerte súbita centrado
+        if self.sudden_death:
+            sudden_death_text = "¡MUERTE SÚBITA!"
+            text_width = self.timer_font.size(sudden_death_text)[0]
+            center_x = (self.width - text_width) // 2
+            self.draw_text(sudden_death_text, self.timer_font, RED, center_x, 80)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -135,6 +165,8 @@ class GamePlay:
         self.player2.rect.x = 700
         self.player1.rect.y = self.height - 150
         self.player2.rect.y = self.height - 150
+        self.match_timer = 60 * 60  # Reset timer
+        self.sudden_death = False
 
     def set_player_colors(self, p1_color, p2_color):
         """Update the colors of both players"""

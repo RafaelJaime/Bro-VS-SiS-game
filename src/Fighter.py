@@ -35,6 +35,7 @@ class Fighter:
         self.knockback_x = 0
         self.knockback_y = 0
         self.knockback_resistance = 0.8  # Resistencia al knockback (menor = más duración)
+        self.sudden_death_mode = False  # Nuevo flag para el modo muerte súbita
         
         # Create secondary colors for effects
         r, g, b = self.color
@@ -114,7 +115,7 @@ class Fighter:
                 elif self.ai_current_action == 'attack' and self.attack_cooldown == 0:
                     self.attacking = True
                     self.attack_cooldown = 20
-                    self.add_attack_windup_effect()
+                    self.add_attack_windup_effect(opponent)
                     self.attack(opponent)
                 elif self.ai_current_action == 'shoot' and self.shoot_cooldown == 0:
                     self.shoot()
@@ -155,7 +156,7 @@ class Fighter:
                     if key[self.controls['attack']] and self.attack_cooldown == 0:
                         self.attacking = True
                         self.attack_cooldown = 20
-                        self.add_attack_windup_effect()
+                        self.add_attack_windup_effect(opponent)
                         self.attack(opponent)
 
         # Update projectiles
@@ -306,9 +307,12 @@ class Fighter:
                 15
             ))
 
-    def add_attack_windup_effect(self):
-        # Direction of attack
-        direction = 1 if self.rect.centerx < WIDTH / 2 else -1
+    def add_attack_windup_effect(self, opponent):
+        # Direction of attack based on opponent position, same as attack method
+        if self.rect.centerx < opponent.rect.centerx:  # Facing right
+            direction = 1
+        else:  # Facing left
+            direction = -1
         
         # Create swipe effect particles
         for i in range(10):
@@ -349,13 +353,21 @@ class Fighter:
         if self.hit_cooldown > 0:
             return False
             
-        self.health -= amount
-        if self.health <= 0:
+        # En modo muerte súbita, cualquier golpe es fatal
+        if hasattr(self, 'sudden_death_mode') and self.sudden_death_mode:
             self.health = 0
             self.is_defeated = True
             attacker.score += 1
             pos = hit_pos if hit_pos else (self.rect.centerx, self.rect.centery)
             attacker.add_ko_effect(*pos)
+        else:
+            self.health -= amount
+            if self.health <= 0:
+                self.health = 0
+                self.is_defeated = True
+                attacker.score += 1
+                pos = hit_pos if hit_pos else (self.rect.centerx, self.rect.centery)
+                attacker.add_ko_effect(*pos)
         
         # Aplicar knockback
         knockback_force = amount * 2  # La fuerza del knockback depende del daño
