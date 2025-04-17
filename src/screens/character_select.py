@@ -1,10 +1,10 @@
 import pygame
 import random
 import math
-from src.Button import Button
-from src.Colors import WHITE, BLACK, RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE
-from src.Particle import Particle
-from src.Background import Background
+from src.utils.Button import Button
+from src.utils.Colors import WHITE, BLACK, RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE
+from src.utils.Particle import Particle
+from src.utils.Background import Background
 
 def draw_text(surface, text, font, text_col, x, y, shadow=True):
     if shadow:

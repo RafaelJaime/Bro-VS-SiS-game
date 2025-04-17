@@ -1,6 +1,6 @@
 import pygame
-from src.Button import Button
-from src.Colors import WHITE
+from src.utils.Button import Button
+from src.utils.Colors import WHITE
 
 class PauseMenu:
     def __init__(self, screen, width, height):

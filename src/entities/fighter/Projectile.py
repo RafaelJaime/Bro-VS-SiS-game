@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-from src.Particle import Particle
+from src.utils.Particle import Particle
 
 # Projectile class for shooting balls
 class Projectile:

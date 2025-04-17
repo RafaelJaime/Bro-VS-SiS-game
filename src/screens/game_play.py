@@ -1,8 +1,8 @@
 import pygame
 import random
-from src.Fighter import Fighter
-from src.Colors import BLACK, WHITE, RED, BLUE
-from src.ScreenShake import screen_shake
+from src.entities.fighter.Fighter import Fighter
+from src.utils.Colors import BLACK, WHITE, RED, BLUE
+from src.utils.ScreenShake import screen_shake
 
 class GamePlay:
     def __init__(self, screen, width, height):

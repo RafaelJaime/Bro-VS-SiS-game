@@ -1,7 +1,7 @@
 import pygame
-from src.Button import Button
-from src.Colors import WHITE, BLACK
-from src.Background import Background
+from src.utils.Button import Button
+from src.utils.Colors import WHITE, BLACK
+from src.utils.Background import Background
 
 class DifficultySelect:
     def __init__(self, screen, width, height):

@@ -1,10 +1,10 @@
 import pygame
 import math
 import random
-from src.Colors import GREEN, YELLOW, ORANGE, RED, WHITE, BLUE
-from src.Particle import Particle
-from src.ScreenShake import screen_shake
-from src.Projectile import Projectile
+from src.utils.Colors import GREEN, YELLOW, ORANGE, RED, WHITE, BLUE
+from src.utils.Particle import Particle
+from src.utils.ScreenShake import screen_shake
+from src.entities.fighter.Projectile import Projectile
 
 WIDTH, HEIGHT = 800, 600
 

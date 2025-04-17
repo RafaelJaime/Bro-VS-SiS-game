@@ -6,6 +6,8 @@ from src.screens.character_select import character_select_screen
 from src.screens.game_play import GamePlay
 from src.screens.pause_menu import PauseMenu
 from src.screens.game_over import GameOver
+from src.utils.Colors import BLACK, WHITE, RED, BLUE
+from src.entities.fighter.Fighter import Fighter
 
 # Initialize pygame
 pygame.init()

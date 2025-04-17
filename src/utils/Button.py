@@ -1,5 +1,5 @@
 import pygame
-from src.Colors import WHITE
+from src.utils.Colors import WHITE
 
 # Button class for menus
 class Button:

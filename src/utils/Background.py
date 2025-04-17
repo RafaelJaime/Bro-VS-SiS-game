@@ -1,6 +1,6 @@
 import pygame
 import random
-from src.Colors import BLACK
+from src.utils.Colors import BLACK
 
 class Background:
     def __init__(self, width, height):
