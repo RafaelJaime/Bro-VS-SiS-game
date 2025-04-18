@@ -22,6 +22,17 @@ class Movement:
         dx = 0
         dy = 0
 
+        # Actualizar temporizador de protección
+        if self.protect_cooldown > 0:
+            self.protect_cooldown -= 1
+        
+        # Desactivar protección si el tiempo termina
+        if self.protecting and self.protect_duration <= 0:
+            self.protecting = False
+            self.protect_cooldown = self.protect_max_cooldown
+        elif self.protecting:
+            self.protect_duration -= 1
+
         # Aplicar knockback si existe
         has_knockback = self.knockback_x != 0 or self.knockback_y != 0
         if has_knockback:
@@ -74,14 +85,21 @@ class Movement:
                 if self.shoot_cooldown > 0:
                     self.shoot_cooldown -= 1
 
-                # Check for shoot button (G for player 1, L for player 2)
-                if (self.name == "Player 1" and key[pygame.K_g] or 
-                    self.name == "Player 2" and key[pygame.K_l]) and self.shoot_cooldown == 0:
+                # Verificar disparo usando los controles
+                if key[self.controls['shoot']] and self.shoot_cooldown == 0:
                     self.shoot()
                     self.shoot_cooldown = 30
 
-                # Can only perform actions if not attacking
-                if not self.attacking:
+                # Activación de protección con una sola tecla
+                if not self.protecting and self.protect_cooldown == 0:
+                    if key[self.controls['protect']]:
+                        self.protecting = True
+                        self.protect_duration = 60  # 1 segundo (60 frames)
+                        # Efecto visual de protección
+                        self.add_protect_effect()
+
+                # Can only perform actions if not attacking and not protecting
+                if not self.attacking and not self.protecting:
                     # Movement controls
                     if key[self.controls['left']]:
                         dx = -5
@@ -108,6 +126,10 @@ class Movement:
         # Update projectiles
         self.update_projectiles(opponent)
         
+        # Comprobar colisión de proyectil con ataque mientras está protegido
+        if self.attacking and self.protecting:
+            self.check_projectile_attack_collision(opponent)
+
         # Apply gravity
         self.vel_y += 1
         if self.vel_y > 10:

@@ -19,14 +19,18 @@ class GamePlay:
             'left': pygame.K_a,
             'right': pygame.K_d,
             'up': pygame.K_w,
-            'attack': pygame.K_f
+            'attack': pygame.K_f,
+            'shoot': pygame.K_g,
+            'protect': pygame.K_s  # Permitir dos teclas para protegerse
         }
         
         self.player2_controls = {
             'left': pygame.K_LEFT,
             'right': pygame.K_RIGHT,
             'up': pygame.K_UP,
-            'attack': pygame.K_k
+            'attack': pygame.K_k,
+            'shoot': pygame.K_l,
+            'protect': pygame.K_DOWN  # Solo una tecla para el jugador 2
         }
         
         self.player1 = Fighter(100, height - 150, 50, 100, BLUE, self.player1_controls, "Player 1")

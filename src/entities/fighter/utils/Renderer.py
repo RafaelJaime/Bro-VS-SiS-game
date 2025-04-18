@@ -31,6 +31,33 @@ class Renderer:
                                 self.rect.width, 
                                 self.rect.height))
             
+            # Dibujar el escudo si está protegido
+            if hasattr(self, 'protecting') and self.protecting:
+                # Crear un contorno brillante alrededor del jugador
+                shield_color = (100, 200, 255, 128)  # Azul claro semitransparente
+                shield_size = 4  # Grosor del escudo
+                
+                # Crear una superficie con transparencia para el escudo
+                shield_surface = pygame.Surface(
+                    (self.rect.width + shield_size * 2, self.rect.height + shield_size * 2), 
+                    pygame.SRCALPHA
+                )
+                
+                # Dibujar el contorno del escudo
+                pygame.draw.rect(
+                    shield_surface, 
+                    shield_color, 
+                    (0, 0, self.rect.width + shield_size * 2, self.rect.height + shield_size * 2),
+                    shield_size
+                )
+                
+                # Mostrar la superficie del escudo
+                surface.blit(
+                    shield_surface, 
+                    (self.rect.x - shield_size + camera_offset[0], 
+                    self.rect.y - shield_size + camera_offset[1])
+                )
+            
             # Draw attack hitbox if attacking
             if self.attacking:
                 attack_rect = pygame.Rect(0, 0, 0, 0)

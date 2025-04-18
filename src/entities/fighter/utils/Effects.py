@@ -148,6 +148,29 @@ class Effects:
                 
             self.particles.append(Particle(collision_x, collision_y, color, size, (vel_x, vel_y), False, lifetime))
     
+    def add_protect_effect(self):
+        # Crear un efecto de escudo alrededor del jugador
+        for _ in range(20):
+            angle = random.uniform(0, math.pi * 2)
+            # Posicionar partículas alrededor del personaje
+            radius = self.rect.width * 0.8
+            x = self.rect.centerx + math.cos(angle) * radius
+            y = self.rect.centery + math.sin(angle) * radius
+            
+            # Velocidad circular alrededor del jugador
+            vel_x = math.sin(angle) * 2
+            vel_y = -math.cos(angle) * 2
+            
+            size = random.uniform(3, 6)
+            lifetime = random.randint(15, 30)
+            
+            # Color azul claro para el escudo
+            shield_color = (100, 200, 255)
+            
+            self.particles.append(Particle(
+                x, y, shield_color, size, (vel_x, vel_y), False, lifetime
+            ))
+    
     def update_particles(self):
         i = 0
         while i < len(self.particles):

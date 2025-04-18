@@ -21,6 +21,12 @@ class Combat:
         self.defeat_animation = 0
         self.score = 0
         
+        # Variables para la mecánica de protección
+        self.protecting = False
+        self.protect_cooldown = 0
+        self.protect_duration = 60  # 1 segundo (60 frames)
+        self.protect_max_cooldown = 60  # 1 segundo de recarga
+        
     def shoot(self):
         # Store opponent reference when move() is called
         opponent = getattr(self, '_current_opponent', None)
@@ -83,6 +89,29 @@ class Combat:
         if self.hit_cooldown > 0:
             return False
             
+        # Si el jugador está protegido, no recibe daño
+        if self.protecting:
+            # Si es un proyectil (tiene hit_pos), lo devuelve
+            if hit_pos:
+                # Determinar la dirección del rebote hacia el atacante
+                direction = 1 if attacker.rect.centerx > self.rect.centerx else -1
+                # Crear un nuevo proyectil que va hacia el atacante
+                projectile = Projectile(
+                    self.rect.centerx + (direction * self.rect.width/2),
+                    self.rect.centery,
+                    direction,
+                    self.color
+                )
+                self.projectiles.append(projectile)
+                # Efecto visual de rebote
+                self.add_shoot_effect(direction)
+                screen_shake.start(2)
+                return False
+            else:
+                # Si es un golpe normal, no recibe daño pero tampoco lo devuelve
+                screen_shake.start(1)
+                return False
+            
         # En modo muerte súbita, cualquier golpe es fatal
         if hasattr(self, 'sudden_death_mode') and self.sudden_death_mode:
             self.health = 0
@@ -122,3 +151,36 @@ class Combat:
             attacker.add_hit_effect(*hit_pos)
         
         return True
+
+    def check_projectile_attack_collision(self, opponent):
+        # Crear un rectángulo de ataque similar al del método attack()
+        attack_rect = pygame.Rect(0, 0, 0, 0)
+        
+        # Posicionar el rectángulo de ataque según la orientación del jugador
+        if self.rect.centerx < opponent.rect.centerx:  # Mirando a la derecha
+            attack_rect = pygame.Rect(self.rect.right, self.rect.y, 50, self.rect.height)
+        else:  # Mirando a la izquierda
+            attack_rect = pygame.Rect(self.rect.left - 50, self.rect.y, 50, self.rect.height)
+        
+        # Comprobar colisión con proyectiles del oponente
+        i = 0
+        while i < len(opponent.projectiles):
+            projectile = opponent.projectiles[i]
+            
+            # Crear un rectángulo para el proyectil
+            projectile_rect = pygame.Rect(
+                projectile.x - projectile.radius, 
+                projectile.y - projectile.radius,
+                projectile.radius * 2,
+                projectile.radius * 2
+            )
+            
+            # Si el rectángulo de ataque colisiona con un proyectil, hacerlo desaparecer
+            if attack_rect.colliderect(projectile_rect):
+                opponent.projectiles.pop(i)
+                # Añadir efecto visual de desvío
+                self.add_hit_effect(projectile.x, projectile.y)
+                screen_shake.start(2)
+                continue
+                
+            i += 1
