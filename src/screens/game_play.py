@@ -155,16 +155,25 @@ class GamePlay:
         return self.player2 if self.player1.is_defeated else self.player1
 
     def reset_game(self):
-        self.player1.health = 100
-        self.player2.health = 100
-        self.player1.is_defeated = False
-        self.player2.is_defeated = False
-        self.player1.defeat_animation = 0
-        self.player2.defeat_animation = 0
-        self.player1.rect.x = 100
-        self.player2.rect.x = 700
-        self.player1.rect.y = self.height - 150
-        self.player2.rect.y = self.height - 150
+        # Guardar colores, modo AI y puntuación
+        p1_color = self.player1.color
+        p2_color = self.player2.color
+        p1_is_ai = self.player1.is_ai
+        p2_is_ai = self.player2.is_ai
+        p1_score = self.player1.score
+        p2_score = self.player2.score
+        
+        # Recrear objetos Fighter
+        self.player1 = Fighter(100, self.height - 150, 50, 100, p1_color, self.player1_controls, "Player 1")
+        self.player2 = Fighter(700, self.height - 150, 50, 100, p2_color, self.player2_controls, "Player 2")
+        
+        # Restaurar modo AI y puntuación
+        self.player1.is_ai = p1_is_ai
+        self.player2.is_ai = p2_is_ai
+        self.player1.score = p1_score
+        self.player2.score = p2_score
+        
+        # Reiniciar el temporizador y el modo de muerte súbita
         self.match_timer = 60 * 60  # Reset timer
         self.sudden_death = False
 

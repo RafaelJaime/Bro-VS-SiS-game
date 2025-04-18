@@ -22,7 +22,6 @@ class Fighter(Combat, Movement, Effects, Renderer, FighterAI):
         Movement.__init__(self)
         Effects.__init__(self)
         Renderer.__init__(self)
-        # FighterAI no tiene constructor, por lo que no necesitamos inicializarlo
         
         # Inicializar atributos básicos específicos de Fighter
         self.rect = pygame.Rect(x, y, width, height)
