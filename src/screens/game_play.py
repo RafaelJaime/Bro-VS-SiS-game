@@ -61,7 +61,7 @@ class GamePlay:
         img = font.render(text, True, text_col)
         self.screen.blit(img, (x, y))
 
-    def update(self, game_mode):
+    def update(self, game_mode, is_paused=False):
         # Update screen shake
         camera_offset = screen_shake.update()
         
@@ -89,14 +89,52 @@ class GamePlay:
         self.player1.draw(self.screen, camera_offset)
         self.player2.draw(self.screen, camera_offset)
         
-        # Only move fighters if neither is defeated
-        if not self.player1.is_defeated and not self.player2.is_defeated:
-            self.player1.move(self.player2)
-            self.player2.move(self.player1)
-        else:
-            # Still update particles when a player is defeated
-            self.player1.update_particles()
-            self.player2.update_particles()
+        # Only move fighters and update game logic if the game is not paused
+        if not is_paused:
+            # Only move fighters if neither is defeated
+            if not self.player1.is_defeated and not self.player2.is_defeated:
+                self.player1.move(self.player2)
+                self.player2.move(self.player1)
+            else:
+                # Still update particles when a player is defeated
+                self.player1.update_particles()
+                self.player2.update_particles()
+                
+            # Update and draw timer only if match has started and not paused
+            if self.match_started and not self.player1.is_defeated and not self.player2.is_defeated and not self.game_ending:
+                self.match_timer -= 1
+                
+            # Cuando el tiempo llega a cero
+            if self.match_timer <= 0 and not self.sudden_death and not self.game_ending:
+                # Si el tiempo se acabó, comprobar las vidas de los jugadores
+                if self.player1.health != self.player2.health:
+                    # Si hay diferencia de vida, finalizar inmediatamente
+                    self.game_ending = True
+                    # Sacudir la pantalla para indicar el final
+                    screen_shake.start(5)
+                else:
+                    # Si tienen la misma vida, activar muerte súbita
+                    self.sudden_death = True
+                    self.player1.health = 1
+                    self.player2.health = 1
+                    self.player1.sudden_death_mode = True
+                    self.player2.sudden_death_mode = True
+                    screen_shake.start(10)  # Añadir un efecto para indicar el inicio de muerte súbita
+                
+                # Evitar que el contador se vuelva negativo
+                self.match_timer = 0
+            
+            # Procesar el final del juego por tiempo cuando hay diferencia de vida
+            if self.game_ending:
+                # Determinar el ganador por salud y finalizar el juego inmediatamente
+                if self.player1.health > self.player2.health:
+                    self.player2.is_defeated = True
+                    self.player2.health = 0
+                    self.player1.score += 1
+                else:
+                    self.player1.is_defeated = True 
+                    self.player1.health = 0
+                    self.player2.score += 1
         
         # Draw UI panel at the top
         pygame.draw.rect(self.screen, (30, 30, 30), (0, 0, self.width, 60))
@@ -119,42 +157,6 @@ class GamePlay:
             self.draw_text("Controls: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
         elif game_mode == 2:  # CVC
             self.draw_text("AI Battle - Press ESC to exit", self.font, WHITE, self.width // 2 - 150, self.height - 40)
-        
-        # Update and draw timer only if match has started
-        if self.match_started and not self.player1.is_defeated and not self.player2.is_defeated and not self.game_ending:
-            self.match_timer -= 1
-            
-        # Cuando el tiempo llega a cero
-        if self.match_timer <= 0 and not self.sudden_death and not self.game_ending:
-            # Si el tiempo se acabó, comprobar las vidas de los jugadores
-            if self.player1.health != self.player2.health:
-                # Si hay diferencia de vida, finalizar inmediatamente
-                self.game_ending = True
-                # Sacudir la pantalla para indicar el final
-                screen_shake.start(5)
-            else:
-                # Si tienen la misma vida, activar muerte súbita
-                self.sudden_death = True
-                self.player1.health = 1
-                self.player2.health = 1
-                self.player1.sudden_death_mode = True
-                self.player2.sudden_death_mode = True
-                screen_shake.start(10)  # Añadir un efecto para indicar el inicio de muerte súbita
-            
-            # Evitar que el contador se vuelva negativo
-            self.match_timer = 0
-        
-        # Procesar el final del juego por tiempo cuando hay diferencia de vida
-        if self.game_ending:
-            # Determinar el ganador por salud y finalizar el juego inmediatamente
-            if self.player1.health > self.player2.health:
-                self.player2.is_defeated = True
-                self.player2.health = 0
-                self.player1.score += 1
-            else:
-                self.player1.is_defeated = True 
-                self.player1.health = 0
-                self.player2.score += 1
         
         # Mostrar timer
         timer_text = f"{max(self.match_timer // 60, 0):02}"  # Usar max para evitar números negativos

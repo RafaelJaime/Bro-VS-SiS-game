@@ -147,7 +147,22 @@ class Combat:
                         direction,
                         self.color
                     )
+                    
+                    # Buscar el proyectil original para obtener su velocidad
+                    original_speed = 10  # Velocidad base por defecto
+                    
+                    # Verificar si podemos encontrar el proyectil original
+                    for p in attacker.projectiles:
+                        if math.sqrt((p.x - hit_pos[0])**2 + (p.y - hit_pos[1])**2) < 10:
+                            original_speed = p.speed
+                            break
+                    
+                    # Aumentar la velocidad en un 50%
+                    projectile.speed = original_speed * 1.5
+                    
+                    # Añadir el proyectil a la lista de proyectiles
                     self.projectiles.append(projectile)
+                    
                     # Efecto visual de rebote
                     self.add_shoot_effect(direction)
                     screen_shake.start(2)
