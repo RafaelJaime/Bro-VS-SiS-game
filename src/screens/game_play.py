@@ -184,17 +184,19 @@ class GamePlay:
         return self.player2 if self.player1.is_defeated else self.player1
 
     def reset_game(self):
-        # Guardar colores, modo AI y puntuación
+        # Guardar colores, modo AI, puntuación y nombres
         p1_color = self.player1.color
         p2_color = self.player2.color
         p1_is_ai = self.player1.is_ai
         p2_is_ai = self.player2.is_ai
         p1_score = self.player1.score
         p2_score = self.player2.score
+        p1_name = self.player1.name
+        p2_name = self.player2.name
         
         # Recrear objetos Fighter
-        self.player1 = Fighter(100, self.height - 150, 50, 100, p1_color, self.player1_controls, "Player 1")
-        self.player2 = Fighter(700, self.height - 150, 50, 100, p2_color, self.player2_controls, "Player 2")
+        self.player1 = Fighter(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
+        self.player2 = Fighter(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
         
         # Restaurar modo AI y puntuación
         self.player1.is_ai = p1_is_ai
@@ -212,6 +214,11 @@ class GamePlay:
         """Update the colors of both players"""
         self.player1.color = p1_color
         self.player2.color = p2_color
+        
+    def set_player_names(self, p1_name, p2_name):
+        """Update the names of both players"""
+        self.player1.name = p1_name
+        self.player2.name = p2_name
 
     def set_ai_mode(self, game_mode):
         """Set AI mode based on game mode (0=PVP, 1=PVC, 2=CVC)"""

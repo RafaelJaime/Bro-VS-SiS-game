@@ -75,10 +75,11 @@ def main():
                     current_state = next_state
             
             elif current_state == GameState.CHARACTER_SELECT:
-                p1_color, p2_color = character_select_screen(screen, WIDTH, HEIGHT)
+                p1_color, p2_color, p1_name, p2_name = character_select_screen(screen, WIDTH, HEIGHT)
                 if p1_color is not None and p2_color is not None:
                     game_play.reset_game()
                     game_play.set_player_colors(p1_color, p2_color)
+                    game_play.set_player_names(p1_name, p2_name)
                     game_play.set_ai_mode(game_mode)
                     current_state = GameState.PLAYING
                 elif p1_color is None and p2_color is None:

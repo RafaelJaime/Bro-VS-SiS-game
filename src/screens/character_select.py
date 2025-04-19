@@ -72,12 +72,12 @@ def character_select_screen(screen, WIDTH, HEIGHT):
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return None, None
+                return None, None, None, None
             if event.type == pygame.KEYDOWN:
                 is_keyboard_mode = True
                 
                 if event.key == pygame.K_ESCAPE:
-                    return None, None
+                    return None, None, None, None
                 
                 # Player 1 controls
                 if not p1_locked:
@@ -125,7 +125,7 @@ def character_select_screen(screen, WIDTH, HEIGHT):
                 
                 # Start game when both players are locked
                 if p1_locked and p2_locked:
-                    return characters[p1_selected]["color"], characters[p2_selected]["color"]
+                    return characters[p1_selected]["color"], characters[p2_selected]["color"], characters[p1_selected]["name"], characters[p2_selected]["name"]
 
         # Draw background using Background class
         background.draw(screen)
@@ -200,7 +200,7 @@ def character_select_screen(screen, WIDTH, HEIGHT):
         
         pygame.display.update()
     
-    return None, None
+    return None, None, None, None
 
 def draw_character_preview(screen, rect, color, name, player_color):
     # Draw frame background with gradient effect
