@@ -27,6 +27,10 @@ class Combat:
         self.protect_cooldown = 0
         self.protect_duration = 60  # 1 segundo (60 frames)
         self.protect_max_cooldown = 60  # 1 segundo de recarga
+    
+    def can_shoot(self):
+        """Check if the fighter can shoot (not protecting and cooldown is ready)"""
+        return self.shoot_cooldown == 0 and not self.protecting
         
     def protect(self):
         """Activate protection mode for the fighter"""

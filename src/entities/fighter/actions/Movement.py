@@ -74,7 +74,7 @@ class Movement:
                     self.attack_cooldown = 20
                     self.add_attack_windup_effect(opponent)
                     self.attack(opponent)
-                elif self.ai_current_action == 'shoot' and self.shoot_cooldown == 0:
+                elif self.ai_current_action == 'shoot' and self.can_shoot():
                     self.shoot()
                     self.shoot_cooldown = 30
             else:
@@ -85,8 +85,8 @@ class Movement:
                 if self.shoot_cooldown > 0:
                     self.shoot_cooldown -= 1
 
-                # Verificar disparo usando los controles
-                if key[self.controls['shoot']] and self.shoot_cooldown == 0:
+                # Verificar disparo usando los controles - usar can_shoot para comprobar condiciones
+                if key[self.controls['shoot']] and self.can_shoot():
                     self.shoot()
                     self.shoot_cooldown = 30
 
