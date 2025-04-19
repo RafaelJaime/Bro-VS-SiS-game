@@ -3,6 +3,7 @@ import math
 import random
 from src.utils.ScreenShake import screen_shake
 from src.entities.fighter.Projectile import Projectile
+from src.utils.Particle import Particle
 
 WIDTH, HEIGHT = 800, 600
 
@@ -27,6 +28,42 @@ class Combat:
         self.protect_duration = 60  # 1 segundo (60 frames)
         self.protect_max_cooldown = 60  # 1 segundo de recarga
         
+    def protect(self):
+        """Activate protection mode for the fighter"""
+        # Only activate protection if cooldown has passed
+        if self.protect_cooldown <= 0:
+            self.protecting = True
+            self.protect_duration = 60  # 1 second of protection (60 frames)
+            self.protect_cooldown = self.protect_max_cooldown  # Start the cooldown
+            # Add visual effect for protection activation
+            self.add_protect_effect()
+            
+    def add_protect_effect(self):
+        """Add visual effect for protection activation"""
+        # Create particles in a circle around the fighter
+        center_x = self.rect.centerx
+        center_y = self.rect.centery
+        for _ in range(8):  # Create 8 particles in a circle
+            angle = random.uniform(0, 2 * math.pi)
+            distance = self.rect.width * 0.75
+            x = center_x + math.cos(angle) * distance
+            y = center_y + math.sin(angle) * distance
+            
+            # Create particle with fighter's color - corrected parameter order
+            size = random.randint(5, 10)
+            velocity = (random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5))
+            lifetime = random.randint(20, 30)
+            
+            particle = Particle(
+                x, y,              # Position
+                self.color,        # Color
+                size,              # Size
+                velocity,          # Velocity as a tuple
+                True,              # Gravity
+                lifetime           # Lifetime
+            )
+            self.particles.append(particle)
+            
     def shoot(self):
         # Store opponent reference when move() is called
         opponent = getattr(self, '_current_opponent', None)
@@ -95,17 +132,28 @@ class Combat:
             if hit_pos:
                 # Determinar la dirección del rebote hacia el atacante
                 direction = 1 if attacker.rect.centerx > self.rect.centerx else -1
-                # Crear un nuevo proyectil que va hacia el atacante
-                projectile = Projectile(
-                    self.rect.centerx + (direction * self.rect.width/2),
-                    self.rect.centery,
-                    direction,
-                    self.color
-                )
-                self.projectiles.append(projectile)
-                # Efecto visual de rebote
-                self.add_shoot_effect(direction)
-                screen_shake.start(2)
+                
+                # Asegurarse de que solo se crea un proyectil de rebote
+                current_time = pygame.time.get_ticks()
+                if not hasattr(self, 'last_bounce_time') or current_time - self.last_bounce_time > 100:  # 100ms cooldown
+                    # Crear un nuevo proyectil que va hacia el atacante
+                    projectile = Projectile(
+                        self.rect.centerx + (direction * self.rect.width/2),
+                        self.rect.centery,
+                        direction,
+                        self.color
+                    )
+                    self.projectiles.append(projectile)
+                    # Efecto visual de rebote
+                    self.add_shoot_effect(direction)
+                    screen_shake.start(2)
+                    # Guardar el tiempo del último rebote
+                    self.last_bounce_time = current_time
+                    
+                    # Esto es lo importante: indicamos que se debe eliminar el proyectil original
+                    # al devolver True, el código en update_projectiles eliminará el proyectil
+                    return True
+                
                 return False
             else:
                 # Si es un golpe normal, no recibe daño pero tampoco lo devuelve

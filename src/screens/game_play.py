@@ -37,9 +37,11 @@ class GamePlay:
         self.player2 = Fighter(700, height - 150, 50, 100, RED, self.player2_controls, "Player 2")
         
         # Timer variables
-        self.match_timer = 60 * 60  # 60 seconds at 60fps
+        self.match_timer = 60 * 60  # 60 seconds at 60fps (changed from 5 seconds)
+        self.match_started = True  # Start match immediately, no delay
         self.sudden_death = False
         self.timer_font = pygame.font.SysFont('Arial', 40)
+        self.game_ending = False  # Variable para controlar el final del juego por tiempo
         
         # Create background stars
         self.stars = []
@@ -118,19 +120,42 @@ class GamePlay:
         elif game_mode == 2:  # CVC
             self.draw_text("AI Battle - Press ESC to exit", self.font, WHITE, self.width // 2 - 150, self.height - 40)
         
-        # Update and draw timer
-        if not self.player1.is_defeated and not self.player2.is_defeated:
+        # Update and draw timer only if match has started
+        if self.match_started and not self.player1.is_defeated and not self.player2.is_defeated and not self.game_ending:
             self.match_timer -= 1
             
-        if self.match_timer <= 0 and not self.sudden_death:
-            self.sudden_death = True
-            self.player1.health = 1
-            self.player2.health = 1
-            self.player1.sudden_death_mode = True
-            self.player2.sudden_death_mode = True
-            screen_shake.start(10)  # Añadir un efecto para indicar el inicio de muerte súbita
-            self.match_timer = 0  # Evitar que el contador se vuelva negativo
+        # Cuando el tiempo llega a cero
+        if self.match_timer <= 0 and not self.sudden_death and not self.game_ending:
+            # Si el tiempo se acabó, comprobar las vidas de los jugadores
+            if self.player1.health != self.player2.health:
+                # Si hay diferencia de vida, finalizar inmediatamente
+                self.game_ending = True
+                # Sacudir la pantalla para indicar el final
+                screen_shake.start(5)
+            else:
+                # Si tienen la misma vida, activar muerte súbita
+                self.sudden_death = True
+                self.player1.health = 1
+                self.player2.health = 1
+                self.player1.sudden_death_mode = True
+                self.player2.sudden_death_mode = True
+                screen_shake.start(10)  # Añadir un efecto para indicar el inicio de muerte súbita
             
+            # Evitar que el contador se vuelva negativo
+            self.match_timer = 0
+        
+        # Procesar el final del juego por tiempo cuando hay diferencia de vida
+        if self.game_ending:
+            # Determinar el ganador por salud y finalizar el juego inmediatamente
+            if self.player1.health > self.player2.health:
+                self.player2.is_defeated = True
+                self.player2.health = 0
+                self.player1.score += 1
+            else:
+                self.player1.is_defeated = True 
+                self.player1.health = 0
+                self.player2.score += 1
+        
         # Mostrar timer
         timer_text = f"{max(self.match_timer // 60, 0):02}"  # Usar max para evitar números negativos
         timer_color = RED if self.sudden_death or self.match_timer < 600 else WHITE
@@ -178,8 +203,10 @@ class GamePlay:
         self.player2.score = p2_score
         
         # Reiniciar el temporizador y el modo de muerte súbita
-        self.match_timer = 60 * 60  # Reset timer
+        self.match_timer = 60 * 60  # 60 seconds reset timer (changed from 5 seconds)
         self.sudden_death = False
+        self.match_started = True  # Start match immediately
+        self.game_ending = False  # Reiniciar la variable de finalización del juego
 
     def set_player_colors(self, p1_color, p2_color):
         """Update the colors of both players"""

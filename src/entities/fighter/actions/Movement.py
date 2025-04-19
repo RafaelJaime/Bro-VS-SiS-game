@@ -93,10 +93,7 @@ class Movement:
                 # Activación de protección con una sola tecla
                 if not self.protecting and self.protect_cooldown == 0:
                     if key[self.controls['protect']]:
-                        self.protecting = True
-                        self.protect_duration = 60  # 1 segundo (60 frames)
-                        # Efecto visual de protección
-                        self.add_protect_effect()
+                        self.protect()  # Call the protect method instead of inline implementation
 
                 # Can only perform actions if not attacking and not protecting
                 if not self.attacking and not self.protecting:
