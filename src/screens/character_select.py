@@ -1,8 +1,7 @@
 import pygame
 import random
 import math
-from src.utils.Button import Button
-from src.utils.Colors import WHITE, BLACK, RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE
+from src.utils.Colors import WHITE, RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE
 from src.utils.Particle import Particle
 from src.utils.Background import Background
 

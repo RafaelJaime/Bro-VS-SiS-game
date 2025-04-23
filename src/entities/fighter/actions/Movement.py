@@ -1,7 +1,6 @@
 import pygame
 import random
-import math
-from src.utils.Particle import Particle
+from src.entities.fighter.FighterControls import FighterControls
 
 WIDTH, HEIGHT = 800, 600
 
@@ -86,35 +85,35 @@ class Movement:
                     self.shoot_cooldown -= 1
 
                 # Verificar disparo usando los controles - usar can_shoot para comprobar condiciones
-                if key[self.controls['shoot']] and self.can_shoot():
+                if key[self.controls[FighterControls.SHOOT]] and self.can_shoot():
                     self.shoot()
                     self.shoot_cooldown = 30
 
                 # Activación de protección con una sola tecla
                 if not self.protecting and self.protect_cooldown == 0:
-                    if key[self.controls['protect']]:
+                    if key[self.controls[FighterControls.PROTECT]]:
                         self.protect()  # Call the protect method instead of inline implementation
 
                 # Can only perform actions if not attacking and not protecting
                 if not self.attacking and not self.protecting:
                     # Movement controls
-                    if key[self.controls['left']]:
+                    if key[self.controls[FighterControls.LEFT]]:
                         dx = -5
                         if not self.jumping and random.random() < 0.2:
                             self.add_dust_particle(self.rect.left, self.rect.bottom)
-                    if key[self.controls['right']]:
+                    if key[self.controls[FighterControls.RIGHT]]:
                         dx = 5
                         if not self.jumping and random.random() < 0.2:
                             self.add_dust_particle(self.rect.right, self.rect.bottom)
                     
                     # Jump
-                    if key[self.controls['up']] and not self.jumping:
+                    if key[self.controls[FighterControls.UP]] and not self.jumping:
                         self.vel_y = -15
                         self.jumping = True
                         self.add_jump_effect()
                     
                     # Attack
-                    if key[self.controls['attack']] and self.attack_cooldown == 0:
+                    if key[self.controls[FighterControls.ATTACK]] and self.attack_cooldown == 0:
                         self.attacking = True
                         self.attack_cooldown = 20
                         self.add_attack_windup_effect(opponent)

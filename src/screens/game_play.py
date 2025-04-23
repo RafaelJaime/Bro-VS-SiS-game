@@ -3,6 +3,7 @@ import random
 from src.entities.fighter.Fighter import Fighter
 from src.utils.Colors import BLACK, WHITE, RED, BLUE
 from src.utils.ScreenShake import screen_shake
+from src.entities.fighter.FighterControls import FighterControls
 
 class GamePlay:
     def __init__(self, screen, width, height):
@@ -14,23 +15,23 @@ class GamePlay:
         # Create ground
         self.ground = pygame.Rect(0, height - 50, width, 50)
         
-        # Create fighters
+        # Create fighters with enum-based controls
         self.player1_controls = {
-            'left': pygame.K_a,
-            'right': pygame.K_d,
-            'up': pygame.K_w,
-            'attack': pygame.K_f,
-            'shoot': pygame.K_g,
-            'protect': pygame.K_s  # Permitir dos teclas para protegerse
+            FighterControls.LEFT: pygame.K_a,
+            FighterControls.RIGHT: pygame.K_d,
+            FighterControls.UP: pygame.K_w,
+            FighterControls.ATTACK: pygame.K_f,
+            FighterControls.SHOOT: pygame.K_g,
+            FighterControls.PROTECT: pygame.K_s
         }
         
         self.player2_controls = {
-            'left': pygame.K_LEFT,
-            'right': pygame.K_RIGHT,
-            'up': pygame.K_UP,
-            'attack': pygame.K_k,
-            'shoot': pygame.K_l,
-            'protect': pygame.K_DOWN  # Solo una tecla para el jugador 2
+            FighterControls.LEFT: pygame.K_LEFT,
+            FighterControls.RIGHT: pygame.K_RIGHT,
+            FighterControls.UP: pygame.K_UP,
+            FighterControls.ATTACK: pygame.K_k,
+            FighterControls.SHOOT: pygame.K_l,
+            FighterControls.PROTECT: pygame.K_DOWN
         }
         
         self.player1 = Fighter(100, height - 150, 50, 100, BLUE, self.player1_controls, "Player 1")
@@ -212,18 +213,30 @@ class GamePlay:
         self.match_started = True  # Start match immediately
         self.game_ending = False  # Reiniciar la variable de finalización del juego
 
-    def set_player_colors(self, p1_color, p2_color):
-        """Update the colors of both players"""
+    def set_players(self, player_config):
+        """
+        Configura los jugadores con un solo método, recibiendo los datos del selector de personajes
+        
+        Args:
+            player_config (tuple): Una tupla con (p1_color, p2_color, p1_name, p2_name, game_mode)
+        """
+        p1_color, p2_color, p1_name, p2_name, game_mode = player_config
+        self._set_player_colors(p1_color, p2_color)
+        self._set_player_names(p1_name, p2_name)
+        self._set_ai_mode(game_mode)
+    
+    def _set_player_colors(self, p1_color, p2_color):
+        """Update the colors of both players (método privado)"""
         self.player1.color = p1_color
         self.player2.color = p2_color
         
-    def set_player_names(self, p1_name, p2_name):
-        """Update the names of both players"""
+    def _set_player_names(self, p1_name, p2_name):
+        """Update the names of both players (método privado)"""
         self.player1.name = p1_name
         self.player2.name = p2_name
 
-    def set_ai_mode(self, game_mode):
-        """Set AI mode based on game mode (0=PVP, 1=PVC, 2=CVC)"""
+    def _set_ai_mode(self, game_mode):
+        """Set AI mode based on game mode (0=PVP, 1=PVC, 2=CVC) (método privado)"""
         if game_mode == 1:  # PVC
             self.player2.is_ai = True
             self.player1.is_ai = False

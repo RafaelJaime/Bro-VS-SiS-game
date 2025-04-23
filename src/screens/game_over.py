@@ -1,6 +1,5 @@
 import pygame
 from src.utils.Button import Button
-from src.utils.Colors import WHITE
 
 class GameOver:
     def __init__(self, screen, width, height):

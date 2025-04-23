@@ -6,8 +6,6 @@ from src.screens.character_select import character_select_screen
 from src.screens.game_play import GamePlay
 from src.screens.pause_menu import PauseMenu
 from src.screens.game_over import GameOver
-from src.utils.Colors import BLACK, WHITE, RED, BLUE
-from src.entities.fighter.Fighter import Fighter
 
 # Initialize pygame
 pygame.init()
@@ -75,14 +73,12 @@ def main():
                     current_state = next_state
             
             elif current_state == GameState.CHARACTER_SELECT:
-                p1_color, p2_color, p1_name, p2_name = character_select_screen(screen, WIDTH, HEIGHT)
-                if p1_color is not None and p2_color is not None:
+                if (player_selection := character_select_screen(screen, WIDTH, HEIGHT)) and all(player_selection[:2]):
                     game_play.reset_game()
-                    game_play.set_player_colors(p1_color, p2_color)
-                    game_play.set_player_names(p1_name, p2_name)
-                    game_play.set_ai_mode(game_mode)
+                    player_config = (*player_selection, game_mode)
+                    game_play.set_players(player_config)
                     current_state = GameState.PLAYING
-                elif p1_color is None and p2_color is None:
+                else:
                     current_state = GameState.DIFFICULTY_SELECT
             
             elif current_state == GameState.PLAYING:
