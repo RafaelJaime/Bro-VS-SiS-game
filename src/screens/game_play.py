@@ -1,9 +1,9 @@
 import pygame
 import random
-from src.entities.fighter.Fighter import Fighter
+from src.entities.fighter.utils.FighterControls import FighterControls
+from src.entities.fighter.FighterHuman import FighterHuman
 from src.utils.Colors import BLACK, WHITE, RED, BLUE
 from src.utils.ScreenShake import screen_shake
-from src.entities.fighter.FighterControls import FighterControls
 
 class GamePlay:
     def __init__(self, screen, width, height):
@@ -34,8 +34,8 @@ class GamePlay:
             FighterControls.PROTECT: pygame.K_DOWN
         }
         
-        self.player1 = Fighter(100, height - 150, 50, 100, BLUE, self.player1_controls, "Player 1")
-        self.player2 = Fighter(700, height - 150, 50, 100, RED, self.player2_controls, "Player 2")
+        self.player1 = FighterHuman(100, height - 150, 50, 100, BLUE, self.player1_controls, "Player 1")
+        self.player2 = FighterHuman(700, height - 150, 50, 100, RED, self.player2_controls, "Player 2")
         
         # Timer variables
         self.match_timer = 60 * 60  # 60 seconds at 60fps (changed from 5 seconds)
@@ -131,17 +131,15 @@ class GamePlay:
                 if self.player1.health > self.player2.health:
                     self.player2.is_defeated = True
                     self.player2.health = 0
-                    self.player1.score += 1
                 else:
                     self.player1.is_defeated = True 
                     self.player1.health = 0
-                    self.player2.score += 1
         
         # Draw UI panel at the top
         pygame.draw.rect(self.screen, (30, 30, 30), (0, 0, self.width, 60))
         pygame.draw.line(self.screen, (70, 70, 70), (0, 60), (self.width, 60), 2)
         
-        # Draw player names and scores
+        # Draw player names
         self.draw_text(f"{self.player1.name}", self.font, self.player1.color, 20, 10)
         self.draw_text(f"{self.player2.name}", self.font, self.player2.color, self.width - 150, 10)
         
@@ -187,28 +185,30 @@ class GamePlay:
         return self.player2 if self.player1.is_defeated else self.player1
 
     def reset_game(self):
-        # Guardar colores, modo AI, puntuación y nombres
+        # Guardar colores, puntuación y nombres
         p1_color = self.player1.color
         p2_color = self.player2.color
-        p1_is_ai = self.player1.is_ai
-        p2_is_ai = self.player2.is_ai
-        p1_score = self.player1.score
-        p2_score = self.player2.score
         p1_name = self.player1.name
         p2_name = self.player2.name
         
-        # Recrear objetos Fighter
-        self.player1 = Fighter(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
-        self.player2 = Fighter(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+        # Determinar si son AI por el tipo de clase
+        from src.entities.fighter.ai.FighterAI import FighterAI
+        p1_is_ai = isinstance(self.player1, FighterAI)
+        p2_is_ai = isinstance(self.player2, FighterAI)
         
-        # Restaurar modo AI y puntuación
-        self.player1.is_ai = p1_is_ai
-        self.player2.is_ai = p2_is_ai
-        self.player1.score = p1_score
-        self.player2.score = p2_score
+        # Recrear objetos Fighter con el tipo correcto
+        if p1_is_ai:
+            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
+        else:
+            self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
+            
+        if p2_is_ai:
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+        else:
+            self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
         
         # Reiniciar el temporizador y el modo de muerte súbita
-        self.match_timer = 60 * 60  # 60 seconds reset timer (changed from 5 seconds)
+        self.match_timer = 60 * 60  # 60 seconds reset timer
         self.sudden_death = False
         self.match_started = True  # Start match immediately
         self.game_ending = False  # Reiniciar la variable de finalización del juego
@@ -237,16 +237,25 @@ class GamePlay:
 
     def _set_ai_mode(self, game_mode):
         """Set AI mode based on game mode (0=PVP, 1=PVC, 2=CVC) (método privado)"""
-        if game_mode == 1:  # PVC
-            self.player2.is_ai = True
-            self.player1.is_ai = False
-        elif game_mode == 2:  # CVC
-            self.player1.is_ai = True
-            self.player2.is_ai = True
-        else:  # PVP
-            self.player1.is_ai = False
-            self.player2.is_ai = False
-
+        # Guardar propiedades actuales
+        p1_color = self.player1.color
+        p2_color = self.player2.color
+        p1_name = self.player1.name
+        p2_name = self.player2.name
+        
+        # Importar FighterAI
+        from src.entities.fighter.ai.FighterAI import FighterAI
+        
+        if game_mode == 1:  # PVC (Player vs AI)
+            self.player1 = FighterHuman(100, self.height - 150, 50, 100, self.player1.color, self.player1_controls, self.player1.name)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, self.player2.color, self.player2_controls, self.player2.name)
+        elif game_mode == 2:  # CVC (AI vs AI)
+            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+        else:  # PVP (Player vs Player)
+            self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
+            self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+            
     def check_game_over(self):
         """Check if the game is over and one player has been defeated"""
         if self.player1.is_defeated or self.player2.is_defeated:

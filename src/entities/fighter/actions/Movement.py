@@ -1,6 +1,6 @@
 import pygame
 import random
-from src.entities.fighter.FighterControls import FighterControls
+from src.entities.fighter.utils.FighterControls import FighterControls
 
 WIDTH, HEIGHT = 800, 600
 

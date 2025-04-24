@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 from src.utils.ScreenShake import screen_shake
-from src.entities.fighter.Projectile import Projectile
+from src.entities.projectile.Projectile import Projectile
 from src.utils.Particle import Particle
 
 WIDTH, HEIGHT = 800, 600
@@ -20,7 +20,6 @@ class Combat:
         self.sudden_death_mode = False
         self.is_defeated = False
         self.defeat_animation = 0
-        self.score = 0
         
         # Variables para la mecánica de protección
         self.protecting = False
@@ -183,7 +182,6 @@ class Combat:
         if hasattr(self, 'sudden_death_mode') and self.sudden_death_mode:
             self.health = 0
             self.is_defeated = True
-            attacker.score += 1
             pos = hit_pos if hit_pos else (self.rect.centerx, self.rect.centery)
             attacker.add_ko_effect(*pos)
         else:
@@ -191,7 +189,6 @@ class Combat:
             if self.health <= 0:
                 self.health = 0
                 self.is_defeated = True
-                attacker.score += 1
                 pos = hit_pos if hit_pos else (self.rect.centerx, self.rect.centery)
                 attacker.add_ko_effect(*pos)
         
