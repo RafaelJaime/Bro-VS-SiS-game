@@ -12,8 +12,70 @@ class Movement:
         self.is_ai = False
         self.ai_decision_timer = 0
         self.ai_current_action = None
+        
+        # Definir el mapeo de acciones a funciones
+        self.action_handlers = {
+            FighterControls.RIGHT: self._handle_move_right,
+            FighterControls.LEFT: self._handle_move_left,
+            FighterControls.UP: self._handle_jump,
+            FighterControls.ATTACK: self._handle_attack,
+            FighterControls.SHOOT: self._handle_shoot,
+            FighterControls.PROTECT: self._handle_protect
+        }
     
-    def move(self, opponent):
+    def _handle_move_right(self, opponent):
+        """Manejar el movimiento hacia la derecha"""
+        dx = 5
+        if not self.jumping and random.random() < 0.2:
+            self.add_dust_particle(self.rect.right, self.rect.bottom)
+        return dx, 0
+    
+    def _handle_move_left(self, opponent):
+        """Manejar el movimiento hacia la izquierda"""
+        dx = -5
+        if not self.jumping and random.random() < 0.2:
+            self.add_dust_particle(self.rect.left, self.rect.bottom)
+        return dx, 0
+    
+    def _handle_jump(self, opponent):
+        """Manejar el salto"""
+        if self.jumping:
+            return 0, 0
+            
+        self.vel_y = -15
+        self.jumping = True
+        self.add_jump_effect()
+        return 0, 0
+    
+    def _handle_attack(self, opponent):
+        """Manejar el ataque"""
+        if self.attack_cooldown > 0:
+            return 0, 0
+            
+        self.attacking = True
+        self.attack_cooldown = 20
+        self.add_attack_windup_effect(opponent)
+        self.attack(opponent)
+        return 0, 0
+    
+    def _handle_shoot(self, opponent):
+        """Manejar el disparo"""
+        if not self.can_shoot():
+            return 0, 0
+            
+        self.shoot()
+        self.shoot_cooldown = 30
+        return 0, 0
+    
+    def _handle_protect(self, opponent):
+        """Manejar la protección"""
+        if self.protecting or self.protect_cooldown > 0:
+            return 0, 0
+            
+        self.protect()
+        return 0, 0
+    
+    def move(self, opponent, action=None):
         # Store opponent reference for shoot method
         self._current_opponent = opponent
         
@@ -48,76 +110,15 @@ class Movement:
 
         # Solo permitir movimiento del jugador si no hay knockback significativo
         if not has_knockback or (abs(self.knockback_x) < 2 and abs(self.knockback_y) < 2):
-            if self.is_ai:
-                # AI decision making
-                if self.ai_decision_timer <= 0:
-                    self.ai_current_action = self.ai_make_decision(opponent)
-                else:
-                    self.ai_decision_timer -= 1
-
-                # Execute AI action
-                if self.ai_current_action == 'move_right':
-                    dx = 5
-                    if not self.jumping and random.random() < 0.2:
-                        self.add_dust_particle(self.rect.right, self.rect.bottom)
-                elif self.ai_current_action == 'move_left':
-                    dx = -5
-                    if not self.jumping and random.random() < 0.2:
-                        self.add_dust_particle(self.rect.left, self.rect.bottom)
-                elif self.ai_current_action == 'jump' and not self.jumping:
-                    self.vel_y = -15
-                    self.jumping = True
-                    self.add_jump_effect()
-                elif self.ai_current_action == 'attack' and self.attack_cooldown == 0:
-                    self.attacking = True
-                    self.attack_cooldown = 20
-                    self.add_attack_windup_effect(opponent)
-                    self.attack(opponent)
-                elif self.ai_current_action == 'shoot' and self.can_shoot():
-                    self.shoot()
-                    self.shoot_cooldown = 30
-            else:
-                # Regular player controls
-                key = pygame.key.get_pressed()
-
-                # Shooting mechanic
-                if self.shoot_cooldown > 0:
-                    self.shoot_cooldown -= 1
-
-                # Verificar disparo usando los controles - usar can_shoot para comprobar condiciones
-                if key[self.controls[FighterControls.SHOOT]] and self.can_shoot():
-                    self.shoot()
-                    self.shoot_cooldown = 30
-
-                # Activación de protección con una sola tecla
-                if not self.protecting and self.protect_cooldown == 0:
-                    if key[self.controls[FighterControls.PROTECT]]:
-                        self.protect()  # Call the protect method instead of inline implementation
-
-                # Can only perform actions if not attacking and not protecting
-                if not self.attacking and not self.protecting:
-                    # Movement controls
-                    if key[self.controls[FighterControls.LEFT]]:
-                        dx = -5
-                        if not self.jumping and random.random() < 0.2:
-                            self.add_dust_particle(self.rect.left, self.rect.bottom)
-                    if key[self.controls[FighterControls.RIGHT]]:
-                        dx = 5
-                        if not self.jumping and random.random() < 0.2:
-                            self.add_dust_particle(self.rect.right, self.rect.bottom)
-                    
-                    # Jump
-                    if key[self.controls[FighterControls.UP]] and not self.jumping:
-                        self.vel_y = -15
-                        self.jumping = True
-                        self.add_jump_effect()
-                    
-                    # Attack
-                    if key[self.controls[FighterControls.ATTACK]] and self.attack_cooldown == 0:
-                        self.attacking = True
-                        self.attack_cooldown = 20
-                        self.add_attack_windup_effect(opponent)
-                        self.attack(opponent)
+            # Procesar la acción usando el diccionario de manejadores
+            if action and action in self.action_handlers:
+                # Solo procesar acciones si no está atacando o protegiendo
+                # (excepto para las acciones de ataque y protección)
+                if not (self.attacking or self.protecting) or action in [FighterControls.ATTACK, FighterControls.PROTECT]:
+                    # Llamar al manejador correspondiente
+                    action_dx, action_dy = self.action_handlers[action](opponent)
+                    dx += action_dx
+                    dy += action_dy
 
         # Update projectiles
         self.update_projectiles(opponent)

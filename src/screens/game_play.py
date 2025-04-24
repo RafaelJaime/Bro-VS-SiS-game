@@ -94,8 +94,8 @@ class GamePlay:
         if not is_paused:
             # Only move fighters if neither is defeated
             if not self.player1.is_defeated and not self.player2.is_defeated:
-                self.player1.move(self.player2)
-                self.player2.move(self.player1)
+                self.player1.update(self.player2)
+                self.player2.update(self.player1)
             else:
                 # Still update particles when a player is defeated
                 self.player1.update_particles()
