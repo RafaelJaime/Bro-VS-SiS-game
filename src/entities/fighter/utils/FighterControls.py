@@ -1,10 +1,9 @@
 from enum import Enum
 
 class FighterControls(Enum):
-    RIGHT = 1
-    LEFT = 2
-    UP = 3
-    DOWN = 4
-    ATTACK = 5
-    SHOOT = 6
-    PROTECT = 7
+    RIGHT = 0
+    LEFT = 1
+    JUMP = 2
+    ATTACK = 3
+    SHOOT = 4
+    PROTECT = 5

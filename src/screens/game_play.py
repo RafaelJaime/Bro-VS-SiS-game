@@ -19,7 +19,7 @@ class GamePlay:
         self.player1_controls = {
             FighterControls.LEFT: pygame.K_a,
             FighterControls.RIGHT: pygame.K_d,
-            FighterControls.UP: pygame.K_w,
+            FighterControls.JUMP: pygame.K_w,
             FighterControls.ATTACK: pygame.K_f,
             FighterControls.SHOOT: pygame.K_g,
             FighterControls.PROTECT: pygame.K_s
@@ -28,7 +28,7 @@ class GamePlay:
         self.player2_controls = {
             FighterControls.LEFT: pygame.K_LEFT,
             FighterControls.RIGHT: pygame.K_RIGHT,
-            FighterControls.UP: pygame.K_UP,
+            FighterControls.JUMP: pygame.K_UP,
             FighterControls.ATTACK: pygame.K_k,
             FighterControls.SHOOT: pygame.K_l,
             FighterControls.PROTECT: pygame.K_DOWN

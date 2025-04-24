@@ -168,14 +168,57 @@ class Combat:
                     # Guardar el tiempo del último rebote
                     self.last_bounce_time = current_time
                     
-                    # Esto es lo importante: indicamos que se debe eliminar el proyectil original
-                    # al devolver True, el código en update_projectiles eliminará el proyectil
                     return True
                 
                 return False
             else:
-                # Si es un golpe normal, no recibe daño pero tampoco lo devuelve
-                screen_shake.start(1)
+                # Si es un golpe normal, aplica un knockback muy grande al atacante
+                # Determinar dirección del rebote (opuesta a la dirección del golpe)
+                # Corregimos la dirección: si el atacante está a la derecha, lo mandamos a la derecha (dir=1), si está a la izquierda, a la izquierda (dir=-1)
+                direction = 1 if attacker.rect.centerx > self.rect.centerx else -1
+                
+                # Aplicar un knockback poderoso al atacante
+                bounce_power = 50  # Fuerza del rebote - muy alta
+                attacker.knockback_x = direction * bounce_power
+                attacker.knockback_y = -bounce_power * 0.6  # Buen impulso hacia arriba
+                
+                # Efectos visuales intensos para el rebote
+                screen_shake.start(12)  # Sacudida de pantalla más intensa
+                
+                # Posición para efectos visuales
+                hit_effect_x = self.rect.centerx + (direction * -self.rect.width/2)
+                hit_effect_y = self.rect.centery
+                
+                # Añadir efecto visual potente en el punto de impacto
+                self.add_hit_effect(hit_effect_x, hit_effect_y)
+                
+                # Añadir partículas adicionales para mostrar el poder del rebote
+                for _ in range(12):
+                    angle = random.uniform(-math.pi/4, math.pi/4) + (math.pi if direction > 0 else 0)
+                    speed = random.uniform(1, 3)
+                    vx = math.cos(angle) * speed
+                    vy = math.sin(angle) * speed
+                    
+                    particle = Particle(
+                        hit_effect_x, 
+                        hit_effect_y,
+                        self.color,
+                        random.randint(5, 12),
+                        (vx, vy),
+                        True,
+                        random.randint(30, 50)
+                    )
+                    self.particles.append(particle)
+                
+                # Pequeño cooldown para el atacante
+                attacker.hit_cooldown = 45
+                
+                # Desactivar la protección para permitir libertad de movimiento
+                self.protecting = False
+                
+                # Reset protect_cooldown to zero for an instant reuse after successfully blocking a melee attack
+                self.protect_cooldown = 0
+                
                 return False
             
         # En modo muerte súbita, cualquier golpe es fatal

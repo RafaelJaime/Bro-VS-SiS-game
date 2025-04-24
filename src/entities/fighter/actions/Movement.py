@@ -17,7 +17,7 @@ class Movement:
         self.action_handlers = {
             FighterControls.RIGHT: self._handle_move_right,
             FighterControls.LEFT: self._handle_move_left,
-            FighterControls.UP: self._handle_jump,
+            FighterControls.JUMP: self._handle_jump,
             FighterControls.ATTACK: self._handle_attack,
             FighterControls.SHOOT: self._handle_shoot,
             FighterControls.PROTECT: self._handle_protect

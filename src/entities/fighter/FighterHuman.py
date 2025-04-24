@@ -28,8 +28,8 @@ class FighterHuman(Fighter):
         elif not self.attacking and not self.protecting:
             if key[self.controls[FighterControls.ATTACK]] and self.attack_cooldown == 0:
                 return FighterControls.ATTACK
-            elif key[self.controls[FighterControls.UP]] and not self.jumping:
-                return FighterControls.UP
+            elif key[self.controls[FighterControls.JUMP]] and not self.jumping:
+                return FighterControls.JUMP
             elif key[self.controls[FighterControls.LEFT]]:
                 return FighterControls.LEFT
             elif key[self.controls[FighterControls.RIGHT]]:

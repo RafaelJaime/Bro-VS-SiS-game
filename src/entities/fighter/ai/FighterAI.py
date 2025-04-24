@@ -22,7 +22,7 @@ class FighterAI(Fighter):
             if random.random() < 0.7:  # 70% chance to attack when close
                 return FighterControls.ATTACK
             else:
-                return FighterControls.UP
+                return FighterControls.PROTECT
         
         # If opponent is at medium range, maybe shoot
         elif distance < 300:
