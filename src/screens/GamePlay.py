@@ -4,13 +4,12 @@ from src.entities.fighter.utils.FighterControls import FighterControls
 from src.entities.fighter.FighterHuman import FighterHuman
 from src.utils.Colors import BLACK, WHITE, RED, BLUE
 from src.utils.ScreenShake import screen_shake
+from src.screens.Screen import Screen
+from src.utils.GameState import GameState
 
-class GamePlay:
+class GamePlay(Screen):
     def __init__(self, screen, width, height):
-        self.screen = screen
-        self.width = width
-        self.height = height
-        self.font = pygame.font.SysFont('Arial', 30)
+        super().__init__(screen, width, height)
         
         # Create ground
         self.ground = pygame.Rect(0, height - 50, width, 50)
@@ -169,15 +168,15 @@ class GamePlay:
             center_x = (self.width - text_width) // 2
             self.draw_text(sudden_death_text, self.timer_font, RED, center_x, 80)
 
-    def handle_event(self, event):
+    def handle_event(self, event) -> GameState:
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            return "PAUSE"
+            return GameState.PAUSE
         
         # Check if game is over
         if self.player1.is_defeated or self.player2.is_defeated:
             if ((self.player1.is_defeated and self.player1.defeat_animation > 60) or 
                 (self.player2.is_defeated and self.player2.defeat_animation > 60)):
-                return "GAME_OVER"
+                return GameState.GAME_OVER
         
         return None
 

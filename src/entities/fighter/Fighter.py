@@ -8,8 +8,6 @@ from src.entities.fighter.actions.Movement import Movement
 from src.entities.fighter.utils.Effects import Effects
 from src.entities.fighter.utils.Renderer import Renderer
 
-WIDTH, HEIGHT = 800, 600
-
 class Fighter(Combat, Movement, Effects, Renderer, ABC):
     def __init__(self, x, y, width, height, color, controls, name):
         Combat.__init__(self)

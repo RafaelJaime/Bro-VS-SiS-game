@@ -1,12 +1,11 @@
 import pygame
 from src.utils.Button import Button
+from src.screens.Screen import Screen
+from src.utils.GameState import GameState
 
-class GameOver:
+class GameOver(Screen):
     def __init__(self, screen, width, height):
-        self.screen = screen
-        self.width = width
-        self.height = height
-        self.title_font = pygame.font.SysFont('Arial', 60, True)
+        super().__init__(screen, width, height)
         
         # Create buttons
         self.restart_button = Button(width // 2 - 160, height // 2, 140, 50, 
@@ -17,20 +16,10 @@ class GameOver:
         # Button navigation
         self.buttons = [self.restart_button, self.menu_button]
         self.current_button = 0
-        self.is_keyboard_mode = False
-
-    def draw_text(self, text, font, text_col, x, y, shadow=True):
-        if shadow:
-            shadow_img = font.render(text, True, (0, 0, 0))
-            self.screen.blit(shadow_img, (x + 2, y + 2))
-        
-        img = font.render(text, True, text_col)
-        self.screen.blit(img, (x, y))
 
     def update(self, mouse_pos, winner):
         # Check if mouse moved to switch to mouse mode
-        if pygame.mouse.get_rel() != (0, 0):
-            self.is_keyboard_mode = False
+        self.check_mouse_movement()
             
         # Draw semi-transparent overlay
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
@@ -44,16 +33,12 @@ class GameOver:
                       self.height // 2 - 100)
         
         # Update button focus in keyboard mode
-        if self.is_keyboard_mode:
-            for i, button in enumerate(self.buttons):
-                button.is_focused = (i == self.current_button)
+        self.update_button_focus()
         
         # Update and draw buttons
-        for button in self.buttons:
-            button.update(mouse_pos, self.is_keyboard_mode)
-            button.draw(self.screen)
+        self.update_and_draw_buttons(mouse_pos)
 
-    def handle_event(self, event):
+    def handle_event(self, event) -> GameState:
         if event.type == pygame.KEYDOWN:
             self.is_keyboard_mode = True
             if event.key in [pygame.K_a, pygame.K_LEFT] and self.current_button > 0:
@@ -64,16 +49,16 @@ class GameOver:
             # Check for button activation
             if self.buttons[self.current_button].is_clicked(event):
                 if self.current_button == 0:  # Restart button
-                    return "PLAYING"
+                    return GameState.PLAYING
                 else:  # Main Menu button
-                    return "MAIN_MENU"
+                    return GameState.MAIN_MENU
         
         # Handle mouse clicks
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.is_keyboard_mode = False
             if self.restart_button.is_clicked(event):
-                return "PLAYING"
+                return GameState.PLAYING
             elif self.menu_button.is_clicked(event):
-                return "MAIN_MENU"
+                return GameState.MAIN_MENU
             
         return None
