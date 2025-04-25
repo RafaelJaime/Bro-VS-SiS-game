@@ -10,7 +10,8 @@ class FighterHuman(Fighter):
     """
     
     def __init__(self, x, y, width, height, color, controls, name):
-        super().__init__(x, y, width, height, color, controls, name)
+        super().__init__(x, y, width, height, color, name)
+        self.controls = controls
 
     def process_input(self, opponent):
         """Procesa la entrada del usuario para determinar la acción a realizar."""

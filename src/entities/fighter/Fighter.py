@@ -9,7 +9,7 @@ from src.entities.fighter.utils.Effects import Effects
 from src.entities.fighter.utils.Renderer import Renderer
 
 class Fighter(Combat, Movement, Effects, Renderer, ABC):
-    def __init__(self, x, y, width, height, color, controls, name):
+    def __init__(self, x, y, width, height, color, name):
         Combat.__init__(self)
         Movement.__init__(self)
         Effects.__init__(self)
@@ -17,7 +17,6 @@ class Fighter(Combat, Movement, Effects, Renderer, ABC):
         
         self.rect = pygame.Rect(x, y, width, height)
         self.color = color
-        self.controls = controls
         self.name = name
         self.secondary_color = RED
 

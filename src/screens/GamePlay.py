@@ -2,6 +2,7 @@ import pygame
 import random
 from src.entities.fighter.utils.FighterControls import FighterControls
 from src.entities.fighter.FighterHuman import FighterHuman
+from src.entities.fighter.ai.FighterAI import FighterAI
 from src.utils.Colors import BLACK, WHITE, RED, BLUE
 from src.utils.ScreenShake import screen_shake
 from src.screens.Screen import Screen
@@ -172,13 +173,7 @@ class GamePlay(Screen):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             return GameState.PAUSE
         
-        # Check if game is over
-        if self.player1.is_defeated or self.player2.is_defeated:
-            if ((self.player1.is_defeated and self.player1.defeat_animation > 60) or 
-                (self.player2.is_defeated and self.player2.defeat_animation > 60)):
-                return GameState.GAME_OVER
-        
-        return None
+        return GameState.GAME_OVER if self.check_game_over() else None
 
     def get_winner(self):
         return self.player2 if self.player1.is_defeated else self.player1
@@ -191,18 +186,17 @@ class GamePlay(Screen):
         p2_name = self.player2.name
         
         # Determinar si son AI por el tipo de clase
-        from src.entities.fighter.ai.FighterAI import FighterAI
         p1_is_ai = isinstance(self.player1, FighterAI)
         p2_is_ai = isinstance(self.player2, FighterAI)
         
         # Recrear objetos Fighter con el tipo correcto
         if p1_is_ai:
-            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
+            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name)
         else:
             self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
             
         if p2_is_ai:
-            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name)
         else:
             self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
         
@@ -242,15 +236,12 @@ class GamePlay(Screen):
         p1_name = self.player1.name
         p2_name = self.player2.name
         
-        # Importar FighterAI
-        from src.entities.fighter.ai.FighterAI import FighterAI
-        
         if game_mode == 1:  # PVC (Player vs AI)
             self.player1 = FighterHuman(100, self.height - 150, 50, 100, self.player1.color, self.player1_controls, self.player1.name)
-            self.player2 = FighterAI(700, self.height - 150, 50, 100, self.player2.color, self.player2_controls, self.player2.name)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, self.player2.color, self.player2.name)
         elif game_mode == 2:  # CVC (AI vs AI)
-            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
-            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name)
         else:  # PVP (Player vs Player)
             self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
             self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)

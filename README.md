@@ -1,38 +1,6 @@
 # Bro vs Sis
 
-Game made using [Phaser](https://phaser.io) v3.50.1:
-
-## 2022
-
-### Upgrade game:
-
-- [ ] Upgrade gameplay
-  - Based on [JavaScript fighting game](https://www.youtube.com/watch?v=vyqbNFMDRGQ), [Phaser fighting game](https://github.com/jamaalsawyerd/game-jam-2020)
-  - [ ] Juego de plataformas, juego de esquivar objetos y terminar un mapa
-  - [ ] Animación al terminar el juego, con los dos personajes muriendo, permitiéndote volver atrás
-  - [ ] Combos
-  - [ ] 3, 2, 1 Fight con animaciones
-  - [ ] timer, últimos 10 segundos por 2 como clashroyal
-  - [ ] Sistema de animación chulo
-- [ ] New characters
-- [ ] New character select screen
-- [x] Re do instruction screen
-- [x] Re do main menu screen
-  - Should return here
-- [x] Reorganizate code
-
-### Open Source Tools
-
-- [Phaser](https://phaser.io) - Phaser is a 2D game framework.
-- [FreeTexturePacker](http://free-tex-packer.com/) - An open source tool that allows you to pack multiple images into one atlas for you games or sites.
-- [GIMP](https://www.gimp.org) - Free and open-source raster graphics editor.
-- [Visual Studio Code](https://code.visualstudio.com/) - Source-code editor.
-
-## 2020 - 2021
-
-First version of the game, added on first commit
-
-![alt text](src/assets/gameImages/img1.jpg)
-![alt text](src/assets/gameImages/img2.jpg)
-![alt text](src/assets/gameImages/img3.jpg)
-![alt text](src/assets/gameImages/img4.jpg)
+## 2025
+# TODO: END THIS readme
+Game made using [pygame](https://www.pygame.org/news) v2.6.1:
+Neural networks end course Work.

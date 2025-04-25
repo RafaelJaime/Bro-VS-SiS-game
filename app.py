@@ -36,7 +36,6 @@ def main():
     # Start with main menu
     current_state = GameState.MAIN_MENU
     game_mode = MODE_PVP
-    # Variable para controlar si necesitamos reiniciar el selector de personajes
     previous_state = None
     
     # Game loop
@@ -132,7 +131,7 @@ def main():
             
             case GameState.GAME_OVER:
                 # First update the game screen in the background
-                game_play.update(game_mode, is_paused=True)  # También pausar en pantalla de game over
+                game_play.update(game_mode, is_paused=True)
                 # Then draw the game over overlay
                 game_over.update(mouse_pos, game_play.get_winner())
         
