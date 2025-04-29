@@ -4,7 +4,6 @@ import numpy as np
 
 from src.entities.fighter.utils.FighterControls import FighterControls
 from src.entities.fighter.FighterHuman import FighterHuman
-from src.entities.fighter import Fighter
 from src.ai.FighterAI import FighterAI
 from src.utils.Colors import BLACK, WHITE, RED, BLUE
 from src.utils.ScreenShake import screen_shake
@@ -151,16 +150,7 @@ class GamePlay(Screen):
         self.player1.draw_health_bar(self.screen, 150, 18, health_bar_width)
         self.player2.draw_health_bar(self.screen, self.width - 350, 18, health_bar_width)
         
-        # Draw controls info based on game mode
-        if game_mode == 0:  # PVP
-            self.draw_text("P1: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
-            self.draw_text("P2: Arrows + K attack + L shoot", self.font, WHITE, self.width - 380, self.height - 40)
-        elif game_mode == 1:  # PVC
-            self.draw_text("Controls: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
-        elif game_mode == 2:  # CVC
-            self.draw_text("AI Battle - Press ESC to exit", self.font, WHITE, self.width // 2 - 150, self.height - 40)
-        
-        # Mostrar timer
+        # Draw timer
         timer_text = f"{max(self.match_timer // 60, 0):02}"  # Usar max para evitar números negativos
         timer_color = RED if self.sudden_death or self.match_timer < 600 else WHITE
         self.draw_text(timer_text, self.timer_font, timer_color, self.width // 2 - 20, 10)
@@ -219,7 +209,7 @@ class GamePlay(Screen):
         p1_color, p2_color, p1_name, p2_name, game_mode = player_config
         self._set_player_colors(p1_color, p2_color)
         self._set_player_names(p1_name, p2_name)
-        self._set_ai_mode(game_mode)
+        self._set_mode(game_mode)
     
     def _set_player_colors(self, p1_color, p2_color):
         """Update the colors of both players (método privado)"""
@@ -231,7 +221,7 @@ class GamePlay(Screen):
         self.player1.name = p1_name
         self.player2.name = p2_name
 
-    def _set_ai_mode(self, game_mode):
+    def _set_mode(self, game_mode):
         """Set AI mode based on game mode (0=PVP, 1=PVC, 2=CVC) (método privado)"""
         # Guardar propiedades actuales
         p1_color = self.player1.color
@@ -242,12 +232,22 @@ class GamePlay(Screen):
         if game_mode == 1:  # PVC (Player vs AI)
             self.player1 = FighterHuman(100, self.height - 150, 50, 100, self.player1.color, self.player1_controls, self.player1.name)
             self.player2 = FighterAI(700, self.height - 150, 50, 100, self.player2.color, self.player2.name)
+            # Draw controls info for PVC mode
+            self.draw_text("Controls: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
         elif game_mode == 2:  # CVC (AI vs AI)
             self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name)
             self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name)
+            # Draw controls info for CVC mode
+            self.draw_text("AI Battle - Press ESC to exit", self.font, WHITE, self.width // 2 - 150, self.height - 40)
         else:  # PVP (Player vs Player)
             self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
             self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+            # Draw controls info for PVP mode
+            self.draw_text("P1: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
+            self.draw_text("P2: Arrows + K attack + L shoot", self.font, WHITE, self.width - 380, self.height - 40)
+            
+        # Store the game mode
+        self.game_mode = game_mode
             
     def check_game_over(self):
         """Check if the game is over and one player has been defeated"""

@@ -11,6 +11,15 @@ BATCH_SIZE = 1000
 LR = 0.001
 
 class Agent:
+    # Singleton instance to be shared across resets
+    _instance = None
+    
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = Agent()
+        return cls._instance
+    
     def __init__(self):
         self.n_games = 0
         self.epsilon = 0  # randomness

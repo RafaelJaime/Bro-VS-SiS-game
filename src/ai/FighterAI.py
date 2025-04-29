@@ -7,10 +7,12 @@ from src.ai.Agent import Agent
 class FighterAI(Fighter):
     def __init__(self, x, y, width, height, color, name):
         super().__init__(x, y, width, height, color, name)
-        self.agent = Agent()
+        # Use the shared instance of Agent
+        self.agent = Agent.get_instance()
         self.prev_health = self.health
         self.prev_state = None
         self.prev_action = None
+        self.last_reward = 0  # Añadido para tracking de recompensas
         
     def process_input(self, opponent):
         # Store previous health for reward calculation
@@ -26,6 +28,7 @@ class FighterAI(Fighter):
         # Calculate reward if we have a previous state
         if self.prev_state is not None:
             reward = self.agent.calculate_reward(self, opponent, self.prev_action)
+            self.last_reward = reward  # Guardamos la última recompensa para tracking
             done = self.is_defeated or opponent.is_defeated
             
             # Train the agent
