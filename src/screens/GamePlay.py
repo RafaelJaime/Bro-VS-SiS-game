@@ -1,8 +1,11 @@
 import pygame
 import random
+import numpy as np
+
 from src.entities.fighter.utils.FighterControls import FighterControls
 from src.entities.fighter.FighterHuman import FighterHuman
-from src.entities.fighter.ai.FighterAI import FighterAI
+from src.entities.fighter import Fighter
+from src.ai.FighterAI import FighterAI
 from src.utils.Colors import BLACK, WHITE, RED, BLUE
 from src.utils.ScreenShake import screen_shake
 from src.screens.Screen import Screen

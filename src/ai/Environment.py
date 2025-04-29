@@ -2,7 +2,7 @@ import os
 import sys
 import pygame
 # To be from ./
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from src.screens.GamePlay import GamePlay
 from src.utils.GameState import GameState
 
@@ -18,7 +18,8 @@ clock = pygame.time.Clock()
 
 # Config game play
 game_play = GamePlay(screen, WIDTH, HEIGHT)
-game_play.set_players(((255, 0, 0), (255, 165, 0), 'Bot 1', 'Bot 2', 2))
+players = ((255, 0, 0), (255, 165, 0), 'Bot 1', 'Bot 2', 2)
+game_play.set_players(players)
 state = GameState.PLAYING
 
 run = True
@@ -37,7 +38,7 @@ while run:
     
     if state == GameState.GAME_OVER:
         game_play.reset_game()
-        game_play.set_players(((255, 0, 0), (255, 165, 0), 'Bot 1', 'Bot 2', 2))
+        game_play.set_players(players)
         state = GameState.PLAYING
     
     game_play.update(1, is_paused=False)

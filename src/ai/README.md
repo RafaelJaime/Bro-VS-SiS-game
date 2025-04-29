@@ -1,0 +1,1 @@
+# Explicación de toda la parte de NN
