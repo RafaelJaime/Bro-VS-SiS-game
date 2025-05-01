@@ -94,6 +94,15 @@ class Agent:
         if action == FighterControls.ATTACK and fighter.attack_cooldown > 0:
             reward -= 1
             
+        # Reward for returning a projectile
+        if hasattr(fighter, 'last_bounce_time'):
+            # Check if a projectile was bounced in the last frame
+            if hasattr(fighter, '_last_checked_bounce_time'):
+                if fighter.last_bounce_time > fighter._last_checked_bounce_time:
+                    reward += 15  # Significant reward for successfully returning a projectile
+            # Store the last time we checked for bounces
+            fighter._last_checked_bounce_time = fighter.last_bounce_time
+            
         # Reward for maintaining good distance
         dx = opponent.rect.centerx - fighter.rect.centerx
         distance = abs(dx)
