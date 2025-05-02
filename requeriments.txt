@@ -1,3 +1,5 @@
 torch
 numpy
 pygame
+opencv-python
+huggingface_hub

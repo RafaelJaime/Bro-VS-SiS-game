@@ -64,7 +64,7 @@ class GamePlay(Screen):
         img = font.render(text, True, text_col)
         self.screen.blit(img, (x, y))
 
-    def update(self, game_mode, is_paused=False):
+    def update(self, is_paused=False):
         # Update screen shake
         camera_offset = screen_shake.update()
         
@@ -94,7 +94,7 @@ class GamePlay(Screen):
         
         # Only move fighters and update game logic if the game is not paused
         if not is_paused:
-            # Only move fighters if neither is defeated
+            # Regular update for non-defeated players
             if not self.player1.is_defeated and not self.player2.is_defeated:
                 self.player1.update(self.player2)
                 self.player2.update(self.player1)
@@ -178,17 +178,15 @@ class GamePlay(Screen):
         p1_name = self.player1.name
         p2_name = self.player2.name
         
-        # Determinar si son AI por el tipo de clase
-        p1_is_ai = isinstance(self.player1, FighterAI)
-        p2_is_ai = isinstance(self.player2, FighterAI)
-        
         # Recrear objetos Fighter con el tipo correcto
-        if p1_is_ai:
+        if isinstance(self.player1, FighterAI):
+            self.player1.process_game_over(self.player2)
             self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name)
         else:
             self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
             
-        if p2_is_ai:
+        if isinstance(self.player2, FighterAI):
+            self.player2.process_game_over(self.player1)
             self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name)
         else:
             self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)

@@ -119,19 +119,19 @@ def main():
                 character_select.update(mouse_pos)
             
             case GameState.PLAYING:
-                game_play.update(game_mode, is_paused=False)
+                game_play.update(is_paused=False)
                 if game_play.check_game_over():
                     current_state = GameState.GAME_OVER
             
             case GameState.PAUSE:
                 # Actualizar el juego con is_paused=True para detener los proyectiles
-                game_play.update(game_mode, is_paused=True)
+                game_play.update(is_paused=True)
                 # Then draw the pause menu overlay
                 pause_menu.update(mouse_pos)
             
             case GameState.GAME_OVER:
                 # First update the game screen in the background
-                game_play.update(game_mode, is_paused=True)
+                game_play.update(is_paused=True)
                 # Then draw the game over overlay
                 game_over.update(mouse_pos, game_play.get_winner())
         
