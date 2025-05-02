@@ -1,1 +1,2 @@
-# Explicación de toda la parte de NN
+# AI - Neural networks with torch applied to game
+
