@@ -59,7 +59,7 @@ def run_training():
 
     # Config game play
     game_play = GamePlay(screen, WIDTH, HEIGHT, low_resources=True)
-    players = ((255, 0, 0), (255, 165, 0), 'Bot 1', 'Bot 2', 2)
+    players = ((255, 0, 0), (0, 0, 255), 'Bot 1', 'Bot 2', 2)
     game_play.set_players(players)
     state = GameState.PLAYING
 

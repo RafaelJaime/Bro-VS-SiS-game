@@ -31,6 +31,24 @@ class Renderer:
                                 self.rect.width, 
                                 self.rect.height))
             
+            # Draw attack windup rectangle if it exists and timer is active
+            if hasattr(self, 'attack_windup_rect') and hasattr(self, 'attack_windup_timer') and self.attack_windup_timer > 0:
+                # Create a surface with alpha for the attack windup zone
+                windup_surface = pygame.Surface((self.attack_windup_rect.width, self.attack_windup_rect.height), pygame.SRCALPHA)
+                
+                # Use the fighter's color with transparency
+                alpha = int(255 * (self.attack_windup_timer / 10))  # Fade out as timer decreases
+                rgba_color = (*self.color, alpha)
+                windup_surface.fill(rgba_color)
+                
+                # Draw the attack windup rectangle
+                surface.blit(windup_surface, 
+                           (self.attack_windup_rect.x + camera_offset[0], 
+                            self.attack_windup_rect.y + camera_offset[1]))
+                
+                # Decrease the timer
+                self.attack_windup_timer -= 1
+            
             # Dibujar el escudo si está protegido
             if hasattr(self, 'protecting') and self.protecting:
                 # Crear un contorno brillante alrededor del jugador

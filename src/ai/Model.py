@@ -71,16 +71,6 @@ class QTrainer:
         self.criterion = nn.MSELoss()
 
     def train_step(self, state, action, reward, next_state, done):
-        # Convert lists of numpy arrays to a single numpy array first if needed
-        if isinstance(state, list):
-            state = np.array(state)
-        if isinstance(next_state, list):
-            next_state = np.array(next_state)
-        if isinstance(action, list):
-            action = np.array(action)
-        if isinstance(reward, list):
-            reward = np.array(reward)
-            
         # Convert numpy arrays to tensors
         state = torch.tensor(state, dtype=torch.float)
         next_state = torch.tensor(next_state, dtype=torch.float)

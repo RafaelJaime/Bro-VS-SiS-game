@@ -1,5 +1,6 @@
 import random
 import math
+import pygame
 from src.utils.Particle import Particle
 from src.utils.Colors import YELLOW, ORANGE, RED, WHITE
 
@@ -35,15 +36,32 @@ class Effects:
             ))
 
     def add_attack_windup_effect(self, opponent):
-        # Si lowResources está activado, no generar partículas
-        if hasattr(self, 'lowResources') and self.lowResources:
-            return
-            
         # Direction of attack based on opponent position, same as attack method
         if self.rect.centerx < opponent.rect.centerx:  # Facing right
             direction = 1
         else:  # Facing left
             direction = -1
+
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            # Create attack rectangle indicator
+            attack_rect_width = 50
+            attack_rect_height = self.rect.height
+            
+            # Position the attack rectangle based on player orientation
+            if direction > 0:  # Facing right
+                attack_rect_x = self.rect.right
+                attack_rect_y = self.rect.y
+            else:  # Facing left
+                attack_rect_x = self.rect.left - attack_rect_width
+                attack_rect_y = self.rect.y
+            
+            # Store the attack rectangle as an attribute so it can be rendered
+            self.attack_windup_rect = pygame.Rect(attack_rect_x, attack_rect_y, attack_rect_width, attack_rect_height)
+            
+            # Set a timer for how long to display the rectangle (in frames)
+            self.attack_windup_timer = 10  # Display for 10 frames
+        
         
         # Create swipe effect particles
         for i in range(10):
