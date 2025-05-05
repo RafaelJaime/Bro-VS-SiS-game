@@ -6,7 +6,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 from src.screens.GamePlay import GamePlay
 from src.utils.GameState import GameState
 from src.ai.Agent import Agent
-from src.ai.utils.TrainerHelper import save_model, draw_stats, record_model_videos, upload_to_huggingface, parse_args
+from src.ai.utils.TrainerHelper import save_model, draw_stats, parse_args
+from src.ai.models.AIModels import AIModels
 
 def main():
     args = parse_args()
@@ -14,7 +15,7 @@ def main():
     # Check if we're just recording videos
     if args.record:
         print("Grabando videos de los modelos existentes...")
-        videos = record_model_videos(
+        videos = AIModels.record_model_videos(
             models_folder='models',
             output_folder='videos',
             fps=args.fps,
@@ -29,7 +30,7 @@ def main():
                 return
                 
             print("Subiendo modelos y videos a HuggingFace...")
-            repo_url = upload_to_huggingface(
+            repo_url = AIModels.upload_to_huggingface(
                 model_folder='models',
                 video_folder='videos',
                 repo_name=args.repo_name,

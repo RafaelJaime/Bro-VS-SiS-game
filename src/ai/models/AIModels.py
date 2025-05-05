@@ -22,15 +22,16 @@ class AIModels(str, Enum):
     MEDIUM = "model_final_12_games"
     HARD = "model_final_16_games"
     
+    _models_folder = 'models'
+    _videos_folder = 'videos'
+    
     @staticmethod
-    def record_model_videos(models_folder='models', output_folder='videos', fps=30, duration=30, resolution=(800, 600), specific_model=None):
+    def record_model_videos(fps=30, duration=30, resolution=(800, 600), specific_model=None):
         """
         Crea videos de partidas usando todos los modelos de la carpeta especificada
         o un modelo específico si se indica
         
         Args:
-            models_folder: Carpeta donde se encuentran los modelos guardados
-            output_folder: Carpeta donde guardar los videos generados
             fps: Frames por segundo para el video
             duration: Duración máxima del video en segundos
             resolution: Resolución del video (ancho, alto)
@@ -44,22 +45,22 @@ class AIModels(str, Enum):
         
         
         # Crear carpeta para videos si no existe
-        os.makedirs(output_folder, exist_ok=True)
+        os.makedirs(AIModels._videos_folder, exist_ok=True)
         
         # Buscar modelos en la carpeta
         if specific_model:
             # Buscar un modelo específico
-            model_path = os.path.join(models_folder, f"{specific_model}.pth")
+            model_path = os.path.join(AIModels._models_folder, f"{specific_model}.pth")
             if not os.path.exists(model_path):
                 print(f"No se encontró el modelo {model_path}")
                 return []
             model_paths = [model_path]
         else:
             # Buscar todos los modelos
-            model_paths = glob.glob(os.path.join(models_folder, '*.pth'))
+            model_paths = glob.glob(os.path.join(AIModels._models_folder, '*.pth'))
             
         if not model_paths:
-            print(f"No se encontraron modelos en {models_folder}")
+            print(f"No se encontraron modelos en {AIModels._models_folder}")
             return []
         
         pygame.init()
@@ -74,7 +75,7 @@ class AIModels(str, Enum):
         
         for model_path in model_paths:
             model_name = os.path.basename(model_path).split('.')[0]
-            video_path = os.path.join(output_folder, f"{model_name}.mp4")
+            video_path = os.path.join(AIModels._videos_folder, f"{model_name}.mp4")
             
             # Preparar el codificador de video
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -133,13 +134,11 @@ class AIModels(str, Enum):
         return video_paths
 
     @staticmethod
-    def upload_to_huggingface(model_folder='models', video_folder='videos', repo_name=None, token=None, specific_model=None):
+    def upload_to_huggingface(repo_name=None, token=None, specific_model=None):
         """
         Sube modelos y videos a HuggingFace
         
         Args:
-            model_folder: Carpeta donde se encuentran los modelos
-            video_folder: Carpeta donde se encuentran los videos
             repo_name: Nombre del repositorio en HuggingFace (usuario/nombre-repo)
             token: Token de acceso a HuggingFace
             specific_model: Nombre específico del modelo a subir (sin extensión .pth)
@@ -172,12 +171,12 @@ class AIModels(str, Enum):
         
         # Filtrar modelos según si se ha especificado uno concreto
         if specific_model:
-            model_path = os.path.join(model_folder, f"{specific_model}.pth")
+            model_path = os.path.join(AIModels._models_folder, f"{specific_model}.pth")
             if not os.path.exists(model_path):
                 raise ValueError(f"No se encontró el modelo {model_path}")
             model_files = [model_path]
         else:
-            model_files = glob.glob(os.path.join(model_folder, '*.pth'))
+            model_files = glob.glob(os.path.join(AIModels._models_folder, '*.pth'))
         
         # Subir modelos
         for model_file in model_files:
@@ -194,10 +193,10 @@ class AIModels(str, Enum):
         
         # Filtrar videos correspondientes a los modelos seleccionados
         if specific_model:
-            video_path = os.path.join(video_folder, f"{specific_model}.mp4")
+            video_path = os.path.join(AIModels._videos_folder, f"{specific_model}.mp4")
             video_files = [video_path] if os.path.exists(video_path) else []
         else:
-            video_files = glob.glob(os.path.join(video_folder, '*.mp4'))
+            video_files = glob.glob(os.path.join(AIModels._videos_folder, '*.mp4'))
         
         # Subir videos
         for video_file in video_files:
@@ -225,7 +224,7 @@ Este repositorio contiene modelos de IA entrenados para el juego Bro VS Sis.
         for model_file in model_files:
             model_name = os.path.basename(model_file)
             video_name = os.path.basename(model_file).replace('.pth', '.mp4')
-            if os.path.exists(os.path.join(video_folder, video_name)):
+            if os.path.exists(os.path.join(AIModels._videos_folder, video_name)):
                 readme_content += f"- [{model_name}](models/{model_name}) - [Ver video](videos/{video_name})\n"
             else:
                 readme_content += f"- [{model_name}](models/{model_name})\n"
