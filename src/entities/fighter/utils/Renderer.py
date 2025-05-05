@@ -71,9 +71,10 @@ class Renderer:
                 #s.fill((0, 255, 0, 128))  # Semi-transparent green
                 surface.blit(s, (attack_rect.x + camera_offset[0], attack_rect.y + camera_offset[1]))
         
-        # Draw all particles
-        for particle in self.particles:
-            particle.draw(surface)
+        # Draw all particles only if lowResources está desactivado
+        if not hasattr(self, 'lowResources') or not self.lowResources:
+            for particle in self.particles:
+                particle.draw(surface)
         
         # Draw projectiles
         for projectile in self.projectiles:

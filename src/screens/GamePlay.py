@@ -11,8 +11,11 @@ from src.screens.Screen import Screen
 from src.utils.GameState import GameState
 
 class GamePlay(Screen):
-    def __init__(self, screen, width, height):
+    def __init__(self, screen, width, height, low_resources=False):
         super().__init__(screen, width, height)
+        
+        # Opción para modo de bajos recursos
+        self.low_resources = low_resources
         
         # Create ground
         self.ground = pygame.Rect(0, height - 50, width, 50)
@@ -36,8 +39,8 @@ class GamePlay(Screen):
             FighterControls.PROTECT: pygame.K_DOWN
         }
         
-        self.player1 = FighterHuman(100, height - 150, 50, 100, BLUE, self.player1_controls, "Player 1")
-        self.player2 = FighterHuman(700, height - 150, 50, 100, RED, self.player2_controls, "Player 2")
+        self.player1 = FighterHuman(100, height - 150, 50, 100, BLUE, self.player1_controls, "Player 1", self.low_resources)
+        self.player2 = FighterHuman(700, height - 150, 50, 100, RED, self.player2_controls, "Player 2", self.low_resources)
         
         # Timer variables
         self.match_timer = 60 * 60  # 60 seconds at 60fps (changed from 5 seconds)
@@ -181,15 +184,15 @@ class GamePlay(Screen):
         # Recrear objetos Fighter con el tipo correcto
         if isinstance(self.player1, FighterAI):
             self.player1.process_game_over(self.player2)
-            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name)
+            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name, self.low_resources)
         else:
-            self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
+            self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name, self.low_resources)
             
         if isinstance(self.player2, FighterAI):
             self.player2.process_game_over(self.player1)
-            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name, self.low_resources)
         else:
-            self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+            self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name, self.low_resources)
         
         # Reiniciar el temporizador y el modo de muerte súbita
         self.match_timer = 60 * 60  # 60 seconds reset timer
@@ -228,18 +231,18 @@ class GamePlay(Screen):
         p2_name = self.player2.name
         
         if game_mode == 1:  # PVC (Player vs AI)
-            self.player1 = FighterHuman(100, self.height - 150, 50, 100, self.player1.color, self.player1_controls, self.player1.name)
-            self.player2 = FighterAI(700, self.height - 150, 50, 100, self.player2.color, self.player2.name)
+            self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name, self.low_resources)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name, self.low_resources)
             # Draw controls info for PVC mode
             self.draw_text("Controls: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
         elif game_mode == 2:  # CVC (AI vs AI)
-            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name)
-            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name)
+            self.player1 = FighterAI(100, self.height - 150, 50, 100, p1_color, p1_name, self.low_resources)
+            self.player2 = FighterAI(700, self.height - 150, 50, 100, p2_color, p2_name, self.low_resources)
             # Draw controls info for CVC mode
             self.draw_text("AI Battle - Press ESC to exit", self.font, WHITE, self.width // 2 - 150, self.height - 40)
         else:  # PVP (Player vs Player)
-            self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name)
-            self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name)
+            self.player1 = FighterHuman(100, self.height - 150, 50, 100, p1_color, self.player1_controls, p1_name, self.low_resources)
+            self.player2 = FighterHuman(700, self.height - 150, 50, 100, p2_color, self.player2_controls, p2_name, self.low_resources)
             # Draw controls info for PVP mode
             self.draw_text("P1: WASD + F attack + G shoot", self.font, WHITE, 20, self.height - 40)
             self.draw_text("P2: Arrows + K attack + L shoot", self.font, WHITE, self.width - 380, self.height - 40)

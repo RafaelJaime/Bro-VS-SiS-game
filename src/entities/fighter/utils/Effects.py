@@ -11,6 +11,10 @@ class Effects:
         self.hit_flash_max = 5
         
     def add_shoot_effect(self, direction):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         # Add particles for shoot effect
         for _ in range(10):
             angle = random.uniform(-0.5, 0.5) + (0 if direction > 0 else math.pi)
@@ -31,6 +35,10 @@ class Effects:
             ))
 
     def add_attack_windup_effect(self, opponent):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         # Direction of attack based on opponent position, same as attack method
         if self.rect.centerx < opponent.rect.centerx:  # Facing right
             direction = 1
@@ -57,6 +65,10 @@ class Effects:
             ))
 
     def add_dust_particle(self, x, y):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         for _ in range(2):
             vel_x = random.uniform(-1, 1)
             vel_y = random.uniform(-2, -0.5)
@@ -66,6 +78,10 @@ class Effects:
             self.particles.append(Particle(x, y, color, size, (vel_x, vel_y), True, lifetime))
     
     def add_jump_effect(self):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         for _ in range(10):
             vel_x = random.uniform(-2, 2)
             vel_y = random.uniform(0, 4)
@@ -79,6 +95,10 @@ class Effects:
             ))
     
     def add_landing_effect(self):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         for _ in range(15):
             vel_x = random.uniform(-3, 3)
             vel_y = random.uniform(-4, -1)
@@ -92,6 +112,10 @@ class Effects:
             ))
     
     def add_hit_effect(self, x, y):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         # Circular hit effect
         for _ in range(20):
             angle = random.uniform(0, math.pi * 2)
@@ -111,6 +135,10 @@ class Effects:
             self.particles.append(Particle(x, y, self.color, size, (vel_x, vel_y), False, lifetime))
     
     def add_ko_effect(self, x, y):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         # Explosion effect for KO
         for _ in range(40):
             angle = random.uniform(0, math.pi * 2)
@@ -126,6 +154,10 @@ class Effects:
             self.particles.append(Particle(x, y, color, size, (vel_x, vel_y), True, lifetime))
             
     def add_collision_effect(self, opponent):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         # Calculate collision point
         collision_x = (self.rect.centerx + opponent.rect.centerx) // 2
         collision_y = (self.rect.centery + opponent.rect.centery) // 2
@@ -149,6 +181,10 @@ class Effects:
             self.particles.append(Particle(collision_x, collision_y, color, size, (vel_x, vel_y), False, lifetime))
     
     def add_protect_effect(self):
+        # Si lowResources está activado, no generar partículas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            return
+            
         # Crear un efecto de escudo alrededor del jugador
         for _ in range(20):
             angle = random.uniform(0, math.pi * 2)
@@ -172,6 +208,11 @@ class Effects:
             ))
     
     def update_particles(self):
+        # Si no hay partículas o lowResources está activado, no procesarlas
+        if hasattr(self, 'lowResources') and self.lowResources:
+            self.particles = []  # Limpiar las partículas existentes
+            return
+            
         i = 0
         while i < len(self.particles):
             if self.particles[i].update():

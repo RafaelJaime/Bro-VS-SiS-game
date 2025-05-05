@@ -29,7 +29,7 @@ def main():
     main_menu = MainMenu(screen, WIDTH, HEIGHT)
     difficulty_select = DifficultySelect(screen, WIDTH, HEIGHT)
     character_select = CharacterSelect(screen, WIDTH, HEIGHT)
-    game_play = GamePlay(screen, WIDTH, HEIGHT)
+    game_play = GamePlay(screen, WIDTH, HEIGHT, low_resources=False)
     pause_menu = PauseMenu(screen, WIDTH, HEIGHT)
     game_over = GameOver(screen, WIDTH, HEIGHT)
     

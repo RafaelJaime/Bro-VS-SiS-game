@@ -5,8 +5,8 @@ from src.entities.fighter.utils.FighterControls import FighterControls
 from src.ai.Agent import Agent
 
 class FighterAI(Fighter):
-    def __init__(self, x, y, width, height, color, name):
-        super().__init__(x, y, width, height, color, name)
+    def __init__(self, x, y, width, height, color, name, lowResources=False):
+        super().__init__(x, y, width, height, color, name, lowResources)
         # Use the shared instance of Agent
         self.agent = Agent.get_instance()
         self.prev_health = self.health

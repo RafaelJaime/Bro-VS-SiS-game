@@ -10,7 +10,7 @@ from src.entities.fighter.utils.Effects import Effects
 from src.entities.fighter.utils.Renderer import Renderer
 
 class Fighter(Combat, Movement, Effects, Renderer, ABC):
-    def __init__(self, x, y, width, height, color, name):
+    def __init__(self, x, y, width, height, color, name, lowResources=False):
         Combat.__init__(self)
         Movement.__init__(self)
         Effects.__init__(self)
@@ -20,6 +20,7 @@ class Fighter(Combat, Movement, Effects, Renderer, ABC):
         self.color = color
         self.name = name
         self.secondary_color = RED
+        self.lowResources = lowResources
 
     def update(self, opponent):
         """

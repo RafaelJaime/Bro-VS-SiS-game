@@ -9,8 +9,8 @@ class FighterHuman(Fighter):
     Esta clase hereda de Fighter y se encarga de manejar la entrada del usuario.
     """
     
-    def __init__(self, x, y, width, height, color, controls, name):
-        super().__init__(x, y, width, height, color, name)
+    def __init__(self, x, y, width, height, color, controls, name, lowResources=False):
+        super().__init__(x, y, width, height, color, name, lowResources)
         self.controls = controls
 
     def process_input(self, opponent):
