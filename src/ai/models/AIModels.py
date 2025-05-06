@@ -83,7 +83,7 @@ class AIModels(str, Enum):
             
             # Configurar el juego y cargar el modelo
             game_play = GamePlay(screen, width, height)
-            players = ((255, 0, 0), (255, 165, 0), 'Bot 1', 'Bot 2', 2)  # 2 = AI vs AI
+            players = ((255, 0, 0), (0, 0, 255), 'Matilde', 'Rafaeh', 2)  # 2 = AI vs AI
             game_play.set_players(players)
             
             # Cargar modelo para ambos jugadores
