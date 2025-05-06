@@ -8,6 +8,7 @@ from src.screens.CharacterSelect import CharacterSelect
 from src.screens.GamePlay import GamePlay
 from src.screens.PauseMenu import PauseMenu
 from src.screens.GameOver import GameOver
+from src.entities.fighter.utils.FighterBO import FighterBO
 
 # Initialize pygame
 pygame.init()
@@ -24,6 +25,12 @@ MODE_CVC = 2
 
 def main():
     clock = pygame.time.Clock()
+    
+    # Precargar todas las animaciones de los personajes al inicio
+    # Esto evita cargar múltiples veces durante el juego y muestra mensajes solo una vez
+    print("Iniciando precarga de recursos...")
+    FighterBO.preload_all_fighters()
+    print("Precarga de recursos completada.")
     
     # Initialize screens
     main_menu = MainMenu(screen, WIDTH, HEIGHT)

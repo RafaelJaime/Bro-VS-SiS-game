@@ -17,19 +17,23 @@ class Renderer:
             # Draw defeated character (lying down)
             self.draw_defeated(surface, camera_offset)
         else:
-            # Draw character with hit flash effect
-            if self.hit_flash > 0 and self.hit_flash % 2 == 0:
-                pygame.draw.rect(surface, WHITE, 
-                                (self.rect.x + camera_offset[0], 
-                                self.rect.y + camera_offset[1], 
-                                self.rect.width, 
-                                self.rect.height))
+            # Usar imágenes si lowResources es falso y hay animaciones disponibles
+            if hasattr(self, 'lowResources') and not self.lowResources and hasattr(self, 'fighter_bo') and self.fighter_bo.has_animations():
+                self._draw_animated(surface, camera_offset)
             else:
-                pygame.draw.rect(surface, self.color, 
-                                (self.rect.x + camera_offset[0], 
-                                self.rect.y + camera_offset[1], 
-                                self.rect.width, 
-                                self.rect.height))
+                # Draw character with hit flash effect (versión con rectángulos)
+                if self.hit_flash > 0 and self.hit_flash % 2 == 0:
+                    pygame.draw.rect(surface, WHITE, 
+                                    (self.rect.x + camera_offset[0], 
+                                    self.rect.y + camera_offset[1], 
+                                    self.rect.width, 
+                                    self.rect.height))
+                else:
+                    pygame.draw.rect(surface, self.color, 
+                                    (self.rect.x + camera_offset[0], 
+                                    self.rect.y + camera_offset[1], 
+                                    self.rect.width, 
+                                    self.rect.height))
             
             # Draw attack windup rectangle if it exists and timer is active
             if hasattr(self, 'attack_windup_rect') and hasattr(self, 'attack_windup_timer') and self.attack_windup_timer > 0:
@@ -98,12 +102,80 @@ class Renderer:
         for projectile in self.projectiles:
             projectile.draw(surface, camera_offset)
     
+    def _draw_animated(self, surface, camera_offset=[0, 0]):
+        """
+        Dibuja al luchador usando las imágenes de animación
+        """
+        # Obtener el frame actual de la animación
+        frames = self.fighter_bo.get_animation_frames(self.current_action)
+        if not frames:
+            # Si no hay frames para esta acción, intentar usar frames de 'idle'
+            frames = self.fighter_bo.get_animation_frames('idle')
+            # Si aún no hay frames, usar rectángulos simples
+            if not frames:
+                pygame.draw.rect(surface, self.color, 
+                               (self.rect.x + camera_offset[0], 
+                                self.rect.y + camera_offset[1], 
+                                self.rect.width, 
+                                self.rect.height))
+                return
+        
+        # Obtener el frame actual como un entero
+        frame_index = int(self.current_frame) % len(frames)
+        current_frame = frames[frame_index]
+        
+        # Dar la vuelta a la imagen si es necesario
+        if not self.facing_right:
+            current_frame = pygame.transform.flip(current_frame, True, False)
+        
+        # Aplicar efecto de flasheo si ha sido golpeado
+        if self.hit_flash > 0 and self.hit_flash % 2 == 0:
+            # Crear una copia del frame y hacerlo blanco
+            white_frame = current_frame.copy()
+            white_frame.fill((255, 255, 255), None, pygame.BLEND_RGB_MAX)
+            current_frame = white_frame
+        
+        # Calcular la posición para dibujar la imagen (centrada en el rectángulo del luchador)
+        img_rect = current_frame.get_rect()
+        img_rect.midbottom = (self.rect.centerx + camera_offset[0], 
+                              self.rect.bottom + camera_offset[1])
+        
+        # Dibujar la imagen
+        surface.blit(current_frame, img_rect)
+    
     def draw_defeated(self, surface, camera_offset=[0, 0]):
-        # Animate the defeat sequence
+        # Siempre incrementar la animación de derrota, independientemente del modo de recursos
         self.defeat_animation += 1
         max_animation = 60
         progress = min(self.defeat_animation / max_animation, 1)
         
+        # Si hay animación de derrota disponible, usarla
+        if hasattr(self, 'lowResources') and not self.lowResources and hasattr(self, 'fighter_bo'):
+            frames = self.fighter_bo.get_animation_frames('defeated')
+            if frames:
+                # Usar la animación de derrota (ahora usando current_frame que es controlado por Fighter)
+                frame_index = int(self.current_frame) % len(frames)
+                current_frame = frames[frame_index]
+                
+                # Crear un rectángulo para la posición de la imagen
+                img_rect = current_frame.get_rect()
+                img_rect.bottomleft = (self.rect.x + camera_offset[0], HEIGHT - 50 + camera_offset[1])
+                
+                # Dibujar la imagen
+                surface.blit(current_frame, img_rect)
+                
+                # Añadir efectos de estrellas si es necesario
+                if self.defeat_animation < 30:
+                    for i in range(3):
+                        angle = (self.defeat_animation / 5 + i * (2*math.pi/3)) % (2*math.pi)
+                        star_x = img_rect.right - 20 + math.cos(angle) * 15
+                        star_y = img_rect.top - 10 + math.sin(angle) * 10
+                        
+                        pygame.draw.circle(surface, YELLOW, 
+                                        (int(star_x), int(star_y)), 3)
+                return
+        
+        # Usar la versión con rectángulos si no hay animación disponible
         # Create a "lying down" rectangle
         height = self.rect.height // 3
         width = self.rect.width * 2
