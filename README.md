@@ -1,7 +1,7 @@
 # BroVSis (BVS)
 
 <div align="center">
-  <img src="assets/logos/ico.png" alt="BroVSis Logo" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+  <img src="assets/logos/ico.png" alt="BroVSis Logo" width="300" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
 </div>
 
 A **2D fighting game** built in **Godot 4** designed specifically for **Reinforcement Learning** training and experimentation. Train your own AI fighters and test them against each other in fights!
