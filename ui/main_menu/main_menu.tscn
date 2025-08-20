@@ -1,0 +1,56 @@
+[gd_scene load_steps=5 format=3 uid="uid://bb5yiqlmlv2kn"]
+
+[ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_i5wg5"]
+[ext_resource type="Texture2D" uid="uid://be4vwekekfsk1" path="res://assets/logos/imagen_titulo.png" id="4_3c04x"]
+[ext_resource type="Texture2D" uid="uid://dkhcw1578t65v" path="res://assets/images/ui/buttons/Ilustracion_3Botones original.png" id="5_joh67"]
+[ext_resource type="Script" uid="uid://cin6p1xshscv3" path="res://ui/main_menu/main_menu_buttons.gd" id="5_u184e"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="background" parent="." instance=ExtResource("1_i5wg5")]
+
+[node name="Logo" type="Sprite2D" parent="."]
+position = Vector2(400, 160)
+scale = Vector2(0.159, 0.159)
+texture = ExtResource("4_3c04x")
+
+[node name="MainMenuButtons" type="Node2D" parent="."]
+script = ExtResource("5_u184e")
+
+[node name="Ilustracion3BotonesOriginal" type="Sprite2D" parent="MainMenuButtons"]
+position = Vector2(400, 400)
+scale = Vector2(0.09, 0.09)
+texture = ExtResource("5_joh67")
+
+[node name="PlayButton" type="Button" parent="MainMenuButtons"]
+offset_left = 302.0
+offset_top = 311.0
+offset_right = 506.0
+offset_bottom = 397.0
+rotation = -0.261799
+focus_mode = 0
+flat = true
+
+[node name="CreditsButton" type="Button" parent="MainMenuButtons"]
+offset_left = 289.0
+offset_top = 442.0
+offset_right = 497.0
+offset_bottom = 512.0
+rotation = -0.0663225
+focus_mode = 0
+flat = true
+
+[node name="IntructionsButton" type="Button" parent="MainMenuButtons"]
+offset_left = 328.0
+offset_top = 369.0
+offset_right = 543.0
+offset_bottom = 439.0
+rotation = -0.0663225
+focus_mode = 0
+flat = true
+
+[connection signal="pressed" from="MainMenuButtons/PlayButton" to="MainMenuButtons" method="_on_play_button_pressed"]
+[connection signal="pressed" from="MainMenuButtons/CreditsButton" to="MainMenuButtons" method="_on_credits_button_pressed"]
+[connection signal="pressed" from="MainMenuButtons/IntructionsButton" to="MainMenuButtons" method="_on_intructions_button_pressed"]

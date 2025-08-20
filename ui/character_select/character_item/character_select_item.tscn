@@ -1,0 +1,41 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7vrfar4xb67j"]
+
+[ext_resource type="Texture2D" uid="uid://su454ffr42hb" path="res://assets/images/game/characters/rafael/face/r_014.png" id="1_25cuk"]
+[ext_resource type="Script" uid="uid://br7gt0bs4g2cb" path="res://ui/character_select/character_item/character_select_item.gd" id="2_lneu6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lneu6"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0.626387, 0.992832, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x8414"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.205326, 0.0793294, 0.448217, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(2, 2)
+
+[node name="CharacterSelectItem" type="Button"]
+custom_minimum_size = Vector2(100, 100)
+offset_right = 50.0
+offset_bottom = 50.0
+focus_mode = 0
+theme_override_styles/hover = SubResource("StyleBoxFlat_lneu6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_x8414")
+icon = ExtResource("1_25cuk")
+expand_icon = true
+script = ExtResource("2_lneu6")

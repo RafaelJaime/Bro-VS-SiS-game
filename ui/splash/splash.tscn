@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://cdnw8cfrn1kii"]
+
+[ext_resource type="Texture2D" uid="uid://dfd2acu5xuens" path="res://assets/logos/imagen_titulo-negro.png" id="1_5611s"]
+[ext_resource type="Script" uid="uid://cusp1wf02l20g" path="res://ui/splash/splash.gd" id="1_ucrge"]
+
+[node name="Splash" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ucrge")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ImagenTitulo-negro" type="Sprite2D" parent="."]
+position = Vector2(400, 300)
+scale = Vector2(0.22805, 0.241935)
+texture = ExtResource("1_5611s")

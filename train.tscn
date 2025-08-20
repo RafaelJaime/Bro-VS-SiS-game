@@ -1,0 +1,99 @@
+[gd_scene load_steps=3 format=3 uid="uid://bml7gn5xty2ky"]
+
+[ext_resource type="PackedScene" uid="uid://yiftnbibw2tl" path="res://game/game.tscn" id="1_bju55"]
+[ext_resource type="Script" uid="uid://88snckwgqte5" path="res://addons/godot_rl_agents/sync.gd" id="1_lomod"]
+
+[node name="Train" type="Node2D"]
+
+[node name="Sync" type="Node" parent="."]
+script = ExtResource("1_lomod")
+metadata/_custom_type_script = "uid://88snckwgqte5"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(1200, 0)
+zoom = Vector2(0.2, 0.2)
+
+[node name="Row" type="Node2D" parent="."]
+position = Vector2(0, -300)
+
+[node name="Game" parent="Row" instance=ExtResource("1_bju55")]
+
+[node name="Game2" parent="Row" instance=ExtResource("1_bju55")]
+position = Vector2(800, 0)
+
+[node name="Game3" parent="Row" instance=ExtResource("1_bju55")]
+position = Vector2(1600, 0)
+
+[node name="Game4" parent="Row" instance=ExtResource("1_bju55")]
+position = Vector2(2400, 0)
+
+[node name="Game5" parent="Row" instance=ExtResource("1_bju55")]
+position = Vector2(-800, 0)
+
+[node name="Row2" type="Node2D" parent="."]
+position = Vector2(0, 300)
+
+[node name="Game" parent="Row2" instance=ExtResource("1_bju55")]
+
+[node name="Game2" parent="Row2" instance=ExtResource("1_bju55")]
+position = Vector2(800, 0)
+
+[node name="Game3" parent="Row2" instance=ExtResource("1_bju55")]
+position = Vector2(1600, 0)
+
+[node name="Game4" parent="Row2" instance=ExtResource("1_bju55")]
+position = Vector2(2400, 0)
+
+[node name="Game5" parent="Row2" instance=ExtResource("1_bju55")]
+position = Vector2(-800, 0)
+
+[node name="Row3" type="Node2D" parent="."]
+position = Vector2(0, -900)
+
+[node name="Game" parent="Row3" instance=ExtResource("1_bju55")]
+
+[node name="Game2" parent="Row3" instance=ExtResource("1_bju55")]
+position = Vector2(800, 0)
+
+[node name="Game3" parent="Row3" instance=ExtResource("1_bju55")]
+position = Vector2(1600, 0)
+
+[node name="Game4" parent="Row3" instance=ExtResource("1_bju55")]
+position = Vector2(2400, 0)
+
+[node name="Game5" parent="Row3" instance=ExtResource("1_bju55")]
+position = Vector2(-800, 0)
+
+[node name="Row4" type="Node2D" parent="."]
+position = Vector2(0, -1500)
+
+[node name="Game" parent="Row4" instance=ExtResource("1_bju55")]
+
+[node name="Game2" parent="Row4" instance=ExtResource("1_bju55")]
+position = Vector2(800, 0)
+
+[node name="Game3" parent="Row4" instance=ExtResource("1_bju55")]
+position = Vector2(1600, 0)
+
+[node name="Game4" parent="Row4" instance=ExtResource("1_bju55")]
+position = Vector2(2400, 0)
+
+[node name="Game5" parent="Row4" instance=ExtResource("1_bju55")]
+position = Vector2(-800, 0)
+
+[node name="Row5" type="Node2D" parent="."]
+position = Vector2(0, 900)
+
+[node name="Game" parent="Row5" instance=ExtResource("1_bju55")]
+
+[node name="Game2" parent="Row5" instance=ExtResource("1_bju55")]
+position = Vector2(800, 0)
+
+[node name="Game3" parent="Row5" instance=ExtResource("1_bju55")]
+position = Vector2(1600, 0)
+
+[node name="Game4" parent="Row5" instance=ExtResource("1_bju55")]
+position = Vector2(2400, 0)
+
+[node name="Game5" parent="Row5" instance=ExtResource("1_bju55")]
+position = Vector2(-800, 0)

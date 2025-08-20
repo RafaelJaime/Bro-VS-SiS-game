@@ -1,0 +1,97 @@
+[gd_scene load_steps=4 format=3 uid="uid://r47fsncbeolm"]
+
+[ext_resource type="Script" uid="uid://bya4rtk1lnt74" path="res://game/ui/game_over/game_over.gd" id="1_3gwt4"]
+[ext_resource type="Texture2D" uid="uid://cvqrx1db2o3b4" path="res://assets/images/ui/buttons/button5.png" id="2_3gwt4"]
+[ext_resource type="Texture2D" uid="uid://cvg6trsxcoic1" path="res://assets/images/ui/buttons/button6.png" id="2_uv10m"]
+
+[node name="GameOver" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3gwt4")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="GameOverLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/outline_size = 5
+theme_override_constants/shadow_outline_size = 5
+theme_override_font_sizes/font_size = 32
+text = "Game over"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label2" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 1, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 32
+text = "Rafael"
+horizontal_alignment = 1
+
+[node name="WinnerNameLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 32
+text = "Matilde "
+horizontal_alignment = 1
+
+[node name="WinnerLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_font_sizes/font_size = 30
+text = "is victorious!"
+horizontal_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="ReplayButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+theme_override_constants/icon_max_width = 100
+icon = ExtResource("2_3gwt4")
+flat = true
+icon_alignment = 1
+
+[node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+theme_override_constants/icon_max_width = 100
+icon = ExtResource("2_uv10m")
+flat = true
+icon_alignment = 1
+
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer2/ReplayButton" to="." method="_on_replay_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer2/MainMenuButton" to="." method="_on_main_menu_button_pressed"]

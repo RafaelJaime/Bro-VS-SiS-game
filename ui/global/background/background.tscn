@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://bipo2b61nhjv3"]
+
+[ext_resource type="Texture2D" uid="uid://c5lw72pv4v8m7" path="res://assets/backgrounds/fondo_nubes.png" id="1_2kpk6"]
+[ext_resource type="Script" uid="uid://dkgc6uth203gb" path="res://ui/global/background/moving_parallax_layer.gd" id="1_rllmm"]
+[ext_resource type="Texture2D" uid="uid://ddmxvuc2enflp" path="res://assets/backgrounds/fondo_cocina.png" id="2_rllmm"]
+[ext_resource type="Texture2D" uid="uid://7v241kbf8ur3" path="res://assets/backgrounds/cocina.png" id="3_2m8yt"]
+
+[node name="background" type="Node2D"]
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_mirroring = Vector2(800, 0)
+script = ExtResource("1_rllmm")
+
+[node name="FondoNubes" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+position = Vector2(400, 300)
+scale = Vector2(1.17994, 1.15385)
+texture = ExtResource("1_2kpk6")
+
+[node name="Parallax2D" type="Parallax2D" parent="."]
+
+[node name="FondoCocina" type="Sprite2D" parent="."]
+position = Vector2(400, 300)
+scale = Vector2(0.680272, 0.665188)
+texture = ExtResource("2_rllmm")
+
+[node name="Cocina" type="Sprite2D" parent="."]
+position = Vector2(400, 300)
+scale = Vector2(0.680272, 0.665188)
+texture = ExtResource("3_2m8yt")

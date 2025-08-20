@@ -1,0 +1,349 @@
+[gd_scene load_steps=37 format=3 uid="uid://d3qpn1km0xxr0"]
+
+[ext_resource type="Script" uid="uid://bflj2q7xcedk6" path="res://game/player/player.gd" id="1_0e4oy"]
+[ext_resource type="Texture2D" uid="uid://bkw3efeebu4ce" path="res://assets/images/game/characters/rafael/defeated/r_013.png" id="2_0e4oy"]
+[ext_resource type="Texture2D" uid="uid://byf3unsh03ciy" path="res://assets/images/game/characters/rafael/fall/r_011.png" id="2_uv2nh"]
+[ext_resource type="Script" uid="uid://nybh6q1rplfm" path="res://scripts/AIController/controller.gd" id="3_8soms"]
+[ext_resource type="Texture2D" uid="uid://bpff0gwi42xdp" path="res://assets/images/game/characters/rafael/hurt/r_012.png" id="3_usp30"]
+[ext_resource type="Texture2D" uid="uid://b4vpmq4w8md4d" path="res://assets/images/game/characters/rafael/idle/r_002.png" id="4_5fytw"]
+[ext_resource type="Texture2D" uid="uid://dxo2f4px6hlkl" path="res://assets/images/game/characters/rafael/idle/r_001.png" id="4_a4w0n"]
+[ext_resource type="Texture2D" uid="uid://faucyj5qnptr" path="res://assets/images/game/characters/rafael/punch/r_007.png" id="4_gb4gm"]
+[ext_resource type="Script" uid="uid://bqro544thrttt" path="res://game/player/StateMachine/PlayerStateMachine/player_state_machine.gd" id="5_5fytw"]
+[ext_resource type="Texture2D" uid="uid://bes7s2qrbowoq" path="res://assets/images/game/characters/rafael/jump/r_010.png" id="5_rqcxa"]
+[ext_resource type="Texture2D" uid="uid://dyplrrxmi6dh1" path="res://assets/images/game/characters/rafael/run/r_008.png" id="6_3ep63"]
+[ext_resource type="Script" uid="uid://cgl7efydtvwnn" path="res://game/player/StateMachine/PlayerStateMachine/States/idle.gd" id="6_5ghna"]
+[ext_resource type="Script" uid="uid://s1s48xh0wvx8" path="res://game/player/StateMachine/PlayerStateMachine/States/run.gd" id="7_j0mij"]
+[ext_resource type="Texture2D" uid="uid://b2nkjp1ifo3v8" path="res://assets/images/game/characters/rafael/run/r_009.png" id="7_rqcxa"]
+[ext_resource type="Texture2D" uid="uid://cqqf5bb6yriok" path="res://assets/images/game/characters/rafael/protect/r_005.png" id="8_epc1c"]
+[ext_resource type="Script" uid="uid://cnhwso0ubtdi6" path="res://game/player/StateMachine/PlayerStateMachine/States/jump.gd" id="8_gb4gm"]
+[ext_resource type="Script" uid="uid://dbs738wwvch7q" path="res://game/player/StateMachine/PlayerStateMachine/States/fall.gd" id="9_uv2nh"]
+[ext_resource type="Script" uid="uid://cgoog0bvcfg7w" path="res://game/player/StateMachine/PlayerStateMachine/States/punch.gd" id="10_j0mij"]
+[ext_resource type="Script" uid="uid://bxl6rrxrrob6g" path="res://game/player/StateMachine/PlayerStateMachine/States/shoot.gd" id="11_brh81"]
+[ext_resource type="PackedScene" uid="uid://c2xwqs6es1qb5" path="res://game/projectile/projectile.tscn" id="12_ib3u0"]
+[ext_resource type="Texture2D" uid="uid://c11mdhjsjq7gi" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="12_kjljb"]
+[ext_resource type="Shader" uid="uid://dc7yljgygkfm8" path="res://game/player/blink.gdshader" id="13_bp242"]
+[ext_resource type="Script" uid="uid://dv4mrvy6oll8l" path="res://game/player/StateMachine/PlayerStateMachine/States/hurt.gd" id="16_2mv0n"]
+[ext_resource type="Script" uid="uid://o00jff2rmlo" path="res://game/player/StateMachine/PlayerStateMachine/States/motion.gd" id="17_gh012"]
+[ext_resource type="Script" uid="uid://j8wq8i71hcyh" path="res://game/player/player_ui.gd" id="20_eeltd"]
+[ext_resource type="Script" uid="uid://yegmrxo0ersi" path="res://game/player/StateMachine/PlayerStateMachine/States/protect.gd" id="22_kjljb"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cgi3i"]
+resource_local_to_scene = true
+shader = ExtResource("13_bp242")
+shader_parameter/blink_color = Color(1, 1, 1, 1)
+shader_parameter/blink_intensity = 0.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_8soms"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_0e4oy")
+}],
+"loop": true,
+"name": &"Defeated",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_uv2nh")
+}],
+"loop": true,
+"name": &"Fall",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_usp30")
+}],
+"loop": true,
+"name": &"Hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_a4w0n")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_5fytw")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_rqcxa")
+}],
+"loop": true,
+"name": &"Jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_epc1c")
+}],
+"loop": true,
+"name": &"Protect",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_gb4gm")
+}],
+"loop": true,
+"name": &"Punch",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_3ep63")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_rqcxa")
+}],
+"loop": true,
+"name": &"Run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("12_kjljb")
+}],
+"loop": true,
+"name": &"Shoot",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_e2o6t"]
+size = Vector2(73, 154)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8soms"]
+size = Vector2(89, 33)
+
+[sub_resource type="Gradient" id="Gradient_088ty"]
+colors = PackedColorArray(1, 0, 0, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_epc1c"]
+gradient = SubResource("Gradient_088ty")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_epc1c"]
+bg_color = Color(1, 0, 0, 0.0784314)
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0, 0, 1)
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kjljb"]
+bg_color = Color(1, 0, 0, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eeltd"]
+bg_color = Color(1, 0, 0, 0.0784314)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0, 0, 1)
+corner_radius_top_left = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_088ty"]
+bg_color = Color(1, 0, 0, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 10
+corner_radius_bottom_left = 10
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_0e4oy")
+color = Color(0, 0, 1, 1)
+
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("animated_sprite_2d", "start_state")]
+script = ExtResource("5_5fytw")
+animated_sprite_2d = NodePath("../AnimatedSprite2D")
+start_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("6_5ghna")
+state_machine = NodePath("..")
+
+[node name="Run" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("7_j0mij")
+state_machine = NodePath("..")
+
+[node name="Jump" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("8_gb4gm")
+state_machine = NodePath("..")
+
+[node name="Fall" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("9_uv2nh")
+state_machine = NodePath("..")
+
+[node name="Punch" type="Node" parent="StateMachine" node_paths=PackedStringArray("punch_area", "state_machine")]
+script = ExtResource("10_j0mij")
+punch_area = NodePath("../../PunchArea")
+state_machine = NodePath("..")
+metadata/_custom_type_script = "uid://o00jff2rmlo"
+
+[node name="Hurt" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("16_2mv0n")
+state_machine = NodePath("..")
+metadata/_custom_type_script = "uid://o00jff2rmlo"
+
+[node name="Defeated" type="Node" parent="StateMachine"]
+script = ExtResource("17_gh012")
+metadata/_custom_type_script = "uid://o00jff2rmlo"
+
+[node name="Protect" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("22_kjljb")
+state_machine = NodePath("..")
+metadata/_custom_type_script = "uid://o00jff2rmlo"
+
+[node name="Shoot" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("11_brh81")
+projectile_scene = ExtResource("12_ib3u0")
+state_machine = NodePath("..")
+metadata/_custom_type_script = "uid://o00jff2rmlo"
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+material = SubResource("ShaderMaterial_cgi3i")
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_8soms")
+animation = &"Shoot"
+autoplay = "Idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-2.5, 16)
+shape = SubResource("RectangleShape2D_e2o6t")
+
+[node name="AIController2D" type="Node2D" parent="."]
+script = ExtResource("3_8soms")
+reset_after = 3600
+metadata/_custom_type_script = "uid://b5wn6xerup5fr"
+
+[node name="PunchArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PunchArea"]
+position = Vector2(45.5, -10)
+shape = SubResource("RectangleShape2D_8soms")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="PunchArea"]
+position = Vector2(-55, -10)
+shape = SubResource("RectangleShape2D_8soms")
+
+[node name="PlayerUI" type="CanvasLayer" parent="." node_paths=PackedStringArray("leftHealth", "rightHealth", "leftTextureRect", "rightTextureRect", "leftNameLabel", "rightNameLabel", "leftProgressBar", "rightProgressBar")]
+script = ExtResource("20_eeltd")
+leftHealth = NodePath("LeftHealth")
+rightHealth = NodePath("RightHealth")
+leftTextureRect = NodePath("LeftHealth/LeftTextureRect")
+rightTextureRect = NodePath("RightHealth/RightTextureRect")
+leftNameLabel = NodePath("LeftHealth/MarginContainer/VBoxContainer/LeftNameLabel")
+rightNameLabel = NodePath("RightHealth/MarginContainer/VBoxContainer/RightNameLabel")
+leftProgressBar = NodePath("LeftHealth/MarginContainer/VBoxContainer/LeftProgressBar")
+rightProgressBar = NodePath("RightHealth/MarginContainer/VBoxContainer/RightProgressBar")
+
+[node name="LeftHealth" type="Control" parent="PlayerUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LeftTextureRect" type="TextureRect" parent="PlayerUI/LeftHealth"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 90.0
+grow_horizontal = 2
+texture = SubResource("GradientTexture1D_epc1c")
+
+[node name="MarginContainer" type="MarginContainer" parent="PlayerUI/LeftHealth"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PlayerUI/LeftHealth/MarginContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="LeftNameLabel" type="Label" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "Rafael"
+
+[node name="LeftProgressBar" type="ProgressBar" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_epc1c")
+theme_override_styles/fill = SubResource("StyleBoxFlat_kjljb")
+value = 50.0
+show_percentage = false
+
+[node name="RightHealth" type="Control" parent="PlayerUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RightTextureRect" type="TextureRect" parent="PlayerUI/RightHealth"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+texture = SubResource("GradientTexture1D_epc1c")
+
+[node name="MarginContainer" type="MarginContainer" parent="PlayerUI/RightHealth"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -310.0
+offset_bottom = 84.0
+grow_horizontal = 0
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PlayerUI/RightHealth/MarginContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="RightNameLabel" type="Label" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "Rafael"
+horizontal_alignment = 2
+
+[node name="RightProgressBar" type="ProgressBar" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_eeltd")
+theme_override_styles/fill = SubResource("StyleBoxFlat_088ty")
+value = 50.0
+fill_mode = 1
+show_percentage = false
+
+[node name="RightMark" type="Marker2D" parent="."]
+position = Vector2(60, 1)
+
+[node name="LeftMark" type="Marker2D" parent="."]
+position = Vector2(-60, 1)
+
+[connection signal="updated_characterUI" from="." to="PlayerUI" method="_on_player_updated_character_ui"]
+[connection signal="update_health" from="StateMachine/Hurt" to="PlayerUI" method="_on_hurt_update_health"]

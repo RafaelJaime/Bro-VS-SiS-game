@@ -1,0 +1,202 @@
+extends CharacterBody2D
+class_name Fighter
+
+signal updated_characterUI
+
+@export var character_ui: CharacterUI:
+	set(value):
+		character_ui = value
+		if character_ui != null:
+			_apply_character_ui_settings()
+			updated_characterUI.emit()
+	get:
+		return character_ui
+@export var player_name: String = "rafael"
+@export var enemy: CharacterBody2D
+enum PlayerNumber { JUGADOR1, JUGADOR2 }
+@export var control_scheme: PlayerNumber = PlayerNumber.JUGADOR1
+@export var color: Color
+
+@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
+@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var ai_controller_2d: AIController2D = $AIController2D
+@onready var punch_area: Area2D = $PunchArea
+@onready var state_machine: Node = $StateMachine
+
+var initial_position: Vector2
+var max_health: int = 100
+var health: int = 100
+
+func _ready():
+	sprite.sprite_frames = create_spriteframes_for_character(player_name)
+	initial_position = position
+	ai_controller_2d.init(self)
+
+func _physics_process(_delta: float) -> void:
+	if ai_controller_2d.needs_reset:
+		ai_controller_2d.reset()
+		reset_player()
+		return
+	
+	if enemy:
+		animated_sprite_2d.flip_h = enemy.global_position.x < global_position.x
+	move_and_slide()
+
+func set_velocity_from_motion(vel: Vector2) -> void:
+	velocity = vel
+
+func reset_player():
+	velocity = Vector2.ZERO
+	position = initial_position
+
+func reward_ai(amount: float):
+	ai_controller_2d.reward += amount
+
+func game_over():
+	ai_controller_2d.done = true
+	ai_controller_2d.needs_reset = true
+
+func create_spriteframes_for_character(character_name: String) -> SpriteFrames:
+	var frames = SpriteFrames.new()
+	var base_path = "res://assets/images/game/characters/%s/" % character_name
+
+	var dir = DirAccess.open(base_path)
+	if dir == null:
+		push_error("No se pudo abrir la carpeta del personaje: %s" % base_path)
+		return frames
+
+	# Recorrer subcarpetas (una por animación)
+	for folder in dir.get_directories():
+		var animation_path = base_path + folder + "/"
+		var anim_frames = []
+
+		var subdir = DirAccess.open(animation_path)
+		if subdir == null:
+			continue
+
+		subdir.list_dir_begin()
+		var file = subdir.get_next()
+		while file != "":
+			if not subdir.current_is_dir() and file.get_extension().to_lower() in ["png", "jpg", "webp"]:
+				anim_frames.append(animation_path + file)
+			file = subdir.get_next()
+		subdir.list_dir_end()
+
+		# Ordenar los frames por nombre de archivo (por si se llaman 1.png, 2.png...)
+		anim_frames.sort_custom(func(a, b): return a < b)
+
+		# Añadir animación si hay imágenes
+		if anim_frames.size() > 0:
+			frames.add_animation(folder)
+			frames.set_animation_speed(folder, 5)
+			for img_path in anim_frames:
+				var tex = load(img_path)
+				if tex:
+					frames.add_frame(folder, tex)
+	
+	return frames
+
+func _apply_character_ui_settings():
+	player_name = character_ui.name
+	color = character_ui.color
+	sprite.sprite_frames = create_spriteframes_for_character(character_ui.name)
+
+
+#@export var character: CharacterGame
+#const SPEED = 300.0
+#const JUMP_VELOCITY = -800.0
+#var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
+#var controls = {
+	#1: {
+		#"left": KEY_A,
+		#"right": KEY_D,
+		#"jump": KEY_W,
+		#"attack": KEY_F,
+		#"shoot": KEY_G
+	#},
+	#2: {
+		#"left": KEY_LEFT,
+		#"right": KEY_RIGHT,
+		#"jump": KEY_UP,
+		#"attack": KEY_K,
+		#"shoot": KEY_L
+	#}
+#}
+#
+#
+#
+#
+#func handle_gravity(delta):
+	#if not is_on_floor():
+		#velocity.y += gravity * delta
+#
+#func handle_jump():
+	#var should_jump = false
+	#if ai_controller_2d.heuristic == "human":
+		#should_jump = is_key_pressed("jump")
+	#else:
+		#should_jump = ai_controller_2d.jump_action > 0.5
+	#
+	#if should_jump and is_on_floor():
+		#velocity.y = JUMP_VELOCITY
+#
+#func handle_movement():
+	#var direction = 0
+	#
+	#if ai_controller_2d.heuristic == "human":
+		#if is_key_pressed("left"):
+			#direction -= 1
+		#if is_key_pressed("right"):
+			#direction += 1
+	#else:
+		#if ai_controller_2d.move_left_action > 0.5:
+			#direction -= 1
+		#if ai_controller_2d.move_right_action > 0.5:
+			#direction += 1
+		#
+	#if direction != 0:
+		#velocity.x = direction * SPEED
+	#else:
+		#velocity.x = move_toward(velocity.x, 0, SPEED)
+#
+#func handle_actions():
+	#var should_attack = false
+	#var should_shoot = false
+	#
+	#if ai_controller_2d.heuristic == "human":
+		#should_attack = is_key_just_pressed("attack")
+		#should_shoot = is_key_just_pressed("shoot")
+	#else:
+		#should_attack = ai_controller_2d.attack_action > 0.5
+		#should_shoot = ai_controller_2d.shoot_action > 0.5
+	#
+	#if should_attack:
+		#attack()
+	#if should_shoot:
+		#shoot()
+#
+#func is_key_pressed(action: String) -> bool:
+	#return Input.is_physical_key_pressed(controls[control_scheme][action])
+#
+#func is_key_just_pressed(action: String) -> bool:
+	#return Input.is_key_pressed(controls[control_scheme][action])
+#
+#func attack():
+	#ai_controller_2d.reward += 0.1
+	#punch_area.monitoring = true
+	#await get_tree().create_timer(0.2).timeout
+	#punch_area.monitoring = false
+#
+#func shoot():
+	#print("Shooting with scheme ", control_scheme)
+	#ai_controller_2d.reward += 0.1
+#
+#func take_damage(enemy: Fighter):
+	#if character:
+		#character.health -= 10
+	#velocity = Vector2(2000 if position.x > enemy.position.x else -2000, -400)
+#
+#
+#func _on_punch_area_body_entered(body: Node2D) -> void:
+	#if body != self and body is Fighter:
+		#body.take_damage(self)

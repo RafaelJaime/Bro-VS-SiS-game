@@ -1,0 +1,67 @@
+[gd_scene load_steps=6 format=3 uid="uid://yiftnbibw2tl"]
+
+[ext_resource type="PackedScene" uid="uid://d3qpn1km0xxr0" path="res://game/player/player.tscn" id="1_80nbo"]
+[ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background.tscn" id="2_vasa2"]
+[ext_resource type="Texture2D" uid="uid://qs4vm50tc35m" path="res://assets/images/game/plataformacuadrados.png" id="3_h7iqs"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_80nbo"]
+size = Vector2(55.5, 607.313)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_feb5d"]
+size = Vector2(912, 66)
+
+[node name="Game" type="Node2D"]
+
+[node name="background" parent="." instance=ExtResource("2_vasa2")]
+
+[node name="CharacterBody2D" parent="." instance=ExtResource("1_80nbo")]
+position = Vector2(142, 296)
+
+[node name="CharacterBody2D2" parent="." instance=ExtResource("1_80nbo")]
+position = Vector2(654, 292)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(500, 600)
+
+[node name="WallRight" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(328, -297.313)
+shape = SubResource("RectangleShape2D_80nbo")
+
+[node name="ColorRect2" type="ColorRect" parent="StaticBody2D/WallRight"]
+offset_left = -28.0
+offset_top = -302.687
+offset_right = 772.0
+offset_bottom = -262.687
+scale = Vector2(0.0701043, 15.8248)
+
+[node name="WallLeft" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-527.75, -296.344)
+shape = SubResource("RectangleShape2D_80nbo")
+
+[node name="ColorRect3" type="ColorRect" parent="StaticBody2D/WallLeft"]
+offset_left = -28.25
+offset_top = -303.656
+offset_right = 771.75
+offset_bottom = -263.656
+scale = Vector2(0.0701043, 15.8248)
+
+[node name="Floor" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-100, 0)
+shape = SubResource("RectangleShape2D_feb5d")
+
+[node name="ColorRect" type="ColorRect" parent="StaticBody2D/Floor"]
+offset_left = -400.0
+offset_top = -33.0
+offset_right = 400.0
+offset_bottom = 7.0
+scale = Vector2(1, 1.64)
+
+[node name="Plataformacuadrados" type="Sprite2D" parent="StaticBody2D/Floor"]
+position = Vector2(-241, -14)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("3_h7iqs")
+
+[node name="Plataformacuadrados2" type="Sprite2D" parent="StaticBody2D/Floor"]
+position = Vector2(229, -14)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("3_h7iqs")
