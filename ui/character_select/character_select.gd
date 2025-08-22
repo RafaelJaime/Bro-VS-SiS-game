@@ -1,7 +1,7 @@
 extends Control
 
 @export var character_select_item_scene: PackedScene
-@export_dir var characters_folder: String
+@export var characters: Array[CharacterUI] = []
 
 @onready var characters_container: GridContainer = $Control/CenterContainer/CharactersContainer
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
@@ -11,47 +11,13 @@ extends Control
 @onready var play_button: Button = $PlayButton
 @onready var ai_controller: Control = $AIController
 
-var characters: Array[CharacterUI] = []
 var player1_selected: CharacterUI
 var player2_selected: CharacterUI
 
 func _ready():
-	var dir = DirAccess.open(characters_folder)
-	if dir:
-		dir.list_dir_begin()
-		var folder_name = dir.get_next()
-		while folder_name != "":
-			if dir.current_is_dir():
-				var folder_path = characters_folder + "/" + folder_name
-				var json_path = folder_path + "/character.json"
-
-				if FileAccess.file_exists(json_path):
-					var file = FileAccess.open(json_path, FileAccess.READ)
-					if file:
-						var json_str = file.get_as_text()
-						var result = JSON.parse_string(json_str)
-
-						if typeof(result) == TYPE_DICTIONARY:
-							var character = CharacterUI.new()
-							character.name = result.get("name", folder_name)
-							character.dir = folder_path
-
-							var color_array = result.get("color", [1, 1, 1, 1])
-							if color_array.size() == 4:
-								character.color = Color(color_array[0], color_array[1], color_array[2], color_array[3])
-							else:
-								character.color = Color.WHITE
-
-							characters.append(character)
-				else:
-					push_warning("Falta el archivo character.json en: " + folder_path)
-			folder_name = dir.get_next()
-		dir.list_dir_end()
-
 	for character in characters:
 		_load_character(character)
 	print("Total de personajes:", characters.size())
-
 
 func _load_character(character: CharacterUI):
 	if character_select_item_scene:
@@ -63,48 +29,41 @@ func _load_character(character: CharacterUI):
 		push_error("No se ha asignado la escena de CharacterSelectItem")
 
 func _on_character_pressed(item: CharacterSelectItem):
+	var character = item.character
+	
 	if !player1_selected:
-		player1_selected = item.character
-		set_ilustration(item.character, player_1_ilustration)
+		player1_selected = character
+		set_ilustration(character, player_1_ilustration)
 		animation_player.play("player1_selected")
 		ai_controller.show_ai_ui(true)
 	else:
-		player2_selected = item.character.duplicate()
-		print(player2_selected)
-		player2_selected.color = item.character.color.inverted()
-		if item.character.equals(player1_selected):
-			player_2_ilustration.modulate = player2_selected.color
+		# Si ya hay un personaje seleccionado para player2, limpiamos antes
+		if player2_selected:
+			pass  # opcional: resetear algo si es necesario
+
+		# Creamos una copia del personaje para evitar modificar el original
+		player2_selected = character.duplicate()
+
+		if player2_selected.equals(player1_selected):
+			# Invertimos el color solo visualmente
+			player_2_ilustration.modulate = player2_selected.color.inverted()
 		else:
 			player_2_ilustration.modulate = Color.WHITE
+
 		set_ilustration(player2_selected, player_2_ilustration)
 		animation_player_2.play("player2_selected")
 		play_button.visible = true
 		ai_controller.show_ai_ui(false)
 
-
 func set_ilustration(character: CharacterUI, sprite: Sprite2D):
-	var ilustration_folder = character.dir + "/ilustration"
-	var dir = DirAccess.open(ilustration_folder)
-	
-	if dir:
-		dir.list_dir_begin()
-		var valid_image_count = 0
-		while true:
-			var file_name = dir.get_next()
-			if file_name == "":
-				break
-			if not dir.current_is_dir() and file_name.get_extension() in ["png", "webp", "jpg", "jpeg"]:
-				valid_image_count += 1
-				if valid_image_count == 2:
-					var image_path = ilustration_folder + "/" + file_name
-					var texture = load(image_path)
-					if texture is Texture2D:
-						sprite.texture = texture
-					break
-		dir.list_dir_end()
-	else:
-		print("No se pudo abrir la carpeta:", ilustration_folder)
+	sprite.texture = character.illustration
 
 func _on_play_button_pressed() -> void:
 	ai_controller.on_play_pressed()
-	SceneManager.play_game(player1_selected, player2_selected)
+	
+	if player1_selected.equals(player2_selected):
+		var player2_copy = player2_selected.duplicate()
+		player2_copy.color = player2_selected.color.inverted()
+		SceneManager.play_game(player1_selected, player2_copy)
+	else:
+		SceneManager.play_game(player1_selected, player2_selected)

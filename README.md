@@ -159,8 +159,8 @@ bvs/
 4. **Create character.json**:
    ```json
    {
-     "name": "New Character",
-     "color": [1.0, 0.0, 0.0, 1.0]
+	 "name": "New Character",
+	 "color": [1.0, 0.0, 0.0, 1.0]
    }
    ```
 

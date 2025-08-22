@@ -11,14 +11,12 @@ signal updated_characterUI
 			updated_characterUI.emit()
 	get:
 		return character_ui
-@export var player_name: String = "rafael"
+
 @export var enemy: CharacterBody2D
 enum PlayerNumber { JUGADOR1, JUGADOR2 }
 @export var control_scheme: PlayerNumber = PlayerNumber.JUGADOR1
-@export var color: Color
 
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
-@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var ai_controller_2d: AIController2D = $AIController2D
 @onready var punch_area: Area2D = $PunchArea
 @onready var state_machine: Node = $StateMachine
@@ -28,9 +26,12 @@ var max_health: int = 100
 var health: int = 100
 
 func _ready():
-	sprite.sprite_frames = create_spriteframes_for_character(player_name)
 	initial_position = position
 	ai_controller_2d.init(self)
+	
+	# Aplicar configuración del personaje si ya está asignado
+	if character_ui:
+		_apply_character_ui_settings()
 
 func _physics_process(_delta: float) -> void:
 	if ai_controller_2d.needs_reset:
@@ -56,51 +57,16 @@ func game_over():
 	ai_controller_2d.done = true
 	ai_controller_2d.needs_reset = true
 
-func create_spriteframes_for_character(character_name: String) -> SpriteFrames:
-	var frames = SpriteFrames.new()
-	var base_path = "res://assets/images/game/characters/%s/" % character_name
-
-	var dir = DirAccess.open(base_path)
-	if dir == null:
-		push_error("No se pudo abrir la carpeta del personaje: %s" % base_path)
-		return frames
-
-	# Recorrer subcarpetas (una por animación)
-	for folder in dir.get_directories():
-		var animation_path = base_path + folder + "/"
-		var anim_frames = []
-
-		var subdir = DirAccess.open(animation_path)
-		if subdir == null:
-			continue
-
-		subdir.list_dir_begin()
-		var file = subdir.get_next()
-		while file != "":
-			if not subdir.current_is_dir() and file.get_extension().to_lower() in ["png", "jpg", "webp"]:
-				anim_frames.append(animation_path + file)
-			file = subdir.get_next()
-		subdir.list_dir_end()
-
-		# Ordenar los frames por nombre de archivo (por si se llaman 1.png, 2.png...)
-		anim_frames.sort_custom(func(a, b): return a < b)
-
-		# Añadir animación si hay imágenes
-		if anim_frames.size() > 0:
-			frames.add_animation(folder)
-			frames.set_animation_speed(folder, 5)
-			for img_path in anim_frames:
-				var tex = load(img_path)
-				if tex:
-					frames.add_frame(folder, tex)
-	
-	return frames
-
+# Método simplificado que solo usa los recursos
 func _apply_character_ui_settings():
-	player_name = character_ui.name
-	color = character_ui.color
-	sprite.sprite_frames = create_spriteframes_for_character(character_ui.name)
-
+	if character_ui:
+		
+		# Usar directamente los SpriteFrames del recurso (sin acceso al sistema de archivos)
+		if animated_sprite_2d and character_ui.sprite_frames:
+			animated_sprite_2d.sprite_frames = character_ui.sprite_frames
+			print(animated_sprite_2d.animation)
+		elif animated_sprite_2d:
+			push_error("No se encontraron SpriteFrames para el personaje ", character_ui.name)
 
 #@export var character: CharacterGame
 #const SPEED = 300.0

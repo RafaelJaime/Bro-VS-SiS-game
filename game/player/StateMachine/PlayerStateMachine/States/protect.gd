@@ -8,7 +8,6 @@ signal update_health
 
 var timer: Timer
 
-signal block_started
 signal block_finished
 
 func _enter() -> void:

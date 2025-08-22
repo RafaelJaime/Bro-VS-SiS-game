@@ -1,7 +1,7 @@
 extends Node
 class_name State
 
-# warning-ignore:unused_signal
+@warning_ignore("unused_signal")
 signal finished(next_state: String)
 
 func _enter() -> void:

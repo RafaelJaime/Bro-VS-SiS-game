@@ -8,7 +8,7 @@ signal animation_state_changed(state: String)
 
 const SPEED = 300.0
 const JUMP_VELOCITY = -600.0
-const ACCERLERATION: float = 1000
+const ACCELERATION: float = 1000
 
 var gravity: float = 1000
 
@@ -16,7 +16,6 @@ func _ready() -> void:
 	velocity_updated.connect(owner.set_velocity_from_motion)
 
 func _enter() -> void:
-	print(name)
 	animation_state_changed.emit(name.to_lower())
 
 func set_direction() -> void:
@@ -28,7 +27,7 @@ func set_direction() -> void:
 	state_machine.direction = (owner.global_transform.x * Vector2(state_machine.input_dir.x, state_machine.input_dir.y)).normalized()
 
 func calculate_velocity(_speed: float, _direction: Vector2, delta: float) -> void:
-	state_machine.velocity.x = move_toward(state_machine.velocity.x, _direction.x*_speed, ACCERLERATION*delta)
+	state_machine.velocity.x = move_toward(state_machine.velocity.x, _direction.x*_speed, ACCELERATION*delta)
 	
 	velocity_updated.emit(state_machine.velocity)
 

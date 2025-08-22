@@ -1,8 +1,81 @@
-[gd_scene load_steps=4 format=3 uid="uid://r47fsncbeolm"]
+[gd_scene load_steps=15 format=3 uid="uid://r47fsncbeolm"]
 
 [ext_resource type="Script" uid="uid://bya4rtk1lnt74" path="res://game/ui/game_over/game_over.gd" id="1_3gwt4"]
 [ext_resource type="Texture2D" uid="uid://cvqrx1db2o3b4" path="res://assets/images/ui/buttons/button5.png" id="2_3gwt4"]
 [ext_resource type="Texture2D" uid="uid://cvg6trsxcoic1" path="res://assets/images/ui/buttons/button6.png" id="2_uv10m"]
+[ext_resource type="Texture2D" uid="uid://br35025wl14bc" path="res://assets/textures/Confetti/413409734-86c17908-9984-45a3-947d-e2d0175b7119.png" id="4_88cxy"]
+[ext_resource type="Texture2D" uid="uid://48ti3w6o4e6v" path="res://game/ui/game_over/confetti.tres" id="5_4u8sn"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_88cxy"]
+particles_animation = true
+particles_anim_h_frames = 2
+particles_anim_v_frames = 1
+particles_anim_loop = true
+
+[sub_resource type="Curve" id="Curve_4u8sn"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.745819, 1), 0.0, 0.0, 0, 0, Vector2(0.993311, 0.505435), -6.97879, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_ygcgq"]
+curve = SubResource("Curve_4u8sn")
+
+[sub_resource type="Curve" id="Curve_88cxy"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.491639, 0.743886), 3.96094, 3.96094, 0, 0, Vector2(0.99999, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_4u8sn"]
+curve = SubResource("Curve_88cxy")
+
+[sub_resource type="Curve" id="Curve_ygcgq"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.752508, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.487772), -6.60158, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_df4m4"]
+curve = SubResource("Curve_ygcgq")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_4u8sn"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 130.0
+initial_velocity_max = 160.0
+gravity = Vector3(0, 75, 0)
+linear_accel_min = 10.0
+linear_accel_max = 30.0
+damping_min = 74.0
+damping_max = 78.0
+damping_curve = SubResource("CurveTexture_4u8sn")
+scale_min = 0.3
+scale_max = 0.6
+scale_curve = SubResource("CurveTexture_df4m4")
+color_initial_ramp = ExtResource("5_4u8sn")
+alpha_curve = SubResource("CurveTexture_ygcgq")
+hue_variation_min = -0.02
+hue_variation_max = 0.02
+anim_speed_min = 2.0
+anim_speed_max = 5.0
+anim_offset_max = 1.0
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ygcgq"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 130.0
+initial_velocity_max = 160.0
+gravity = Vector3(0, 75, 0)
+linear_accel_min = 10.0
+linear_accel_max = 30.0
+damping_min = 74.0
+damping_max = 78.0
+damping_curve = SubResource("CurveTexture_4u8sn")
+scale_min = 0.3
+scale_max = 0.6
+scale_curve = SubResource("CurveTexture_df4m4")
+color = Color(1, 0, 0, 1)
+alpha_curve = SubResource("CurveTexture_ygcgq")
+hue_variation_min = -0.02
+hue_variation_max = 0.02
+anim_speed_min = 2.0
+anim_speed_max = 5.0
+anim_offset_max = 1.0
 
 [node name="GameOver" type="Control"]
 layout_mode = 3
@@ -21,6 +94,55 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.784314)
+
+[node name="CenterGPUParticles2D" type="GPUParticles2D" parent="."]
+visible = false
+material = SubResource("CanvasItemMaterial_88cxy")
+position = Vector2(273, 215)
+amount = 20
+texture = ExtResource("4_88cxy")
+lifetime = 4.0
+explosiveness = 0.97
+process_material = SubResource("ParticleProcessMaterial_4u8sn")
+
+[node name="CenterGPUParticles2D2" type="GPUParticles2D" parent="."]
+visible = false
+material = SubResource("CanvasItemMaterial_88cxy")
+position = Vector2(520, 221)
+amount = 20
+texture = ExtResource("4_88cxy")
+lifetime = 4.0
+explosiveness = 0.97
+process_material = SubResource("ParticleProcessMaterial_4u8sn")
+
+[node name="CornerGPUParticles2D3" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_88cxy")
+position = Vector2(800, 0)
+rotation = -1.91986
+amount = 20
+texture = ExtResource("4_88cxy")
+lifetime = 4.0
+explosiveness = 0.1
+process_material = SubResource("ParticleProcessMaterial_4u8sn")
+
+[node name="CornerGPUParticles2D4" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_88cxy")
+rotation = 2.00713
+amount = 20
+texture = ExtResource("4_88cxy")
+lifetime = 4.0
+explosiveness = 0.1
+process_material = SubResource("ParticleProcessMaterial_4u8sn")
+
+[node name="UpGPUParticles2D" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_88cxy")
+position = Vector2(400, 2)
+rotation = -3.14159
+amount = 40
+texture = ExtResource("4_88cxy")
+lifetime = 4.0
+explosiveness = 0.1
+process_material = SubResource("ParticleProcessMaterial_ygcgq")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1

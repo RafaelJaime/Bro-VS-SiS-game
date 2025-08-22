@@ -1,118 +1,36 @@
-[gd_scene load_steps=37 format=3 uid="uid://d3qpn1km0xxr0"]
+[gd_scene load_steps=32 format=3 uid="uid://d3qpn1km0xxr0"]
 
 [ext_resource type="Script" uid="uid://bflj2q7xcedk6" path="res://game/player/player.gd" id="1_0e4oy"]
-[ext_resource type="Texture2D" uid="uid://bkw3efeebu4ce" path="res://assets/images/game/characters/rafael/defeated/r_013.png" id="2_0e4oy"]
-[ext_resource type="Texture2D" uid="uid://byf3unsh03ciy" path="res://assets/images/game/characters/rafael/fall/r_011.png" id="2_uv2nh"]
+[ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="2_gh012"]
 [ext_resource type="Script" uid="uid://nybh6q1rplfm" path="res://scripts/AIController/controller.gd" id="3_8soms"]
-[ext_resource type="Texture2D" uid="uid://bpff0gwi42xdp" path="res://assets/images/game/characters/rafael/hurt/r_012.png" id="3_usp30"]
-[ext_resource type="Texture2D" uid="uid://b4vpmq4w8md4d" path="res://assets/images/game/characters/rafael/idle/r_002.png" id="4_5fytw"]
-[ext_resource type="Texture2D" uid="uid://dxo2f4px6hlkl" path="res://assets/images/game/characters/rafael/idle/r_001.png" id="4_a4w0n"]
-[ext_resource type="Texture2D" uid="uid://faucyj5qnptr" path="res://assets/images/game/characters/rafael/punch/r_007.png" id="4_gb4gm"]
 [ext_resource type="Script" uid="uid://bqro544thrttt" path="res://game/player/StateMachine/PlayerStateMachine/player_state_machine.gd" id="5_5fytw"]
-[ext_resource type="Texture2D" uid="uid://bes7s2qrbowoq" path="res://assets/images/game/characters/rafael/jump/r_010.png" id="5_rqcxa"]
-[ext_resource type="Texture2D" uid="uid://dyplrrxmi6dh1" path="res://assets/images/game/characters/rafael/run/r_008.png" id="6_3ep63"]
 [ext_resource type="Script" uid="uid://cgl7efydtvwnn" path="res://game/player/StateMachine/PlayerStateMachine/States/idle.gd" id="6_5ghna"]
 [ext_resource type="Script" uid="uid://s1s48xh0wvx8" path="res://game/player/StateMachine/PlayerStateMachine/States/run.gd" id="7_j0mij"]
-[ext_resource type="Texture2D" uid="uid://b2nkjp1ifo3v8" path="res://assets/images/game/characters/rafael/run/r_009.png" id="7_rqcxa"]
-[ext_resource type="Texture2D" uid="uid://cqqf5bb6yriok" path="res://assets/images/game/characters/rafael/protect/r_005.png" id="8_epc1c"]
 [ext_resource type="Script" uid="uid://cnhwso0ubtdi6" path="res://game/player/StateMachine/PlayerStateMachine/States/jump.gd" id="8_gb4gm"]
 [ext_resource type="Script" uid="uid://dbs738wwvch7q" path="res://game/player/StateMachine/PlayerStateMachine/States/fall.gd" id="9_uv2nh"]
 [ext_resource type="Script" uid="uid://cgoog0bvcfg7w" path="res://game/player/StateMachine/PlayerStateMachine/States/punch.gd" id="10_j0mij"]
 [ext_resource type="Script" uid="uid://bxl6rrxrrob6g" path="res://game/player/StateMachine/PlayerStateMachine/States/shoot.gd" id="11_brh81"]
 [ext_resource type="PackedScene" uid="uid://c2xwqs6es1qb5" path="res://game/projectile/projectile.tscn" id="12_ib3u0"]
-[ext_resource type="Texture2D" uid="uid://c11mdhjsjq7gi" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="12_kjljb"]
 [ext_resource type="Shader" uid="uid://dc7yljgygkfm8" path="res://game/player/blink.gdshader" id="13_bp242"]
+[ext_resource type="SpriteFrames" uid="uid://c5ndk0ecjvter" path="res://assets/images/game/characters/matilde/matilde.tres" id="14_2mv0n"]
 [ext_resource type="Script" uid="uid://dv4mrvy6oll8l" path="res://game/player/StateMachine/PlayerStateMachine/States/hurt.gd" id="16_2mv0n"]
 [ext_resource type="Script" uid="uid://o00jff2rmlo" path="res://game/player/StateMachine/PlayerStateMachine/States/motion.gd" id="17_gh012"]
+[ext_resource type="Texture2D" uid="uid://c2a1rubcy7stu" path="res://assets/textures/2D Fire  - Tutorial/T_1_pixel.jpg" id="18_usp30"]
 [ext_resource type="Script" uid="uid://j8wq8i71hcyh" path="res://game/player/player_ui.gd" id="20_eeltd"]
 [ext_resource type="Script" uid="uid://yegmrxo0ersi" path="res://game/player/StateMachine/PlayerStateMachine/States/protect.gd" id="22_kjljb"]
+
+[sub_resource type="Resource" id="Resource_usp30"]
+script = ExtResource("2_gh012")
+name = "Character"
+color = Color(0, 0, 1, 1)
+sprite_frames = ExtResource("14_2mv0n")
+metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cgi3i"]
 resource_local_to_scene = true
 shader = ExtResource("13_bp242")
 shader_parameter/blink_color = Color(1, 1, 1, 1)
 shader_parameter/blink_intensity = 0.0
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_8soms"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("2_0e4oy")
-}],
-"loop": true,
-"name": &"Defeated",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("2_uv2nh")
-}],
-"loop": true,
-"name": &"Fall",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_usp30")
-}],
-"loop": true,
-"name": &"Hurt",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("4_a4w0n")
-}, {
-"duration": 1.0,
-"texture": ExtResource("4_5fytw")
-}],
-"loop": true,
-"name": &"Idle",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("5_rqcxa")
-}],
-"loop": true,
-"name": &"Jump",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("8_epc1c")
-}],
-"loop": true,
-"name": &"Protect",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("4_gb4gm")
-}],
-"loop": true,
-"name": &"Punch",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("6_3ep63")
-}, {
-"duration": 1.0,
-"texture": ExtResource("7_rqcxa")
-}],
-"loop": true,
-"name": &"Run",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("12_kjljb")
-}],
-"loop": true,
-"name": &"Shoot",
-"speed": 5.0
-}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_e2o6t"]
 size = Vector2(73, 154)
@@ -163,9 +81,31 @@ border_width_bottom = 1
 corner_radius_top_left = 10
 corner_radius_bottom_left = 10
 
+[sub_resource type="Gradient" id="Gradient_usp30"]
+colors = PackedColorArray(1, 0, 0, 1, 1, 0, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_0e4oy"]
+gradient = SubResource("Gradient_usp30")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0e4oy"]
+lifetime_randomness = 1.0
+particle_flag_disable_z = true
+emission_shape = 1
+emission_sphere_radius = 25.0
+direction = Vector3(0.5, -0.5, 0)
+initial_velocity_min = 200.0
+initial_velocity_max = 400.0
+gravity = Vector3(0, 700, 0)
+damping_min = 100.0
+damping_max = 800.0
+scale_min = 3.0
+scale_max = 5.0
+color_ramp = SubResource("GradientTexture1D_0e4oy")
+
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_0e4oy")
-color = Color(0, 0, 1, 1)
+character_ui = SubResource("Resource_usp30")
+control_scheme = 1
 
 [node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("animated_sprite_2d", "start_state")]
 script = ExtResource("5_5fytw")
@@ -194,8 +134,9 @@ punch_area = NodePath("../../PunchArea")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="Hurt" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+[node name="Hurt" type="Node" parent="StateMachine" node_paths=PackedStringArray("particles", "state_machine")]
 script = ExtResource("16_2mv0n")
+particles = NodePath("../../HurtParticles")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
@@ -217,8 +158,8 @@ metadata/_custom_type_script = "uid://o00jff2rmlo"
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 material = SubResource("ShaderMaterial_cgi3i")
 scale = Vector2(0.1, 0.1)
-sprite_frames = SubResource("SpriteFrames_8soms")
-animation = &"Shoot"
+sprite_frames = ExtResource("14_2mv0n")
+animation = &"Idle"
 autoplay = "Idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -344,6 +285,15 @@ position = Vector2(60, 1)
 
 [node name="LeftMark" type="Marker2D" parent="."]
 position = Vector2(-60, 1)
+
+[node name="HurtParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 20
+texture = ExtResource("18_usp30")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_0e4oy")
 
 [connection signal="updated_characterUI" from="." to="PlayerUI" method="_on_player_updated_character_ui"]
 [connection signal="update_health" from="StateMachine/Hurt" to="PlayerUI" method="_on_hurt_update_health"]

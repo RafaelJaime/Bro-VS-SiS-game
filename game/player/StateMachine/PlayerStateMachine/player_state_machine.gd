@@ -1,5 +1,6 @@
 extends StateMachine
 
+@warning_ignore("unused_signal")
 signal player_defeated
 
 @export var animated_sprite_2d: AnimatedSprite2D
@@ -15,5 +16,5 @@ func _ready() -> void:
 	return super._ready()
 
 func play_animated_sprite(animation_name: String) -> void:
-	if animated_sprite_2d.sprite_frames.has_animation(animation_name):
-		animated_sprite_2d.play(animation_name)
+	if animated_sprite_2d.sprite_frames.has_animation(animation_name.capitalize()):
+		animated_sprite_2d.play(animation_name.capitalize())

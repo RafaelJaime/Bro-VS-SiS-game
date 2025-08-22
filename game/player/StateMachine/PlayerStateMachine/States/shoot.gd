@@ -76,7 +76,7 @@ func spawn_projectile() -> void:
 		projectile.set_shooter(owner)  # owner debería ser el Fighter
 	
 	owner.get_parent().add_child(projectile)
-	projectile.set_color(owner.color)
+	projectile.set_color(owner.character_ui.color)
 
 func _on_shoot_timer_timeout() -> void:
 	end_shoot()

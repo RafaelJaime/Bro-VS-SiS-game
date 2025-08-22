@@ -1,13 +1,39 @@
-[gd_scene load_steps=13 format=3 uid="uid://bpcx5sxh287su"]
+[gd_scene load_steps=23 format=3 uid="uid://bpcx5sxh287su"]
 
 [ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_o7qwi"]
 [ext_resource type="Script" uid="uid://dtrxtrmxx5usc" path="res://ui/character_select/character_select.gd" id="1_qc8oi"]
 [ext_resource type="PackedScene" uid="uid://cgec1mb47wk6v" path="res://ui/global/back_button/back_button.tscn" id="2_ohdmo"]
 [ext_resource type="PackedScene" uid="uid://b7vrfar4xb67j" path="res://ui/character_select/character_item/character_select_item.tscn" id="2_qc8oi"]
 [ext_resource type="Texture2D" uid="uid://okewsu16xfwx" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m2.png" id="2_xrmg0"]
+[ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="3_ipm0l"]
 [ext_resource type="Texture2D" uid="uid://dulfwl0wpsa5j" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r2.png" id="3_x8414"]
+[ext_resource type="Texture2D" uid="uid://cfg1ae6lddtnp" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="4_i323y"]
+[ext_resource type="Texture2D" uid="uid://su454ffr42hb" path="res://assets/images/game/characters/rafael/face/r_014.png" id="4_kj5ae"]
+[ext_resource type="SpriteFrames" uid="uid://dduif87iby0ca" path="res://assets/images/game/characters/rafael/rafael.tres" id="5_lm43w"]
+[ext_resource type="Texture2D" uid="uid://dvww6mvll026e" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="6_lm43w"]
+[ext_resource type="Texture2D" uid="uid://c53bmsadcah2i" path="res://assets/images/game/characters/matilde/face/m_014.png" id="7_h0w06"]
+[ext_resource type="SpriteFrames" uid="uid://c5ndk0ecjvter" path="res://assets/images/game/characters/matilde/matilde.tres" id="7_kj5ae"]
 [ext_resource type="Texture2D" uid="uid://oys6ud7g4c13" path="res://assets/images/ui/buttons/button1.png" id="7_x3bhl"]
 [ext_resource type="Script" uid="uid://d2j51ffmniw35" path="res://ui/character_select/ai_controller.gd" id="8_yov7p"]
+[ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="15_pumci"]
+
+[sub_resource type="Resource" id="Resource_kj5ae"]
+script = ExtResource("3_ipm0l")
+name = "Rafael"
+color = Color(0, 0, 1, 1)
+illustration = ExtResource("4_i323y")
+face_texture = ExtResource("4_kj5ae")
+sprite_frames = ExtResource("5_lm43w")
+metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
+
+[sub_resource type="Resource" id="Resource_h0w06"]
+script = ExtResource("3_ipm0l")
+name = "Matilde"
+color = Color(1, 0, 0, 1)
+illustration = ExtResource("6_lm43w")
+face_texture = ExtResource("7_h0w06")
+sprite_frames = ExtResource("7_kj5ae")
+metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
 
 [sub_resource type="Animation" id="Animation_x3bhl"]
 length = 0.001
@@ -96,7 +122,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_qc8oi")
 character_select_item_scene = ExtResource("2_qc8oi")
-characters_folder = "res://assets/images/game/characters"
+characters = Array[ExtResource("3_ipm0l")]([SubResource("Resource_kj5ae"), SubResource("Resource_h0w06")])
 
 [node name="background" parent="." instance=ExtResource("1_o7qwi")]
 modulate = Color(0.605274, 0.605274, 0.605274, 1)
@@ -176,15 +202,17 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -75.0
-offset_top = -80.0
-offset_right = 75.0
+offset_left = -110.0
+offset_top = -100.0
+offset_right = 110.0
 grow_horizontal = 2
 grow_vertical = 0
 focus_mode = 0
 icon = ExtResource("7_x3bhl")
 flat = true
 expand_icon = true
+script = ExtResource("15_pumci")
+metadata/_custom_type_script = "uid://bivny4qorquqo"
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 1

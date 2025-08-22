@@ -1,4 +1,4 @@
-extends Button
+extends SoundsButton
 
 func _pressed() -> void:
 	get_tree().paused = false

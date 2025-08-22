@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://yiftnbibw2tl"]
+[gd_scene load_steps=40 format=3 uid="uid://yiftnbibw2tl"]
 
 [ext_resource type="PackedScene" uid="uid://d3qpn1km0xxr0" path="res://game/player/player.tscn" id="1_80nbo"]
 [ext_resource type="Script" uid="uid://c542k2ar2mpjw" path="res://game/game.gd" id="1_dxrkv"]
@@ -6,20 +6,31 @@
 [ext_resource type="Texture2D" uid="uid://qs4vm50tc35m" path="res://assets/images/game/plataformacuadrados.png" id="3_h7iqs"]
 [ext_resource type="Script" uid="uid://dvgjs53tia4c4" path="res://ui/global/timer_label.gd" id="4_4fuuu"]
 [ext_resource type="Shader" uid="uid://dc7yljgygkfm8" path="res://game/player/blink.gdshader" id="4_y36n6"]
+[ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="5_l8g03"]
+[ext_resource type="Texture2D" uid="uid://bkw3efeebu4ce" path="res://assets/images/game/characters/rafael/defeated/r_013.png" id="6_fegy3"]
+[ext_resource type="Texture2D" uid="uid://byf3unsh03ciy" path="res://assets/images/game/characters/rafael/fall/r_011.png" id="7_pvdu1"]
 [ext_resource type="PackedScene" uid="uid://r47fsncbeolm" path="res://game/ui/game_over/game_over.tscn" id="7_u5opy"]
 [ext_resource type="PackedScene" uid="uid://bf4bstnuucwss" path="res://game/ui/pause/pause.tscn" id="7_y36n6"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_l8g03"]
-resource_local_to_scene = true
-shader = ExtResource("4_y36n6")
-shader_parameter/blink_color = Color(1, 1, 1, 1)
-shader_parameter/blink_intensity = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_j8tme"]
-resource_local_to_scene = true
-shader = ExtResource("4_y36n6")
-shader_parameter/blink_color = Color(1, 1, 1, 1)
-shader_parameter/blink_intensity = 0.0
+[ext_resource type="Texture2D" uid="uid://bpff0gwi42xdp" path="res://assets/images/game/characters/rafael/hurt/r_012.png" id="8_cf130"]
+[ext_resource type="Texture2D" uid="uid://dxo2f4px6hlkl" path="res://assets/images/game/characters/rafael/idle/r_001.png" id="9_posua"]
+[ext_resource type="Texture2D" uid="uid://b4vpmq4w8md4d" path="res://assets/images/game/characters/rafael/idle/r_002.png" id="10_gvtgv"]
+[ext_resource type="Texture2D" uid="uid://bes7s2qrbowoq" path="res://assets/images/game/characters/rafael/jump/r_010.png" id="11_5ywmu"]
+[ext_resource type="Texture2D" uid="uid://cqqf5bb6yriok" path="res://assets/images/game/characters/rafael/protect/r_005.png" id="12_mhp6k"]
+[ext_resource type="Texture2D" uid="uid://faucyj5qnptr" path="res://assets/images/game/characters/rafael/punch/r_007.png" id="13_vkvnp"]
+[ext_resource type="Texture2D" uid="uid://dyplrrxmi6dh1" path="res://assets/images/game/characters/rafael/run/r_008.png" id="14_urpib"]
+[ext_resource type="Texture2D" uid="uid://b2nkjp1ifo3v8" path="res://assets/images/game/characters/rafael/run/r_009.png" id="15_cieqw"]
+[ext_resource type="Texture2D" uid="uid://dwv2dlw5wdgta" path="res://assets/images/game/characters/rafael/shoot/r_006.png" id="16_ta815"]
+[ext_resource type="Texture2D" uid="uid://caedqagjpbaym" path="res://assets/images/game/characters/matilde/defeated/m_013.png" id="18_64wtb"]
+[ext_resource type="Texture2D" uid="uid://d3oatkq2q5tbw" path="res://assets/images/game/characters/matilde/fall/m_011.png" id="19_0rekh"]
+[ext_resource type="Texture2D" uid="uid://dqgq7wty4uv2u" path="res://assets/images/game/characters/matilde/hurt/m_012.png" id="20_281ou"]
+[ext_resource type="Texture2D" uid="uid://cc1arl5voaorn" path="res://assets/images/game/characters/matilde/idle/m_001.png" id="21_nrbry"]
+[ext_resource type="Texture2D" uid="uid://th2l01wwhnd4" path="res://assets/images/game/characters/matilde/idle/m_002.png" id="22_iswgq"]
+[ext_resource type="Texture2D" uid="uid://dhtb8lsf4vgeg" path="res://assets/images/game/characters/matilde/jump/m_010.png" id="23_7tmf6"]
+[ext_resource type="Texture2D" uid="uid://by3t8bcprnyil" path="res://assets/images/game/characters/matilde/protect/m_005.png" id="24_sisia"]
+[ext_resource type="Texture2D" uid="uid://ddnosvmshism3" path="res://assets/images/game/characters/matilde/punch/m_007.png" id="25_xorak"]
+[ext_resource type="Texture2D" uid="uid://bqao6p4ia5nl7" path="res://assets/images/game/characters/matilde/run/m_008.png" id="26_4jymc"]
+[ext_resource type="Texture2D" uid="uid://476u3ytihp24" path="res://assets/images/game/characters/matilde/run/m_009.png" id="27_0lgry"]
+[ext_resource type="Texture2D" uid="uid://c11mdhjsjq7gi" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="28_h7iu2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_80nbo"]
 size = Vector2(55.5, 607.313)
@@ -27,31 +38,201 @@ size = Vector2(55.5, 607.313)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_feb5d"]
 size = Vector2(912, 66)
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_8sg4y"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_fegy3")
+}],
+"loop": true,
+"name": &"Defeated",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_pvdu1")
+}],
+"loop": true,
+"name": &"Fall",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_cf130")
+}],
+"loop": true,
+"name": &"Hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_posua")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_gvtgv")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_5ywmu")
+}],
+"loop": true,
+"name": &"Jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("12_mhp6k")
+}],
+"loop": true,
+"name": &"Protect",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("13_vkvnp")
+}],
+"loop": true,
+"name": &"Punch",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("14_urpib")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_cieqw")
+}],
+"loop": true,
+"name": &"Run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_ta815")
+}],
+"loop": true,
+"name": &"Shoot",
+"speed": 5.0
+}]
+
+[sub_resource type="Resource" id="Resource_vktc5"]
+script = ExtResource("5_l8g03")
+name = "Rafael"
+color = Color(0, 0, 1, 1)
+sprite_frames = SubResource("SpriteFrames_8sg4y")
+metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_l8g03"]
+resource_local_to_scene = true
+shader = ExtResource("4_y36n6")
+shader_parameter/blink_color = Color(1, 1, 1, 1)
+shader_parameter/blink_intensity = 0.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ohnrv"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("18_64wtb")
+}],
+"loop": true,
+"name": &"Defeated",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("19_0rekh")
+}],
+"loop": true,
+"name": &"Fall",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("20_281ou")
+}],
+"loop": true,
+"name": &"Hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("21_nrbry")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_iswgq")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("23_7tmf6")
+}],
+"loop": true,
+"name": &"Jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("24_sisia")
+}],
+"loop": true,
+"name": &"Protect",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("25_xorak")
+}],
+"loop": true,
+"name": &"Punch",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("26_4jymc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_0lgry")
+}],
+"loop": true,
+"name": &"Run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("28_h7iu2")
+}],
+"loop": true,
+"name": &"Shoot",
+"speed": 5.0
+}]
+
+[sub_resource type="Resource" id="Resource_kaw54"]
+script = ExtResource("5_l8g03")
+name = "Matilde"
+color = Color(1, 0, 0, 1)
+sprite_frames = SubResource("SpriteFrames_ohnrv")
+metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_j8tme"]
+resource_local_to_scene = true
+shader = ExtResource("4_y36n6")
+shader_parameter/blink_color = Color(1, 1, 1, 1)
+shader_parameter/blink_intensity = 0.0
+
 [node name="Game" type="Node2D"]
 script = ExtResource("1_dxrkv")
 
 [node name="background" parent="." instance=ExtResource("2_vasa2")]
 
-[node name="CharacterBody2D" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
-position = Vector2(142, 296)
-player_name = "Rafael"
-enemy = NodePath("../CharacterBody2D2")
-
-[node name="AnimatedSprite2D" parent="CharacterBody2D" index="1"]
-material = SubResource("ShaderMaterial_l8g03")
-
-[node name="CharacterBody2D2" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
-position = Vector2(601, 295)
-player_name = "Matilde"
-enemy = NodePath("../CharacterBody2D")
-control_scheme = 1
-color = Color(1, 0, 0, 1)
-
-[node name="AnimatedSprite2D" parent="CharacterBody2D2" index="1"]
-material = SubResource("ShaderMaterial_j8tme")
-
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(500, 600)
+position = Vector2(497, 600)
 
 [node name="WallRight" type="CollisionShape2D" parent="StaticBody2D"]
 position = Vector2(328, -297.313)
@@ -95,6 +276,23 @@ texture = ExtResource("3_h7iqs")
 position = Vector2(229, -14)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("3_h7iqs")
+
+[node name="CharacterBody2D" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
+position = Vector2(142, 296)
+character_ui = SubResource("Resource_vktc5")
+enemy = NodePath("../CharacterBody2D2")
+control_scheme = 0
+
+[node name="AnimatedSprite2D" parent="CharacterBody2D" index="1"]
+material = SubResource("ShaderMaterial_l8g03")
+
+[node name="CharacterBody2D2" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
+position = Vector2(601, 295)
+character_ui = SubResource("Resource_kaw54")
+enemy = NodePath("../CharacterBody2D")
+
+[node name="AnimatedSprite2D" parent="CharacterBody2D2" index="1"]
+material = SubResource("ShaderMaterial_j8tme")
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 99.0

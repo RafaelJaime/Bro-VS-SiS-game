@@ -13,8 +13,10 @@ func _ready() -> void:
 	set_ui_with_control_scheme()
 
 func set_ui_with_control_scheme() -> void:
+	print(owner.control_scheme)
 	match owner.control_scheme:
 		0:
+			leftHealth.visible = true
 			rightHealth.visible = false
 			set_ui(leftNameLabel, leftProgressBar, leftTextureRect)
 		1:
@@ -22,17 +24,18 @@ func set_ui_with_control_scheme() -> void:
 			set_ui(rightNameLabel, rightProgressBar, rightTextureRect)
 
 func set_ui(label: Label, progressBar: ProgressBar, textureRect: TextureRect) -> void:
-	label.text = owner.player_name
+	var character = owner.character_ui
+	label.text = character.name
 
 	# Clonar el stylebox del background existente
 	var bg_style: StyleBoxFlat = progressBar.get_theme_stylebox("background").duplicate()
-	bg_style.bg_color = Color(owner.color.inverted(), 0.1)
-	bg_style.border_color = owner.color.inverted()
+	bg_style.bg_color = Color(character.color.inverted(), 0.1)
+	bg_style.border_color = character.color.inverted()
 
 	# Clonar el stylebox del fill existente
 	var fill_style: StyleBoxFlat = progressBar.get_theme_stylebox("fill").duplicate()
-	fill_style.bg_color = owner.color
-	fill_style.border_color = owner.color.inverted()
+	fill_style.bg_color = character.color
+	fill_style.border_color = character.color.inverted()
 
 	# Sobrescribir con los modificados
 	progressBar.add_theme_stylebox_override("background", bg_style)
@@ -52,13 +55,13 @@ func create_gradient(textureRect: TextureRect) -> void:
 	match owner.control_scheme:
 		0:
 			gradient.colors = [
-				owner.color,
-				Color(owner.color, 0),    # Transparente
+				owner.character_ui.color,
+				Color(owner.character_ui.color, 0),    # Transparente
 			]
 		1:
 			gradient.colors = [
-				Color(owner.color, 0),    # Transparente
-				owner.color
+				Color(owner.character_ui.color, 0),    # Transparente
+				owner.character_ui.color
 			]
 	
 

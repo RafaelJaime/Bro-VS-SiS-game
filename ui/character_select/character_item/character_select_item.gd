@@ -1,5 +1,4 @@
 extends Button
-
 class_name CharacterSelectItem
 
 var character: CharacterUI
@@ -25,20 +24,9 @@ func set_colors():
 		add_theme_stylebox_override("hover", stylebox_hover)
 
 func set_icon():
-	var face_folder = character.dir + "/face"
-	var dir = DirAccess.open(face_folder)
-	
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if not dir.current_is_dir() and file_name.get_extension() in ["png", "webp", "jpg", "jpeg"]:
-				var image_path = face_folder + "/" + file_name
-				var texture = load(image_path)
-				if texture and texture is Texture2D:
-					icon = texture
-					return
-			file_name = dir.get_next()
-		print("No se encontró imagen en:", face_folder)
-	else:
-		print("No se pudo abrir la carpeta:", face_folder)
+	# Ahora usamos directamente la textura de face del recurso
+	if character and character.face_texture:
+		icon = character.face_texture
+
+func _on_pressed():
+	emit_signal("pressed")

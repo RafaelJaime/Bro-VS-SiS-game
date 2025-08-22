@@ -5,6 +5,7 @@ signal player_defeated(player_instance: Fighter)
 
 @export var knockback_force: Vector2 = Vector2(200, -100)
 @export var hurt_duration: float = 0.5
+@export var particles: GPUParticles2D
 
 var timer: Timer
 var shake: FastNoiseLite
@@ -35,7 +36,10 @@ func _enter() -> void:
 	var blink_tween = get_tree().create_tween()
 	blink_tween.tween_method(set_shader_blink, 1.0, 0.5, 0.3)
 	blink_tween.tween_callback(reset_shader_blink)
-	
+	# Blood
+	set_particles()
+	particles.restart()
+	particles.emitting = true
 	
 	# Crear temporizador para salir del estado
 	if not timer:
@@ -67,7 +71,7 @@ func _on_hurt_finished() -> void:
 func set_shader_blink(new_value: float) -> void:
 	var sprite = state_machine.animated_sprite_2d
 	
-	sprite.material.set_shader_parameter("blink_color", owner.enemy.color)
+	sprite.material.set_shader_parameter("blink_color", owner.enemy.character_ui.color)
 	var health_percentage = float(owner.health) / float(owner.max_health)
 	var adjusted_intensity = new_value * (1.0 - health_percentage)
 	
@@ -83,3 +87,32 @@ func shake_camera(intensity: float) -> void:
 	var cameraOffset = shake.get_noise_1d(Time.get_ticks_msec()) * intensity
 	camera.offset.x = cameraOffset
 	camera.offset.y = cameraOffset
+
+func set_particles() -> void:
+	var new_material: ParticleProcessMaterial = particles.process_material
+	
+	var direction_x = -0.5 if owner.enemy.position.x < owner.position.x else 0.5
+	new_material.direction = Vector3(direction_x, -5.5, 0)
+	
+	var gradient = Gradient.new()
+	
+	gradient.offsets = [0.0, 1.0]
+	match owner.control_scheme:
+		0:
+			gradient.colors = [
+				owner.character_ui.color,
+				Color(owner.character_ui.color, 0),    # Transparente
+			]
+		1:
+			gradient.colors = [
+				Color(owner.character_ui.color, 0),
+				owner.character_ui.color
+			]
+	
+	var gradient_texture = GradientTexture1D.new()
+	gradient_texture.gradient = gradient
+	gradient_texture.width = 512 
+	
+	new_material.color_ramp = gradient_texture
+	
+	particles.process_material = new_material
