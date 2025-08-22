@@ -39,7 +39,9 @@ enabled=PackedStringArray("res://addons/godot_rl_agents/plugin.cfg")
 [file_customization]
 
 folder_colors={
+"res://addons/": "gray",
 "res://assets/": "purple",
+"res://assets/sounds/": "blue",
 "res://game/": "red",
 "res://scripts/": "gray",
 "res://ui/": "green"

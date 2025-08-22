@@ -61,13 +61,14 @@ metadata/_custom_type_script = "uid://bivny4qorquqo"
 [node name="AcceptDialog" type="AcceptDialog" parent="."]
 title = "What is this game? 🎮"
 initial_position = 2
-size = Vector2i(956, 262)
-visible = true
+size = Vector2i(462, 288)
 ok_button_text = "I wanna play!"
-dialog_text = "This little world was created as an experiment in machine learning and reinforcement learning.
+dialog_text = "This little world was created as an experiment in 
+machine learning and reinforcement learning.
 Play around, explore, and see how the agents behave!
 
-You can collaborate by developing new features, creating new characters, or improving the existing ones.
+You can collaborate by developing new features, creating 
+new characters, or improving the existing ones.
 Or… you can go further and train your own models 🤖.
 
 If you enjoy the project, don’t forget to hit the 💖 button!"

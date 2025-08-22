@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://bpcx5sxh287su"]
+[gd_scene load_steps=24 format=3 uid="uid://bpcx5sxh287su"]
 
 [ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_o7qwi"]
 [ext_resource type="Script" uid="uid://dtrxtrmxx5usc" path="res://ui/character_select/character_select.gd" id="1_qc8oi"]
@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://oys6ud7g4c13" path="res://assets/images/ui/buttons/button1.png" id="7_x3bhl"]
 [ext_resource type="Script" uid="uid://d2j51ffmniw35" path="res://ui/character_select/ai_controller.gd" id="8_yov7p"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="15_pumci"]
+[ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="16_altl8"]
 
 [sub_resource type="Resource" id="Resource_kj5ae"]
 script = ExtResource("3_ipm0l")
@@ -214,21 +215,10 @@ expand_icon = true
 script = ExtResource("15_pumci")
 metadata/_custom_type_script = "uid://bivny4qorquqo"
 
-[node name="Label" type="Label" parent="."]
+[node name="TitleLabel" parent="." instance=ExtResource("16_altl8")]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -79.0
-offset_right = 79.0
-offset_bottom = 67.0
-grow_horizontal = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 3
-theme_override_constants/shadow_outline_size = 13
-theme_override_font_sizes/font_size = 48
-text = "Selecciona Luchador"
+offset_left = -237.5
+offset_right = 237.5
 
 [node name="AIController" type="Control" parent="."]
 anchors_preset = 0

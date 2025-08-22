@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dw0mxfdmhe651"]
+
+[node name="TitleLabel" type="Label"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -79.0
+offset_right = 79.0
+offset_bottom = 67.0
+grow_horizontal = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/shadow_outline_size = 13
+theme_override_font_sizes/font_size = 48
+text = "Selecciona Luchador"
+horizontal_alignment = 1

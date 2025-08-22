@@ -69,7 +69,6 @@ damping_curve = SubResource("CurveTexture_4u8sn")
 scale_min = 0.3
 scale_max = 0.6
 scale_curve = SubResource("CurveTexture_df4m4")
-color = Color(1, 0, 0, 1)
 alpha_curve = SubResource("CurveTexture_ygcgq")
 hue_variation_min = -0.02
 hue_variation_max = 0.02
@@ -135,6 +134,7 @@ explosiveness = 0.1
 process_material = SubResource("ParticleProcessMaterial_4u8sn")
 
 [node name="UpGPUParticles2D" type="GPUParticles2D" parent="."]
+modulate = Color(0, 0, 1, 1)
 material = SubResource("CanvasItemMaterial_88cxy")
 position = Vector2(400, 2)
 rotation = -3.14159
