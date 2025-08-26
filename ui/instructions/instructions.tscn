@@ -50,6 +50,7 @@ anchor_bottom = 1.0
 offset_top = 67.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 200
 alignment = 1
 
 [node name="ItemList2" type="GridContainer" parent="HBoxContainer"]
@@ -64,7 +65,7 @@ expand_mode = 5
 
 [node name="Label2" type="Label" parent="HBoxContainer/ItemList2"]
 layout_mode = 2
-text = "A and D (Run) - L and R Arrows"
+text = "A and D (Run)"
 
 [node name="TextureRect" type="TextureRect" parent="HBoxContainer/ItemList2"]
 custom_minimum_size = Vector2(60, 0)
@@ -74,7 +75,7 @@ expand_mode = 5
 
 [node name="Label" type="Label" parent="HBoxContainer/ItemList2"]
 layout_mode = 2
-text = "W (Jump) Up arrow"
+text = "W (Jump)"
 
 [node name="TextureRect3" type="TextureRect" parent="HBoxContainer/ItemList2"]
 custom_minimum_size = Vector2(60, 0)
@@ -84,7 +85,7 @@ expand_mode = 5
 
 [node name="Label3" type="Label" parent="HBoxContainer/ItemList2"]
 layout_mode = 2
-text = "S (Protect) - Down arrow"
+text = "S (Protect)"
 
 [node name="TextureRect4" type="TextureRect" parent="HBoxContainer/ItemList2"]
 custom_minimum_size = Vector2(60, 0)
