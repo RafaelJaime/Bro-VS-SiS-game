@@ -57,25 +57,27 @@ func set_color(character_color: Color) -> void:
 	
 	# Detener emisión temporalmente
 	vfx_dynamic_fire.emitting = false
-	vfx_dynamic_fire.restart()
 	
-	# Acceder al material de partículas
-	var vfx_material := vfx_dynamic_fire.process_material as ParticleProcessMaterial
+	# Crear una copia del material original
+	var original_material = vfx_dynamic_fire.process_material
+	var vfx_material := original_material.duplicate()
 	
-	# Velocidad inicial
-	vfx_material.initial_velocity_min = 50.0
-	vfx_material.initial_velocity_max = 50.0
-	
-	# Crear gradiente dinámico
+	# Crear gradiente dinámico único
 	var color_ramp := Gradient.new()
 	color_ramp.set_color(0, character_color)                # Color base
 	color_ramp.set_color(1, character_color.darkened(0.7))  # Versión más oscura
 	
-	# Godot 4: hay que envolver el Gradient en un GradientTexture1D
+	# Crear textura de gradiente
 	var grad_tex := GradientTexture1D.new()
 	grad_tex.gradient = color_ramp
 	
+	# Asignar el gradiente al material copiado
 	vfx_material.color_ramp = grad_tex
 	
+	# Asignar el material copiado al sistema de partículas
+	vfx_dynamic_fire.process_material = vfx_material
+	
+	# Reiniciar y empezar emisión
+	vfx_dynamic_fire.restart()
 	vfx_dynamic_fire.one_shot = false
 	vfx_dynamic_fire.emitting = true

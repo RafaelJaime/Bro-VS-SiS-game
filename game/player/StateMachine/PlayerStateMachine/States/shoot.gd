@@ -84,6 +84,3 @@ func _on_shoot_timer_timeout() -> void:
 func end_shoot() -> void:
 	is_shooting = false
 	finished.emit("Idle")
-
-func _exit() -> void:
-	pass
