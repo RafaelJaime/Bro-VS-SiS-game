@@ -102,7 +102,7 @@ func on_play_pressed() -> void:
 		ModelManager.download_model(model_1, 0)
 	if option_button_p2.selected >= 0:
 		var model_2 = option_button_p2.get_item_text(option_button_p2.selected)
-		ModelManager.download_model(model_2, 1)  # Note: was 2, should be 0/1 for consistency?
+		ModelManager.download_model(model_2, 1)
 
 # --- SIGNAL HANDLERS ---
 

@@ -1,10 +1,25 @@
 extends AIController2D
+class_name PlayerAIController
 
 var move_left_action: float = 0.0
 var move_right_action: float = 0.0
 var jump_action: float = 0.0
 var attack_action: float = 0.0
 var shoot_action: float = 0.0
+var protect_action: float = 0.0
+
+func _ready() -> void:
+	var player_id: int = 0 if owner.control_scheme == 0 else 1
+	
+	if ModelManager.model_exists(player_id):
+		print("Voy a hacer load del player ", player_id)
+		print("Modelo existe: ", FileAccess.file_exists(ModelManager.get_model_path(player_id)))
+		onnx_model_path = ModelManager.get_model_path(player_id)
+		control_mode = AIController2D.ControlModes.ONNX_INFERENCE
+		print("Modelo ONNX cargado para jugador: ", player_id)
+	else:
+		print("No hay modelo para jugador: ", player_id)
+		control_mode = AIController2D.ControlModes.HUMAN
 
 func get_obs() -> Dictionary:
 	var obs = []
@@ -19,8 +34,7 @@ func get_obs() -> Dictionary:
 	obs.append(1.0 if _player.is_on_floor() else 0.0)
 	
 	# Find the opponent (other CharacterBody2D that is not this player)
-	var opponent = null
-	_find_character_bodies(get_tree().root, opponent)
+	var opponent = _player.enemy
 	
 	if opponent:
 		# Opponent position and velocity
@@ -46,18 +60,6 @@ func get_obs() -> Dictionary:
 	
 	return {"obs": obs}
 
-func _find_character_bodies(node: Node, opponent_ref):
-	if node is CharacterBody2D and node != _player:
-		opponent_ref = node
-		return opponent_ref
-	
-	for child in node.get_children():
-		var result = _find_character_bodies(child, opponent_ref)
-		if result:
-			return result
-	
-	return null
-
 func get_reward() -> float:
 	return reward
 
@@ -82,6 +84,10 @@ func get_action_space() -> Dictionary:
 		"shoot_action": {
 			"size": 1,
 			"action_type": "continuous"
+		},
+		"protect_action": {
+			"size": 1,
+			"action_type": "continuous"
 		}
 	}
 
@@ -91,3 +97,4 @@ func set_action(action) -> void:
 	jump_action = clamp(action["jump_action"][0], 0.0, 1.0)
 	attack_action = clamp(action["attack_action"][0], 0.0, 1.0)
 	shoot_action = clamp(action["shoot_action"][0], 0.0, 1.0)
+	shoot_action = clamp(action["protect_action"][0], 0.0, 1.0)

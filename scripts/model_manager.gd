@@ -30,7 +30,7 @@ func _on_models_fetched(_result: int, response_code: int, _headers: PackedString
 		if typeof(models_body) == TYPE_ARRAY:
 			var bvs_models := []
 			for model in models_body:
-				if "tags" in model and "ML-Agents-Huggy" in model["tags"]:
+				if "tags" in model and "BVS" in model["tags"]:
 					bvs_models.append(model["id"])
 			
 			models_cache[username] = bvs_models
@@ -54,7 +54,7 @@ func download_model(model_id: String, player_id: int) -> void:
 	current_downloads[player_id] = http_request
 	http_request.request_completed.connect(_on_model_downloaded.bind(player_id, file_path, http_request))
 	
-	var url = "https://huggingface.co/%s/resolve/main/Huggy.onnx" % model_id
+	var url = "https://huggingface.co/%s/resolve/main/model.onnx" % model_id
 	print("Downloading model:", url)
 	var error = http_request.request(url)
 	if error != OK:

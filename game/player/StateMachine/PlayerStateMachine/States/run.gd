@@ -1,19 +1,7 @@
 extends Motion
 
-func _state_input(event: InputEvent) -> void:
-	match owner.control_scheme:
-		0:
-			if event.is_action_pressed("P1_jump"):
-				finished.emit("Jump")
-			if event.is_action_pressed("P1_punch"):
-				finished.emit("Punch")
-		1:
-			if event.is_action_pressed("P2_jump"):
-				finished.emit("Jump")
-			if event.is_action_pressed("P2_punch"):
-				finished.emit("Punch")
-
 func _update(delta: float) -> void:
+	super._update(delta)
 	set_direction()
 	calculate_velocity(SPEED, state_machine.direction, delta)
 	

@@ -277,21 +277,21 @@ position = Vector2(229, -14)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("3_h7iqs")
 
-[node name="CharacterBody2D" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
+[node name="Fighter1" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
 position = Vector2(142, 296)
 character_ui = SubResource("Resource_vktc5")
-enemy = NodePath("../CharacterBody2D2")
+enemy = NodePath("../Fighter2")
 control_scheme = 0
 
-[node name="AnimatedSprite2D" parent="CharacterBody2D" index="1"]
+[node name="AnimatedSprite2D" parent="Fighter1" index="1"]
 material = SubResource("ShaderMaterial_l8g03")
 
-[node name="CharacterBody2D2" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
+[node name="Fighter2" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
 position = Vector2(601, 295)
 character_ui = SubResource("Resource_kaw54")
-enemy = NodePath("../CharacterBody2D")
+enemy = NodePath("../Fighter1")
 
-[node name="AnimatedSprite2D" parent="CharacterBody2D2" index="1"]
+[node name="AnimatedSprite2D" parent="Fighter2" index="1"]
 material = SubResource("ShaderMaterial_j8tme")
 
 [node name="Timer" type="Timer" parent="."]
@@ -321,8 +321,8 @@ timer = NodePath("../../Timer")
 [node name="GameOver" parent="UI" node_paths=PackedStringArray("player1", "player2") instance=ExtResource("7_u5opy")]
 process_mode = 2
 visible = false
-player1 = NodePath("../../CharacterBody2D")
-player2 = NodePath("../../CharacterBody2D2")
+player1 = NodePath("../../Fighter1")
+player2 = NodePath("../../Fighter2")
 
 [node name="Pause" parent="UI" node_paths=PackedStringArray("game_over_scene") instance=ExtResource("7_y36n6")]
 visible = false
@@ -331,8 +331,9 @@ game_over_scene = NodePath("../GameOver")
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
 
-[connection signal="player_defeated" from="CharacterBody2D/StateMachine/Hurt" to="." method="_on_hurt_player_defeated"]
-[connection signal="player_defeated" from="CharacterBody2D2/StateMachine/Hurt" to="." method="_on_hurt_player_defeated"]
+[connection signal="player_defeated" from="Fighter1/StateMachine/Hurt" to="." method="_on_hurt_player_defeated"]
+[connection signal="player_defeated" from="Fighter2/StateMachine/Hurt" to="." method="_on_hurt_player_defeated"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
 
-[editable path="CharacterBody2D"]
-[editable path="CharacterBody2D2"]
+[editable path="Fighter1"]
+[editable path="Fighter2"]

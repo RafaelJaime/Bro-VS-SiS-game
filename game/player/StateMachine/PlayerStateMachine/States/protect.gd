@@ -1,4 +1,5 @@
 extends Motion
+class_name Protect
 
 signal update_health
 
@@ -28,6 +29,7 @@ func _enter() -> void:
 		owner.set_velocity(state_machine.velocity)
 
 func _update(delta: float) -> void:
+	super._update(delta)
 	# Aplicar gravedad
 	state_machine.velocity.y += gravity * delta
 	owner.set_velocity(state_machine.velocity)

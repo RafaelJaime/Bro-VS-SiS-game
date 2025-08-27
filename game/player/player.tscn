@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bflj2q7xcedk6" path="res://game/player/player.gd" id="1_0e4oy"]
 [ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="2_gh012"]
-[ext_resource type="Script" uid="uid://nybh6q1rplfm" path="res://scripts/AIController/controller.gd" id="3_8soms"]
+[ext_resource type="Script" uid="uid://nybh6q1rplfm" path="res://scripts/AIController/player_ai_controller.gd" id="3_8soms"]
 [ext_resource type="Script" uid="uid://bqro544thrttt" path="res://game/player/StateMachine/PlayerStateMachine/player_state_machine.gd" id="5_5fytw"]
 [ext_resource type="Script" uid="uid://cgl7efydtvwnn" path="res://game/player/StateMachine/PlayerStateMachine/States/idle.gd" id="6_5ghna"]
 [ext_resource type="Script" uid="uid://s1s48xh0wvx8" path="res://game/player/StateMachine/PlayerStateMachine/States/run.gd" id="7_j0mij"]
@@ -107,18 +107,21 @@ script = ExtResource("1_0e4oy")
 character_ui = SubResource("Resource_usp30")
 control_scheme = 1
 
-[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("animated_sprite_2d", "start_state")]
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("animated_sprite_2d", "ai_controller_2d", "start_state")]
 script = ExtResource("5_5fytw")
 animated_sprite_2d = NodePath("../AnimatedSprite2D")
+ai_controller_2d = NodePath("../AIController2D")
 start_state = NodePath("Idle")
 
 [node name="Idle" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
 script = ExtResource("6_5ghna")
 state_machine = NodePath("..")
+available_actions = Array[String](["jump", "punch", "protect", "shoot"])
 
 [node name="Run" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
 script = ExtResource("7_j0mij")
 state_machine = NodePath("..")
+available_actions = Array[String](["jump", "punch", "protect", "shoot"])
 
 [node name="Jump" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
 script = ExtResource("8_gb4gm")
@@ -168,7 +171,8 @@ shape = SubResource("RectangleShape2D_e2o6t")
 
 [node name="AIController2D" type="Node2D" parent="."]
 script = ExtResource("3_8soms")
-reset_after = 3600
+control_mode = 1
+reset_after = 999999
 metadata/_custom_type_script = "uid://b5wn6xerup5fr"
 
 [node name="PunchArea" type="Area2D" parent="."]

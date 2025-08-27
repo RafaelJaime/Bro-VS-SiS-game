@@ -12,10 +12,8 @@ func change_scene(scene_path: String):
 
 	current_scene_path = scene_path
 	current_scene = load(scene_path).instantiate()
-	if scene_container:
-		scene_container.add_child(current_scene)
-	else:
-		push_error("Scene container doesn't exist, so I can't change scene")
+	assert(scene_container, "Scene container doesn't exist, so I can't change scene")
+	scene_container.add_child(current_scene)
 
 func play_game(character1: CharacterUI, character2: CharacterUI) -> void:
 	if current_scene:
@@ -25,11 +23,8 @@ func play_game(character1: CharacterUI, character2: CharacterUI) -> void:
 	current_scene_path = "res://game/game.tscn"
 	current_scene = load("res://game/game.tscn").instantiate()
 
-	if scene_container:
-		scene_container.add_child(current_scene)
-	else:
-		push_error("Scene container doesn't exist, so I can't change scene")
-		return
+	assert(scene_container, "Scene container doesn't exist, so I can't change scene")
+	scene_container.add_child(current_scene)
 
 	var fighters = []
 	for child in current_scene.get_children():

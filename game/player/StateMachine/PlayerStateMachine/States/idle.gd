@@ -1,28 +1,8 @@
 extends Motion
-
-func _state_input(event: InputEvent) -> void:
-	match owner.control_scheme:
-		0:
-			if event.is_action_pressed("P1_jump"):
-				finished.emit("Jump")
-			if event.is_action_pressed("P1_punch"):
-				finished.emit("Punch")
-			if event.is_action_pressed("P1_protect"):
-				finished.emit("Protect")
-			if event.is_action_pressed("P1_fire"):
-				finished.emit("Shoot")
-		1:
-			if event.is_action_pressed("P2_jump"):
-				finished.emit("Jump")
-			if event.is_action_pressed("P2_punch"):
-				finished.emit("Punch")
-			if event.is_action_pressed("P2_protect"):
-				finished.emit("Protect")
-			if event.is_action_pressed("P2_fire"):
-				finished.emit("Shoot")
-	
+class_name Idle
 
 func _update(delta: float) -> void:
+	super._update(delta)
 	set_direction()
 	calculate_velocity(SPEED, state_machine.direction, delta)
 	

@@ -1,4 +1,5 @@
 extends Motion
+class_name Shoot
 
 @export var projectile_scene: PackedScene
 @export var shoot_duration: float = 0.3

@@ -1,10 +1,12 @@
 extends Motion
+class_name Jump
 
 func _enter() -> void:
 	super._enter()
 	jump()
 
 func _update(delta: float) -> void:
+	super._update(delta)
 	set_direction()
 	calculate_gravity(delta)
 	calculate_velocity(SPEED, state_machine.direction, delta)

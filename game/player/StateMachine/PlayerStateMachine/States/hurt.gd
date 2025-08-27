@@ -1,4 +1,5 @@
 extends Motion
+class_name Hurt
 
 signal update_health
 signal player_defeated(player_instance: Fighter)
@@ -16,6 +17,8 @@ func _enter() -> void:
 	
 	if owner is Fighter:
 		owner.health -= 10
+		owner.enemy.state_machine.ai_controller_2d.reward += 1
+		state_machine.ai_controller_2d.reward -= 0.5
 	update_health.emit()
 	
 	if owner.enemy is Fighter:
@@ -51,6 +54,7 @@ func _enter() -> void:
 	timer.start(hurt_duration)
 
 func _update(delta: float) -> void:
+	super._update(delta)
 	state_machine.velocity.y += gravity * delta
 	owner.set_velocity(state_machine.velocity)
 
@@ -65,6 +69,7 @@ func _on_hurt_finished() -> void:
 		else:
 			finished.emit("Fall")
 	else:
+		owner.enemy.state_machine.ai_controller_2d.reward += 10
 		finished.emit("Defeated")
 		player_defeated.emit(owner)
 
