@@ -37,11 +37,6 @@ color = Color(0, 0, 0, 0.705882)
 layout_mode = 1
 text = "Intructions"
 
-[node name="BackButton" parent="." instance=ExtResource("3_sf658")]
-layout_mode = 1
-offset_top = -102.0
-offset_bottom = 0.0
-
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -160,3 +155,8 @@ expand_mode = 5
 [node name="Label5" type="Label" parent="HBoxContainer/ItemList"]
 layout_mode = 2
 text = "K (Shoot)"
+
+[node name="BackButton" parent="." instance=ExtResource("3_sf658")]
+layout_mode = 1
+offset_top = -102.0
+offset_bottom = 0.0
