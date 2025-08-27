@@ -127,7 +127,7 @@ ModelManager.download_model("username/model_name", player_id)
 
 1. **Train using Godot RL Agents**
 2. **Export to ONNX format**
-3. **Upload to HuggingFace Hub** with tag `ML-Agents-Huggy`
+3. **Upload to HuggingFace Hub** with tag `BVS`
 4. **Test in the game** or HuggingFace Space
 
 ## 🏗️ Project Structure
@@ -156,66 +156,14 @@ bvs/
 1. **Create character folder**: `assets/images/game/characters/new_character/`
 2. **Add animation folders**: `idle/`, `walk/`, `jump/`, `attack/`, etc.
 3. **Place sprite frames**: Sequential PNG files (1.png, 2.png, ...)
-4. **Create character.json**:
-   ```json
-   {
-	 "name": "New Character",
-	 "color": [1.0, 0.0, 0.0, 1.0]
-   }
-   ```
+4. **Create a `.tres` file**:
+   - Open Godot and create a new `Character` resource.
+   - Configure the character's properties (e.g., name, animations, stats).
+   - Save the `.tres` file in the character's folder.
 
-### Animation System
-
-The game automatically loads character animations from folder structure:
-- Dynamic sprite frame creation
-- Automatic animation detection
-- Configurable animation speeds
-- Support for multiple image formats
-
-## 🔧 Configuration
-
-### Game Settings
-
-Key configuration options in `project.godot`:
-
-- **Resolution**: 800x600
-- **Physics Rate**: Adjustable for training speed
-- **Control Schemes**: Dual player support
-- **AI Training**: Toggle training mode
-
-### AI Parameters
-
-Customize in the Sync node:
-- **Action Repeat**: Frames per action (default: 8)
-- **Speed Up**: Training acceleration
-- **Reset Frequency**: Episode length control
-
-## 🌐 HuggingFace Space
-
-### Features
-- **Live Model Testing**: Upload and test models instantly
-- **Model Browser**: Explore community-created fighters
-- **Performance Metrics**: Real-time battle statistics
-- **Easy Sharing**: One-click model deployment
-
-### Space Setup
-
-1. **Fork the Space** from HuggingFace
-2. **Upload your model** (ONNX format)
-3. **Configure battle parameters**
-4. **Share with the community**
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-### ✨ Feature Requests
-- Describe the feature clearly
-- Explain the use case
-- Consider implementation complexity
-
-### 🔄 Pull Requests
-- Fork the repository
-- Create a feature branch
+5. **Add the character to the selection list**:
+   - Open the `character_select` scene.
+   - Add the new `.tres` file to the `characters` array in the script or inspector.
 
 ## 📚 Learning Resources
 
@@ -236,22 +184,6 @@ Track your AI training progress:
 - **Training Episodes**: Total learning iterations  
 - **Reward Curves**: Performance over time
 - **Battle Statistics**: Detailed combat analytics
-
-## 🔮 Future Roadmap
-
-### Planned Features
-- [ ] **Multi-Agent Training**: Team battles
-- [ ] **Tournament Mode**: AI competition brackets
-- [ ] **Custom Arenas**: Procedural battlegrounds
-- [ ] **Spectator Mode**: Watch AI battles
-- [ ] **Advanced Metrics**: Detailed performance analytics
-- [ ] **Model Marketplace**: Community model sharing
-
-### Technical Improvements
-- [ ] **WebGL Export**: Browser-based gameplay
-- [ ] **Mobile Support**: Touch controls
-- [ ] **Replay System**: Battle recording and playback
-- [ ] **Performance Optimization**: Faster training cycles
 
 ## 📄 License
 
