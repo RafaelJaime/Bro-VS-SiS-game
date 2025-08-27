@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bb5yiqlmlv2kn"]
+[gd_scene load_steps=7 format=3 uid="uid://bb5yiqlmlv2kn"]
 
 [ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_i5wg5"]
 [ext_resource type="Texture2D" uid="uid://be4vwekekfsk1" path="res://assets/logos/imagen_titulo.png" id="4_3c04x"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="5_3c04x"]
 [ext_resource type="Texture2D" uid="uid://dkhcw1578t65v" path="res://assets/images/ui/buttons/Ilustracion_3Botones original.png" id="5_joh67"]
 [ext_resource type="Script" uid="uid://cin6p1xshscv3" path="res://ui/main_menu/main_menu_buttons.gd" id="5_u184e"]
+[ext_resource type="Script" uid="uid://d0jsh3xsisg5h" path="res://ui/global/links_rich_text_label.gd" id="6_joh67"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -61,18 +62,31 @@ metadata/_custom_type_script = "uid://bivny4qorquqo"
 [node name="AcceptDialog" type="AcceptDialog" parent="."]
 title = "What is this game? 🎮"
 initial_position = 2
-size = Vector2i(462, 288)
+size = Vector2i(462, 314)
+visible = true
 ok_button_text = "I wanna play!"
-dialog_text = "This little world was created as an experiment in 
-machine learning and reinforcement learning.
-Play around, explore, and see how the agents behave!
+dialog_autowrap = true
 
-You can collaborate by developing new features, creating 
-new characters, or improving the existing ones.
-Or… you can go further and train your own models 🤖.
+[node name="RichTextLabel" type="RichTextLabel" parent="AcceptDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -49.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "This little world was created as an experiment in machine learning and reinforcement learning. Play around, explore, and see how the agents behave! If you're curious about the code or want to contribute.
+
+You can collaborate by developing new features, creating new characters, or improving the existing ones.
+Or… you can go further and train your own models 🤖. [url=https://github.com/rafael/Bro-VS-SiS-game]GitHub Repository[/url]
 
 If you enjoy the project, don’t forget to hit the 💖 button!"
+script = ExtResource("6_joh67")
 
 [connection signal="pressed" from="MainMenuButtons/PlayButton" to="MainMenuButtons" method="_on_play_button_pressed"]
 [connection signal="pressed" from="MainMenuButtons/CreditsButton" to="MainMenuButtons" method="_on_credits_button_pressed"]
 [connection signal="pressed" from="MainMenuButtons/IntructionsButton" to="MainMenuButtons" method="_on_intructions_button_pressed"]
+[connection signal="meta_clicked" from="AcceptDialog/RichTextLabel" to="AcceptDialog/RichTextLabel" method="_on_meta_clicked"]
