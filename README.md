@@ -44,7 +44,7 @@ A **2D fighting game** built in **Godot 4** designed specifically for **Reinforc
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/RafaelJaime/Bro-VS-SiS-game.git
-   cd bvs
+   cd Bro-VS-SiS-game
    ```
 
 2. **Open in Godot**:
