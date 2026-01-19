@@ -57,6 +57,19 @@ A **2D fighting game** built in **Godot 4** designed specifically for **Reinforc
    - Use arrow keys + space for Player 1 controls
    - Train AI opponents or play against friends!
 
+### 🌐 Play Online (GitHub Pages)
+
+The game is automatically deployed to GitHub Pages on every push to the `main` branch:
+
+1. **Access the live game**: Visit the GitHub Pages URL for this repository
+2. **No installation needed**: Play directly in your browser
+3. **Automatic updates**: New features are deployed automatically via GitHub Actions
+
+The deployment workflow:
+- Exports the game to HTML5/Web format using Godot 4.4
+- Deploys to GitHub Pages automatically
+- Can be manually triggered from the Actions tab
+
 ## 🧠 AI Training
 
 ### Control Modes
