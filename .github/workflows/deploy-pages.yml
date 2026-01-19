@@ -36,13 +36,19 @@ jobs:
           archive_output: false
           export_debug: false
 
+      - name: Debug - List export directory
+        run: |
+          echo "Build directory: ${{ steps.export.outputs.build_directory }}"
+          ls -la ${{ steps.export.outputs.build_directory }} || true
+          find ${{ steps.export.outputs.build_directory }} -type f || true
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: ${{ steps.export.outputs.build_directory }}
 
   deploy:
     environment:
