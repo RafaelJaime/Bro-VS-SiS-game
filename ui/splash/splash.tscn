@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://cdnw8cfrn1kii"]
 
-[ext_resource type="Texture2D" uid="uid://dfd2acu5xuens" path="res://assets/logos/imagen_titulo-negro.png" id="1_5611s"]
+[ext_resource type="Texture2D" uid="uid://doobw4xavcbfd" path="res://assets/logos/imagen_titulo-negro.png" id="1_5611s"]
 [ext_resource type="Script" uid="uid://cusp1wf02l20g" path="res://ui/splash/splash.gd" id="1_ucrge"]
 
 [node name="Splash" type="Control"]
