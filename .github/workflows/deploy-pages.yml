@@ -43,6 +43,12 @@ jobs:
           ls -la ${{ steps.export.outputs.build_directory }} || true
           find ${{ steps.export.outputs.build_directory }} -type f || true
 
+      - name: Add coi-serviceworker for SharedArrayBuffer support
+        run: |
+          cd ${{ steps.export.outputs.build_directory }}
+          curl -fsSL https://raw.githubusercontent.com/nicholastay/coi-serviceworker/main/coi-serviceworker.min.js -o coi-serviceworker.js
+          sed -i 's|<head>|<head>\n    <script src="coi-serviceworker.js"></script>|' index.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
