@@ -45,7 +45,7 @@ jobs:
 
       - name: Add coi-serviceworker for SharedArrayBuffer support
         run: |
-          cd ${{ steps.export.outputs.build_directory }}
+          cd ${{ steps.export.outputs.build_directory }}/Web
           curl -fsSL https://raw.githubusercontent.com/gzuidhof/coi-serviceworker/master/coi-serviceworker.min.js -o coi-serviceworker.js
           sed -i 's|<head>|<head>\n    <script src="coi-serviceworker.js"></script>|' index.html
 
@@ -55,7 +55,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ${{ steps.export.outputs.build_directory }}
+          path: ${{ steps.export.outputs.build_directory }}/Web
 
   deploy:
     environment:
