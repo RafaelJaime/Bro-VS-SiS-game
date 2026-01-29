@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://d3qpn1km0xxr0"]
+[gd_scene format=3 uid="uid://d3qpn1km0xxr0"]
 
 [ext_resource type="Script" uid="uid://bflj2q7xcedk6" path="res://game/player/player.gd" id="1_0e4oy"]
 [ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="2_gh012"]
@@ -15,13 +15,13 @@
 [ext_resource type="SpriteFrames" uid="uid://c5ndk0ecjvter" path="res://assets/images/game/characters/matilde/matilde.tres" id="14_2mv0n"]
 [ext_resource type="Script" uid="uid://dv4mrvy6oll8l" path="res://game/player/StateMachine/PlayerStateMachine/States/hurt.gd" id="16_2mv0n"]
 [ext_resource type="Script" uid="uid://o00jff2rmlo" path="res://game/player/StateMachine/PlayerStateMachine/States/motion.gd" id="17_gh012"]
-[ext_resource type="Texture2D" uid="uid://c2a1rubcy7stu" path="res://assets/textures/2D Fire  - Tutorial/T_1_pixel.jpg" id="18_usp30"]
+[ext_resource type="Texture2D" uid="uid://5sutcfh0we8o" path="res://assets/textures/2D Fire  - Tutorial/T_1_pixel.jpg" id="18_usp30"]
 [ext_resource type="Script" uid="uid://j8wq8i71hcyh" path="res://game/player/player_ui.gd" id="20_eeltd"]
 [ext_resource type="Script" uid="uid://yegmrxo0ersi" path="res://game/player/StateMachine/PlayerStateMachine/States/protect.gd" id="22_kjljb"]
+[ext_resource type="Script" uid="uid://c0usp1ggkrg1" path="res://game/player/StateMachine/PlayerStateMachine/States/dash.gd" id="23_bnxl9"]
 
 [sub_resource type="Resource" id="Resource_usp30"]
 script = ExtResource("2_gh012")
-name = "Character"
 color = Color(0, 0, 1, 1)
 sprite_frames = ExtResource("14_2mv0n")
 metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
@@ -102,90 +102,95 @@ scale_min = 3.0
 scale_max = 5.0
 color_ramp = SubResource("GradientTexture1D_0e4oy")
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" unique_id=1005135867]
 script = ExtResource("1_0e4oy")
 character_ui = SubResource("Resource_usp30")
 control_scheme = 1
 
-[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("animated_sprite_2d", "ai_controller_2d", "start_state")]
+[node name="StateMachine" type="Node" parent="." unique_id=1788802759 node_paths=PackedStringArray("animated_sprite_2d", "ai_controller_2d", "start_state")]
 script = ExtResource("5_5fytw")
 animated_sprite_2d = NodePath("../AnimatedSprite2D")
 ai_controller_2d = NodePath("../AIController2D")
 start_state = NodePath("Idle")
 
-[node name="Idle" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+[node name="Idle" type="Node" parent="StateMachine" unique_id=1129818374 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("6_5ghna")
 state_machine = NodePath("..")
 available_actions = Array[String](["jump", "punch", "protect", "shoot"])
 
-[node name="Run" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+[node name="Run" type="Node" parent="StateMachine" unique_id=1675715457 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("7_j0mij")
 state_machine = NodePath("..")
 available_actions = Array[String](["jump", "punch", "protect", "shoot"])
 
-[node name="Jump" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+[node name="Jump" type="Node" parent="StateMachine" unique_id=1240213622 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("8_gb4gm")
 state_machine = NodePath("..")
 
-[node name="Fall" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+[node name="Fall" type="Node" parent="StateMachine" unique_id=1039386031 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("9_uv2nh")
 state_machine = NodePath("..")
 
-[node name="Punch" type="Node" parent="StateMachine" node_paths=PackedStringArray("punch_area", "state_machine")]
+[node name="Punch" type="Node" parent="StateMachine" unique_id=804022935 node_paths=PackedStringArray("punch_area", "state_machine")]
 script = ExtResource("10_j0mij")
 punch_area = NodePath("../../PunchArea")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="Hurt" type="Node" parent="StateMachine" node_paths=PackedStringArray("particles", "state_machine")]
+[node name="Hurt" type="Node" parent="StateMachine" unique_id=157347779 node_paths=PackedStringArray("particles", "state_machine")]
 script = ExtResource("16_2mv0n")
 particles = NodePath("../../HurtParticles")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="Defeated" type="Node" parent="StateMachine"]
+[node name="Defeated" type="Node" parent="StateMachine" unique_id=1062683954]
 script = ExtResource("17_gh012")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="Protect" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+[node name="Protect" type="Node" parent="StateMachine" unique_id=1375268043 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("22_kjljb")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="Shoot" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+[node name="Shoot" type="Node" parent="StateMachine" unique_id=456247888 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("11_brh81")
 projectile_scene = ExtResource("12_ib3u0")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="Dash" type="Node" parent="StateMachine" unique_id=894368515 node_paths=PackedStringArray("state_machine")]
+script = ExtResource("23_bnxl9")
+state_machine = NodePath("..")
+metadata/_custom_type_script = "uid://o00jff2rmlo"
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1671102877]
 material = SubResource("ShaderMaterial_cgi3i")
 scale = Vector2(0.1, 0.1)
 sprite_frames = ExtResource("14_2mv0n")
 animation = &"Idle"
 autoplay = "Idle"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=489426174]
 position = Vector2(-2.5, 16)
 shape = SubResource("RectangleShape2D_e2o6t")
 
-[node name="AIController2D" type="Node2D" parent="."]
+[node name="AIController2D" type="Node2D" parent="." unique_id=2141755335]
 script = ExtResource("3_8soms")
 control_mode = 1
 reset_after = 999999
 metadata/_custom_type_script = "uid://b5wn6xerup5fr"
 
-[node name="PunchArea" type="Area2D" parent="."]
+[node name="PunchArea" type="Area2D" parent="." unique_id=547939447]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PunchArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PunchArea" unique_id=2100493297]
 position = Vector2(45.5, -10)
 shape = SubResource("RectangleShape2D_8soms")
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="PunchArea"]
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="PunchArea" unique_id=740472790]
 position = Vector2(-55, -10)
 shape = SubResource("RectangleShape2D_8soms")
 
-[node name="PlayerUI" type="CanvasLayer" parent="." node_paths=PackedStringArray("leftHealth", "rightHealth", "leftTextureRect", "rightTextureRect", "leftNameLabel", "rightNameLabel", "leftProgressBar", "rightProgressBar")]
+[node name="PlayerUI" type="CanvasLayer" parent="." unique_id=821320165 node_paths=PackedStringArray("leftHealth", "rightHealth", "leftTextureRect", "rightTextureRect", "leftNameLabel", "rightNameLabel", "leftProgressBar", "rightProgressBar")]
 script = ExtResource("20_eeltd")
 leftHealth = NodePath("LeftHealth")
 rightHealth = NodePath("RightHealth")
@@ -196,7 +201,7 @@ rightNameLabel = NodePath("RightHealth/MarginContainer/VBoxContainer/RightNameLa
 leftProgressBar = NodePath("LeftHealth/MarginContainer/VBoxContainer/LeftProgressBar")
 rightProgressBar = NodePath("RightHealth/MarginContainer/VBoxContainer/RightProgressBar")
 
-[node name="LeftHealth" type="Control" parent="PlayerUI"]
+[node name="LeftHealth" type="Control" parent="PlayerUI" unique_id=1279879511]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -204,7 +209,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LeftTextureRect" type="TextureRect" parent="PlayerUI/LeftHealth"]
+[node name="LeftTextureRect" type="TextureRect" parent="PlayerUI/LeftHealth" unique_id=39413499]
 custom_minimum_size = Vector2(0, 90)
 layout_mode = 1
 anchors_preset = 10
@@ -213,23 +218,23 @@ offset_bottom = 90.0
 grow_horizontal = 2
 texture = SubResource("GradientTexture1D_epc1c")
 
-[node name="MarginContainer" type="MarginContainer" parent="PlayerUI/LeftHealth"]
+[node name="MarginContainer" type="MarginContainer" parent="PlayerUI/LeftHealth" unique_id=1566541100]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PlayerUI/LeftHealth/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PlayerUI/LeftHealth/MarginContainer" unique_id=1043523168]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 
-[node name="LeftNameLabel" type="Label" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer"]
+[node name="LeftNameLabel" type="Label" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer" unique_id=230443193]
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
 text = "Rafael"
 
-[node name="LeftProgressBar" type="ProgressBar" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer"]
+[node name="LeftProgressBar" type="ProgressBar" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer" unique_id=1413876694]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_epc1c")
@@ -237,7 +242,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_kjljb")
 value = 50.0
 show_percentage = false
 
-[node name="RightHealth" type="Control" parent="PlayerUI"]
+[node name="RightHealth" type="Control" parent="PlayerUI" unique_id=925578206]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -245,7 +250,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="RightTextureRect" type="TextureRect" parent="PlayerUI/RightHealth"]
+[node name="RightTextureRect" type="TextureRect" parent="PlayerUI/RightHealth" unique_id=403735367]
 custom_minimum_size = Vector2(0, 90)
 layout_mode = 1
 anchors_preset = 10
@@ -254,7 +259,7 @@ offset_bottom = 1.0
 grow_horizontal = 2
 texture = SubResource("GradientTexture1D_epc1c")
 
-[node name="MarginContainer" type="MarginContainer" parent="PlayerUI/RightHealth"]
+[node name="MarginContainer" type="MarginContainer" parent="PlayerUI/RightHealth" unique_id=1031942093]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -265,17 +270,17 @@ grow_horizontal = 0
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 10
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PlayerUI/RightHealth/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PlayerUI/RightHealth/MarginContainer" unique_id=879393606]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 
-[node name="RightNameLabel" type="Label" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer"]
+[node name="RightNameLabel" type="Label" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer" unique_id=50503596]
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
 text = "Rafael"
 horizontal_alignment = 2
 
-[node name="RightProgressBar" type="ProgressBar" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer"]
+[node name="RightProgressBar" type="ProgressBar" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer" unique_id=1906719846]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_eeltd")
@@ -284,13 +289,13 @@ value = 50.0
 fill_mode = 1
 show_percentage = false
 
-[node name="RightMark" type="Marker2D" parent="."]
+[node name="RightMark" type="Marker2D" parent="." unique_id=1991100822]
 position = Vector2(60, 1)
 
-[node name="LeftMark" type="Marker2D" parent="."]
+[node name="LeftMark" type="Marker2D" parent="." unique_id=385599180]
 position = Vector2(-60, 1)
 
-[node name="HurtParticles" type="GPUParticles2D" parent="."]
+[node name="HurtParticles" type="GPUParticles2D" parent="." unique_id=1034416165]
 emitting = false
 amount = 20
 texture = ExtResource("18_usp30")

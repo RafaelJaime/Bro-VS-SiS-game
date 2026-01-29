@@ -20,7 +20,7 @@ func _enter() -> void:
 	print(name)
 	animation_state_changed.emit(name.to_lower())
 
-func _update(delta: float) -> void:
+func _update(_delta: float) -> void:
 	# Procesar acciones de IA automáticamente
 	if owner.ai_controller_2d and owner.ai_controller_2d.control_mode != AIController2D.ControlModes.HUMAN:
 		process_ai_transitions()
