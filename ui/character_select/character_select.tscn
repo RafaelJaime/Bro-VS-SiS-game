@@ -1,20 +1,21 @@
-[gd_scene load_steps=24 format=3 uid="uid://bpcx5sxh287su"]
+[gd_scene format=3 uid="uid://bpcx5sxh287su"]
 
 [ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_o7qwi"]
 [ext_resource type="Script" uid="uid://dtrxtrmxx5usc" path="res://ui/character_select/character_select.gd" id="1_qc8oi"]
 [ext_resource type="PackedScene" uid="uid://cgec1mb47wk6v" path="res://ui/global/back_button/back_button.tscn" id="2_ohdmo"]
 [ext_resource type="PackedScene" uid="uid://b7vrfar4xb67j" path="res://ui/character_select/character_item/character_select_item.tscn" id="2_qc8oi"]
-[ext_resource type="Texture2D" uid="uid://okewsu16xfwx" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m2.png" id="2_xrmg0"]
+[ext_resource type="Texture2D" uid="uid://bt1m3lew3ak8w" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m2.png" id="2_xrmg0"]
 [ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="3_ipm0l"]
-[ext_resource type="Texture2D" uid="uid://dulfwl0wpsa5j" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r2.png" id="3_x8414"]
-[ext_resource type="Texture2D" uid="uid://cfg1ae6lddtnp" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="4_i323y"]
-[ext_resource type="Texture2D" uid="uid://su454ffr42hb" path="res://assets/images/game/characters/rafael/face/r_014.png" id="4_kj5ae"]
+[ext_resource type="Texture2D" uid="uid://b2lq377mpxmfk" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r2.png" id="3_x8414"]
+[ext_resource type="Texture2D" uid="uid://6nyqw2vdxl0a" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="4_i323y"]
+[ext_resource type="Texture2D" uid="uid://cufsij6o6ab3n" path="res://assets/images/game/characters/rafael/face/r_014.png" id="4_kj5ae"]
 [ext_resource type="SpriteFrames" uid="uid://dduif87iby0ca" path="res://assets/images/game/characters/rafael/rafael.tres" id="5_lm43w"]
-[ext_resource type="Texture2D" uid="uid://dvww6mvll026e" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="6_lm43w"]
-[ext_resource type="Texture2D" uid="uid://c53bmsadcah2i" path="res://assets/images/game/characters/matilde/face/m_014.png" id="7_h0w06"]
+[ext_resource type="Texture2D" uid="uid://blnq26l4va1b6" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="6_lm43w"]
+[ext_resource type="Texture2D" uid="uid://clh4qi7n4djvq" path="res://assets/images/game/characters/matilde/face/m_014.png" id="7_h0w06"]
 [ext_resource type="SpriteFrames" uid="uid://c5ndk0ecjvter" path="res://assets/images/game/characters/matilde/matilde.tres" id="7_kj5ae"]
-[ext_resource type="Texture2D" uid="uid://oys6ud7g4c13" path="res://assets/images/ui/buttons/button1.png" id="7_x3bhl"]
+[ext_resource type="Texture2D" uid="uid://b1mhp7cvo12d5" path="res://assets/images/ui/buttons/button1.png" id="7_x3bhl"]
 [ext_resource type="Script" uid="uid://d2j51ffmniw35" path="res://ui/character_select/ai_controller.gd" id="8_yov7p"]
+[ext_resource type="Texture2D" uid="uid://dmybar0g2nd2a" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glow_1.PNG" id="12_ijk02"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="15_pumci"]
 [ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="16_altl8"]
 
@@ -114,7 +115,7 @@ _data = {
 &"player2_selected": SubResource("Animation_yov7p")
 }
 
-[node name="CharacterSelect" type="Control"]
+[node name="CharacterSelect" type="Control" unique_id=2098815536]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -125,10 +126,10 @@ script = ExtResource("1_qc8oi")
 character_select_item_scene = ExtResource("2_qc8oi")
 characters = Array[ExtResource("3_ipm0l")]([SubResource("Resource_kj5ae"), SubResource("Resource_h0w06")])
 
-[node name="background" parent="." instance=ExtResource("1_o7qwi")]
+[node name="background" parent="." unique_id=1388190371 instance=ExtResource("1_o7qwi")]
 modulate = Color(0.605274, 0.605274, 0.605274, 1)
 
-[node name="P1_movable" type="Control" parent="."]
+[node name="P1_movable" type="Control" parent="." unique_id=1548782549]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -136,13 +137,19 @@ offset_left = -300.0
 offset_right = 100.0
 grow_vertical = 2
 
-[node name="player1_ilustration" type="Sprite2D" parent="P1_movable"]
+[node name="player1_ilustration" type="Sprite2D" parent="P1_movable" unique_id=1524941196]
 position = Vector2(150, 337)
 scale = Vector2(0.15, 0.15)
 texture = ExtResource("3_x8414")
 flip_h = true
 
-[node name="P2_movable" type="Control" parent="."]
+[node name="p1_PointLight2D" type="PointLight2D" parent="." unique_id=602189840]
+position = Vector2(0, 600)
+scale = Vector2(1, 2.3496094)
+enabled = false
+texture = ExtResource("12_ijk02")
+
+[node name="P2_movable" type="Control" parent="." unique_id=646596790]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -152,12 +159,18 @@ offset_right = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="player2_ilustration" type="Sprite2D" parent="P2_movable"]
+[node name="player2_ilustration" type="Sprite2D" parent="P2_movable" unique_id=488385035]
 position = Vector2(650, 337)
 scale = Vector2(0.15, 0.15)
 texture = ExtResource("2_xrmg0")
 
-[node name="Control" type="Control" parent="."]
+[node name="p2_PointLight2D" type="PointLight2D" parent="." unique_id=707612081]
+position = Vector2(800, 600)
+scale = Vector2(1, 1.6757814)
+enabled = false
+texture = ExtResource("12_ijk02")
+
+[node name="Control" type="Control" parent="." unique_id=1607992519]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -165,7 +178,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="CenterContainer" type="CenterContainer" parent="Control"]
+[node name="CenterContainer" type="CenterContainer" parent="Control" unique_id=1198722483]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -173,28 +186,25 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="CharactersContainer" type="GridContainer" parent="Control/CenterContainer"]
+[node name="CharactersContainer" type="GridContainer" parent="Control/CenterContainer" unique_id=692593710]
 layout_mode = 2
 columns = 4
 
-[node name="BackButton" parent="." instance=ExtResource("2_ohdmo")]
+[node name="BackButton" parent="." unique_id=1184287205 instance=ExtResource("2_ohdmo")]
+z_index = 1032
 layout_mode = 1
 offset_top = -89.0
 offset_bottom = 13.0
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_x3bhl")
-}
-autoplay = "RESET"
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=10216776]
+libraries/ = SubResource("AnimationLibrary_x3bhl")
+autoplay = &"RESET"
 
-[node name="AnimationPlayer2" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_x3bhl")
-}
-autoplay = "RESET"
+[node name="AnimationPlayer2" type="AnimationPlayer" parent="." unique_id=322674464]
+libraries/ = SubResource("AnimationLibrary_x3bhl")
+autoplay = &"RESET"
 
-[node name="PlayButton" type="Button" parent="."]
+[node name="PlayButton" type="Button" parent="." unique_id=1755673590]
 visible = false
 custom_minimum_size = Vector2(220, 100)
 layout_mode = 1
@@ -215,32 +225,32 @@ expand_icon = true
 script = ExtResource("15_pumci")
 metadata/_custom_type_script = "uid://bivny4qorquqo"
 
-[node name="TitleLabel" parent="." instance=ExtResource("16_altl8")]
+[node name="TitleLabel" parent="." unique_id=535552240 instance=ExtResource("16_altl8")]
 layout_mode = 1
 offset_left = -237.5
 offset_right = 237.5
 
-[node name="AIController" type="Control" parent="."]
+[node name="AIController" type="Control" parent="." unique_id=511471977]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("8_yov7p")
 
-[node name="ControlP1" type="Control" parent="AIController"]
+[node name="ControlP1" type="Control" parent="AIController" unique_id=1603471586]
 anchors_preset = 0
 offset_left = 50.0
 offset_top = 480.0
 offset_right = 250.0
 offset_bottom = 520.0
 
-[node name="AIButton" type="Button" parent="AIController/ControlP1"]
+[node name="AIButton" type="Button" parent="AIController/ControlP1" unique_id=1116150493]
 visible = false
 layout_mode = 0
 offset_right = 200.0
 offset_bottom = 40.0
 text = "Use AI"
 
-[node name="TextEdit" type="TextEdit" parent="AIController/ControlP1"]
+[node name="TextEdit" type="TextEdit" parent="AIController/ControlP1" unique_id=1546823233]
 visible = false
 layout_mode = 0
 offset_top = -50.0
@@ -248,7 +258,7 @@ offset_right = 200.0
 offset_bottom = -10.0
 placeholder_text = "Usarname"
 
-[node name="SearchButton" type="Button" parent="AIController/ControlP1"]
+[node name="SearchButton" type="Button" parent="AIController/ControlP1" unique_id=1231124039]
 visible = false
 layout_mode = 0
 offset_left = 37.0
@@ -256,35 +266,35 @@ offset_right = 200.0
 offset_bottom = 40.0
 text = "Search Username"
 
-[node name="OptionButton" type="OptionButton" parent="AIController/ControlP1"]
+[node name="OptionButton" type="OptionButton" parent="AIController/ControlP1" unique_id=1039738010]
 visible = false
 layout_mode = 0
 offset_left = 37.0
 offset_right = 200.0
 offset_bottom = 40.0
 
-[node name="BackButton" type="Button" parent="AIController/ControlP1"]
+[node name="BackButton" type="Button" parent="AIController/ControlP1" unique_id=620121082]
 visible = false
 layout_mode = 0
 offset_right = 37.0
 offset_bottom = 40.0
 text = "<"
 
-[node name="ControlP2" type="Control" parent="AIController"]
+[node name="ControlP2" type="Control" parent="AIController" unique_id=476611909]
 anchors_preset = 0
 offset_left = 550.0
 offset_top = 485.0
 offset_right = 750.0
 offset_bottom = 525.0
 
-[node name="AIButton" type="Button" parent="AIController/ControlP2"]
+[node name="AIButton" type="Button" parent="AIController/ControlP2" unique_id=443378906]
 visible = false
 layout_mode = 0
 offset_right = 200.0
 offset_bottom = 40.0
 text = "Use AI"
 
-[node name="TextEdit" type="TextEdit" parent="AIController/ControlP2"]
+[node name="TextEdit" type="TextEdit" parent="AIController/ControlP2" unique_id=1956587827]
 visible = false
 layout_mode = 0
 offset_top = -50.0
@@ -292,7 +302,7 @@ offset_right = 200.0
 offset_bottom = -10.0
 placeholder_text = "Usarname"
 
-[node name="SearchButton" type="Button" parent="AIController/ControlP2"]
+[node name="SearchButton" type="Button" parent="AIController/ControlP2" unique_id=1377185249]
 visible = false
 layout_mode = 0
 offset_left = 37.0
@@ -300,14 +310,14 @@ offset_right = 200.0
 offset_bottom = 40.0
 text = "Search Username"
 
-[node name="OptionButton" type="OptionButton" parent="AIController/ControlP2"]
+[node name="OptionButton" type="OptionButton" parent="AIController/ControlP2" unique_id=320010741]
 visible = false
 layout_mode = 0
 offset_left = 37.0
 offset_right = 200.0
 offset_bottom = 40.0
 
-[node name="BackButton" type="Button" parent="AIController/ControlP2"]
+[node name="BackButton" type="Button" parent="AIController/ControlP2" unique_id=219159474]
 visible = false
 layout_mode = 0
 offset_right = 37.0

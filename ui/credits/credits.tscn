@@ -1,13 +1,14 @@
-[gd_scene load_steps=7 format=3 uid="uid://c477ouymqx5sw"]
+[gd_scene format=3 uid="uid://c477ouymqx5sw"]
 
 [ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_b7y0s"]
 [ext_resource type="Script" uid="uid://b15nou0romax8" path="res://ui/credits/credits.gd" id="1_xwmn8"]
 [ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="2_vaeic"]
 [ext_resource type="PackedScene" uid="uid://cgec1mb47wk6v" path="res://ui/global/back_button/back_button.tscn" id="3_brjbi"]
-[ext_resource type="Texture2D" uid="uid://dvww6mvll026e" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="4_rqgi2"]
-[ext_resource type="Texture2D" uid="uid://cfg1ae6lddtnp" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="5_sunqn"]
+[ext_resource type="Texture2D" uid="uid://blnq26l4va1b6" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="4_rqgi2"]
+[ext_resource type="Texture2D" uid="uid://6nyqw2vdxl0a" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="5_sunqn"]
+[ext_resource type="Texture2D" uid="uid://bh0e8pbj58f5e" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glo31.png" id="8_twsdw"]
 
-[node name="Credits" type="Control"]
+[node name="Credits" type="Control" unique_id=1626998428]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -16,9 +17,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_xwmn8")
 
-[node name="background" parent="." instance=ExtResource("1_b7y0s")]
+[node name="background" parent="." unique_id=211624965 instance=ExtResource("1_b7y0s")]
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=47390955]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -27,13 +28,13 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.705882)
 
-[node name="TitleLabel" parent="." instance=ExtResource("2_vaeic")]
+[node name="TitleLabel" parent="." unique_id=1963030011 instance=ExtResource("2_vaeic")]
 layout_mode = 1
 offset_left = -82.0
 offset_right = 82.0
 text = "Credits"
 
-[node name="RafaelButton" type="Button" parent="."]
+[node name="RafaelButton" type="Button" parent="." unique_id=1021385898]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -45,7 +46,7 @@ text = "
 "
 flat = true
 
-[node name="ColorRect2" type="ColorRect" parent="RafaelButton"]
+[node name="ColorRect2" type="ColorRect" parent="RafaelButton" unique_id=64444995]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -54,25 +55,25 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 1, 0.117647)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="RafaelButton"]
+[node name="VBoxContainer" type="VBoxContainer" parent="RafaelButton" unique_id=1207459481]
 layout_mode = 0
 offset_right = 400.0
 offset_bottom = 723.0
 alignment = 1
 
-[node name="RLabel" type="Label" parent="RafaelButton/VBoxContainer"]
+[node name="RLabel" type="Label" parent="RafaelButton/VBoxContainer" unique_id=929169583]
 layout_mode = 2
 text = "RafaelJaime"
 horizontal_alignment = 1
 
-[node name="TextureRect" type="TextureRect" parent="RafaelButton/VBoxContainer"]
+[node name="TextureRect" type="TextureRect" parent="RafaelButton/VBoxContainer" unique_id=530264131]
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 texture = ExtResource("5_sunqn")
 expand_mode = 5
 flip_h = true
 
-[node name="MatildeButton" type="Button" parent="."]
+[node name="MatildeButton" type="Button" parent="." unique_id=561887643]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -82,7 +83,7 @@ grow_horizontal = 2
 grow_vertical = 2
 flat = true
 
-[node name="ColorRect" type="ColorRect" parent="MatildeButton"]
+[node name="ColorRect" type="ColorRect" parent="MatildeButton" unique_id=1348580840]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -91,29 +92,34 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(1, 0, 0, 0.117647)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MatildeButton"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MatildeButton" unique_id=1792786111]
 layout_mode = 0
 offset_right = 400.0
 offset_bottom = 658.0
 theme_override_constants/separation = 0
 alignment = 2
 
-[node name="MLabel" type="Label" parent="MatildeButton/VBoxContainer"]
+[node name="MLabel" type="Label" parent="MatildeButton/VBoxContainer" unique_id=87247209]
 layout_mode = 2
 text = "@mati_mola
 "
 horizontal_alignment = 1
 
-[node name="TextureRect" type="TextureRect" parent="MatildeButton/VBoxContainer"]
+[node name="TextureRect" type="TextureRect" parent="MatildeButton/VBoxContainer" unique_id=1603895146]
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 texture = ExtResource("4_rqgi2")
 expand_mode = 5
 
-[node name="BackButton" parent="." instance=ExtResource("3_brjbi")]
+[node name="BackButton" parent="." unique_id=1043219883 instance=ExtResource("3_brjbi")]
 layout_mode = 1
 offset_top = -102.0
 offset_bottom = 0.0
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1852087215]
+position = Vector2(398.99997, 150.5)
+scale = Vector2(1.5507811, 1.3496094)
+texture = ExtResource("8_twsdw")
 
 [connection signal="pressed" from="RafaelButton" to="." method="_on_rafael_button_pressed"]
 [connection signal="pressed" from="MatildeButton" to="." method="_on_matilde_button_pressed"]

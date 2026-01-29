@@ -1,9 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://cgec1mb47wk6v"]
+[gd_scene format=3 uid="uid://cgec1mb47wk6v"]
 
-[ext_resource type="Texture2D" uid="uid://drfpk0dl83v6x" path="res://assets/images/ui/buttons/button4.png" id="1_u7nxj"]
+[ext_resource type="Texture2D" uid="uid://c0dbviubmdfpo" path="res://assets/images/ui/buttons/button4.png" id="1_u7nxj"]
 [ext_resource type="Script" uid="uid://b46k2fv7bjaex" path="res://ui/global/back_button/back_button.gd" id="2_gfqk2"]
 
-[node name="BackButton" type="Button"]
+[node name="BackButton" type="Button" unique_id=379915422]
+z_index = 2160
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0

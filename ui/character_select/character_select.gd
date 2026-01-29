@@ -10,6 +10,8 @@ extends Control
 @onready var player_2_ilustration: Sprite2D = $P2_movable/player2_ilustration
 @onready var play_button: Button = $PlayButton
 @onready var ai_controller: Control = $AIController
+@onready var p_1_point_light_2d: PointLight2D = $p1_PointLight2D
+@onready var p_2_point_light_2d: PointLight2D = $p2_PointLight2D
 
 var player1_selected: CharacterUI
 var player2_selected: CharacterUI
@@ -28,32 +30,35 @@ func _load_character(character: CharacterUI):
 	else:
 		push_error("No se ha asignado la escena de CharacterSelectItem")
 
-func _on_character_pressed(item: CharacterSelectItem):
-	var character = item.character
-	
-	if !player1_selected:
-		player1_selected = character
-		set_ilustration(character, player_1_ilustration)
-		animation_player.play("player1_selected")
-		ai_controller.show_ai_ui(true)
+func _on_character_pressed(item: CharacterSelectItem) -> void:
+	var character := item.character
+
+	if player1_selected == null:
+		select_player1(character)
 	else:
-		# Si ya hay un personaje seleccionado para player2, limpiamos antes
-		if player2_selected:
-			pass  # opcional: resetear algo si es necesario
+		select_player2(character)
 
-		# Creamos una copia del personaje para evitar modificar el original
-		player2_selected = character.duplicate()
+func select_player1(character: CharacterUI) -> void:
+	player1_selected = character
+	set_ilustration(character, player_1_ilustration)
+	animation_player.play("player1_selected")
+	ai_controller.show_ai_ui(true)
+	p_1_point_light_2d.enabled = true
+	p_1_point_light_2d.color = player1_selected.color
 
-		if player2_selected.equals(player1_selected):
-			# Invertimos el color solo visualmente
-			player_2_ilustration.modulate = player2_selected.color.inverted()
-		else:
-			player_2_ilustration.modulate = Color.WHITE
+func select_player2(character: CharacterUI) -> void:
+	player2_selected = character.duplicate()
 
-		set_ilustration(player2_selected, player_2_ilustration)
-		animation_player_2.play("player2_selected")
-		play_button.visible = true
-		ai_controller.show_ai_ui(false)
+	set_ilustration(player2_selected, player_2_ilustration)
+	if player2_selected.equals(player1_selected):
+		player_2_ilustration.modulate = player2_selected.color.inverted()
+	else:
+		player_2_ilustration.modulate = Color.WHITE
+	animation_player_2.play("player2_selected")
+	ai_controller.show_ai_ui(false)
+	play_button.visible = true
+	p_2_point_light_2d.enabled = true
+	p_2_point_light_2d.color = player2_selected.color
 
 func set_ilustration(character: CharacterUI, sprite: Sprite2D):
 	sprite.texture = character.illustration
