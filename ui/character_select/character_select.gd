@@ -17,6 +17,14 @@ var player1_selected: CharacterUI
 var player2_selected: CharacterUI
 
 func _ready():
+	# Asegurar que los sprites sean visibles
+	player_1_ilustration.visible = true
+	player_2_ilustration.visible = true
+	
+	# Asegurar que los nodos padre sean visibles
+	player_1_ilustration.get_parent().visible = true
+	player_2_ilustration.get_parent().visible = true
+	
 	for character in characters:
 		_load_character(character)
 	print("Total de personajes:", characters.size())
@@ -40,7 +48,10 @@ func _on_character_pressed(item: CharacterSelectItem) -> void:
 
 func select_player1(character: CharacterUI) -> void:
 	player1_selected = character
+	print("Seleccionando Player1: ", character.name)
+	print("Ilustración disponible: ", character.illustration != null)
 	set_ilustration(character, player_1_ilustration)
+	print("Player1 ilustración después asignación: ", player_1_ilustration.texture)
 	animation_player.play("player1_selected")
 	ai_controller.show_ai_ui(true)
 	p_1_point_light_2d.enabled = true
@@ -48,8 +59,10 @@ func select_player1(character: CharacterUI) -> void:
 
 func select_player2(character: CharacterUI) -> void:
 	player2_selected = character.duplicate()
-
+	print("Seleccionando Player2: ", character.name)
+	print("Ilustración disponible: ", character.illustration != null)
 	set_ilustration(player2_selected, player_2_ilustration)
+	print("Player2 ilustración después asignación: ", player_2_ilustration.texture)
 	if player2_selected.equals(player1_selected):
 		player_2_ilustration.modulate = player2_selected.color.inverted()
 	else:
@@ -61,7 +74,18 @@ func select_player2(character: CharacterUI) -> void:
 	p_2_point_light_2d.color = player2_selected.color
 
 func set_ilustration(character: CharacterUI, sprite: Sprite2D):
+	if character == null:
+		push_error("Personaje es nulo")
+		return
+	if character.illustration == null:
+		push_error("Ilustración nula para ", character.name)
+		return
+	if sprite == null:
+		push_error("Sprite es nulo")
+		return
+	
 	sprite.texture = character.illustration
+	print("Textura asignada a ", sprite.name, ": ", character.illustration.resource_path)
 
 func _on_play_button_pressed() -> void:
 	ai_controller.on_play_pressed()
