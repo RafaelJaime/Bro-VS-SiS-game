@@ -1,19 +1,30 @@
-[gd_resource type="SpriteFrames" load_steps=12 format=3 uid="uid://c5ndk0ecjvter"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://c5ndk0ecjvter"]
 
-[ext_resource type="Texture2D" uid="uid://caedqagjpbaym" path="res://assets/images/game/characters/matilde/defeated/m_013.png" id="1_cxqby"]
-[ext_resource type="Texture2D" uid="uid://d3oatkq2q5tbw" path="res://assets/images/game/characters/matilde/fall/m_011.png" id="2_kyyip"]
-[ext_resource type="Texture2D" uid="uid://dqgq7wty4uv2u" path="res://assets/images/game/characters/matilde/hurt/m_012.png" id="3_de3r3"]
-[ext_resource type="Texture2D" uid="uid://cc1arl5voaorn" path="res://assets/images/game/characters/matilde/idle/m_001.png" id="4_2v2tf"]
-[ext_resource type="Texture2D" uid="uid://th2l01wwhnd4" path="res://assets/images/game/characters/matilde/idle/m_002.png" id="5_e8bta"]
-[ext_resource type="Texture2D" uid="uid://dhtb8lsf4vgeg" path="res://assets/images/game/characters/matilde/jump/m_010.png" id="6_w16ii"]
-[ext_resource type="Texture2D" uid="uid://by3t8bcprnyil" path="res://assets/images/game/characters/matilde/protect/m_005.png" id="7_0nb6e"]
-[ext_resource type="Texture2D" uid="uid://ddnosvmshism3" path="res://assets/images/game/characters/matilde/punch/m_007.png" id="8_2au7x"]
-[ext_resource type="Texture2D" uid="uid://bqao6p4ia5nl7" path="res://assets/images/game/characters/matilde/run/m_008.png" id="9_skv66"]
-[ext_resource type="Texture2D" uid="uid://476u3ytihp24" path="res://assets/images/game/characters/matilde/run/m_009.png" id="10_gemiy"]
+[ext_resource type="Texture2D" uid="uid://dc4rut1cprdje" path="res://assets/images/game/characters/matilde/defeated/m_013.png" id="1_cxqby"]
+[ext_resource type="Texture2D" uid="uid://bmsalb6d5bq1b" path="res://assets/images/game/characters/matilde/fall/m_011.png" id="2_kyyip"]
+[ext_resource type="Texture2D" uid="uid://bc1wubua0b4qu" path="res://assets/images/game/characters/matilde/hurt/m_012.png" id="3_de3r3"]
+[ext_resource type="Texture2D" uid="uid://cf0vx5kfrjnlw" path="res://assets/images/game/characters/matilde/idle/m_001.png" id="4_2v2tf"]
+[ext_resource type="Texture2D" uid="uid://cyxtjan3t4q3r" path="res://assets/images/game/characters/matilde/idle/m_002.png" id="5_e8bta"]
+[ext_resource type="Texture2D" uid="uid://mfu78j02lj3i" path="res://assets/images/game/characters/matilde/jump/m_010.png" id="6_w16ii"]
+[ext_resource type="Texture2D" uid="uid://c4ey18pcsskxn" path="res://assets/images/game/characters/matilde/protect/m_005.png" id="7_0nb6e"]
+[ext_resource type="Texture2D" uid="uid://l45hq2ir1thw" path="res://assets/images/game/characters/matilde/punch/m_007.png" id="8_2au7x"]
+[ext_resource type="Texture2D" uid="uid://djmy8tt5666dk" path="res://assets/images/game/characters/matilde/run/m_008.png" id="9_skv66"]
+[ext_resource type="Texture2D" uid="uid://dm7irmeq4hf4h" path="res://assets/images/game/characters/matilde/run/m_009.png" id="10_gemiy"]
 [ext_resource type="Texture2D" uid="uid://c11mdhjsjq7gi" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="11_y0crd"]
 
 [resource]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_skv66")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_gemiy")
+}],
+"loop": true,
+"name": &"Dash",
+"speed": 15.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("1_cxqby")

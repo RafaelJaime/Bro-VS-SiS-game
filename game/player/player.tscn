@@ -167,7 +167,7 @@ metadata/_custom_type_script = "uid://o00jff2rmlo"
 material = SubResource("ShaderMaterial_cgi3i")
 scale = Vector2(0.1, 0.1)
 sprite_frames = ExtResource("14_2mv0n")
-animation = &"Idle"
+animation = &"Dash"
 autoplay = "Idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=489426174]

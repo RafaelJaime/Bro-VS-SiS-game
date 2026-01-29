@@ -1,19 +1,30 @@
-[gd_resource type="SpriteFrames" load_steps=12 format=3 uid="uid://dduif87iby0ca"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dduif87iby0ca"]
 
-[ext_resource type="Texture2D" uid="uid://bkw3efeebu4ce" path="res://assets/images/game/characters/rafael/defeated/r_013.png" id="1_u60o5"]
-[ext_resource type="Texture2D" uid="uid://byf3unsh03ciy" path="res://assets/images/game/characters/rafael/fall/r_011.png" id="2_fkicn"]
-[ext_resource type="Texture2D" uid="uid://bpff0gwi42xdp" path="res://assets/images/game/characters/rafael/hurt/r_012.png" id="3_mhbkv"]
-[ext_resource type="Texture2D" uid="uid://dxo2f4px6hlkl" path="res://assets/images/game/characters/rafael/idle/r_001.png" id="4_33ruu"]
-[ext_resource type="Texture2D" uid="uid://b4vpmq4w8md4d" path="res://assets/images/game/characters/rafael/idle/r_002.png" id="5_78xxv"]
-[ext_resource type="Texture2D" uid="uid://bes7s2qrbowoq" path="res://assets/images/game/characters/rafael/jump/r_010.png" id="6_ct43a"]
-[ext_resource type="Texture2D" uid="uid://cqqf5bb6yriok" path="res://assets/images/game/characters/rafael/protect/r_005.png" id="7_mdmob"]
-[ext_resource type="Texture2D" uid="uid://faucyj5qnptr" path="res://assets/images/game/characters/rafael/punch/r_007.png" id="8_i8lhl"]
-[ext_resource type="Texture2D" uid="uid://dyplrrxmi6dh1" path="res://assets/images/game/characters/rafael/run/r_008.png" id="9_4yn7o"]
-[ext_resource type="Texture2D" uid="uid://b2nkjp1ifo3v8" path="res://assets/images/game/characters/rafael/run/r_009.png" id="10_kr3ss"]
-[ext_resource type="Texture2D" uid="uid://dwv2dlw5wdgta" path="res://assets/images/game/characters/rafael/shoot/r_006.png" id="11_janx7"]
+[ext_resource type="Texture2D" uid="uid://gwoseeui0w57" path="res://assets/images/game/characters/rafael/defeated/r_013.png" id="1_u60o5"]
+[ext_resource type="Texture2D" uid="uid://b3gn2wpixdr5d" path="res://assets/images/game/characters/rafael/fall/r_011.png" id="2_fkicn"]
+[ext_resource type="Texture2D" uid="uid://be11iltp2sbtd" path="res://assets/images/game/characters/rafael/hurt/r_012.png" id="3_mhbkv"]
+[ext_resource type="Texture2D" uid="uid://d2ditoffcv7hg" path="res://assets/images/game/characters/rafael/idle/r_001.png" id="4_33ruu"]
+[ext_resource type="Texture2D" uid="uid://c4vyscw7enolo" path="res://assets/images/game/characters/rafael/idle/r_002.png" id="5_78xxv"]
+[ext_resource type="Texture2D" uid="uid://cy27llvebiqy2" path="res://assets/images/game/characters/rafael/jump/r_010.png" id="6_ct43a"]
+[ext_resource type="Texture2D" uid="uid://2v0ck8qwiwva" path="res://assets/images/game/characters/rafael/protect/r_005.png" id="7_mdmob"]
+[ext_resource type="Texture2D" uid="uid://blhbaodx4syiy" path="res://assets/images/game/characters/rafael/punch/r_007.png" id="8_i8lhl"]
+[ext_resource type="Texture2D" uid="uid://dcsddtdxh0xi2" path="res://assets/images/game/characters/rafael/run/r_008.png" id="9_4yn7o"]
+[ext_resource type="Texture2D" uid="uid://p8h50pb4j8fq" path="res://assets/images/game/characters/rafael/run/r_009.png" id="10_kr3ss"]
+[ext_resource type="Texture2D" uid="uid://dey7p3dmvhrm7" path="res://assets/images/game/characters/rafael/shoot/r_006.png" id="11_janx7"]
 
 [resource]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_4yn7o")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_kr3ss")
+}],
+"loop": true,
+"name": &"Dash",
+"speed": 15.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("1_u60o5")
