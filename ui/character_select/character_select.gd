@@ -25,6 +25,10 @@ func _ready():
 	player_1_ilustration.get_parent().visible = true
 	player_2_ilustration.get_parent().visible = true
 	
+	# Asegurar que tenemos z_index correcto
+	player_1_ilustration.z_index = 1
+	player_2_ilustration.z_index = 1
+	
 	for character in characters:
 		_load_character(character)
 	print("Total de personajes:", characters.size())
@@ -58,15 +62,23 @@ func select_player1(character: CharacterUI) -> void:
 	p_1_point_light_2d.color = player1_selected.color
 
 func select_player2(character: CharacterUI) -> void:
-	player2_selected = character.duplicate()
+	player2_selected = character
 	print("Seleccionando Player2: ", character.name)
 	print("Ilustración disponible: ", character.illustration != null)
+	
+	# Determinar si es el mismo personaje
+	var is_same = player2_selected.equals(player1_selected)
+	
+	# Asignar la textura
 	set_ilustration(player2_selected, player_2_ilustration)
 	print("Player2 ilustración después asignación: ", player_2_ilustration.texture)
-	if player2_selected.equals(player1_selected):
+	
+	# Aplicar color apropiado
+	if is_same:
 		player_2_ilustration.modulate = player2_selected.color.inverted()
 	else:
 		player_2_ilustration.modulate = Color.WHITE
+	
 	animation_player_2.play("player2_selected")
 	ai_controller.show_ai_ui(false)
 	play_button.visible = true
@@ -77,15 +89,41 @@ func set_ilustration(character: CharacterUI, sprite: Sprite2D):
 	if character == null:
 		push_error("Personaje es nulo")
 		return
-	if character.illustration == null:
-		push_error("Ilustración nula para ", character.name)
-		return
 	if sprite == null:
 		push_error("Sprite es nulo")
 		return
 	
-	sprite.texture = character.illustration
-	print("Textura asignada a ", sprite.name, ": ", character.illustration.resource_path)
+	# Asegurar que el sprite es visible
+	sprite.visible = true
+	sprite.modulate = Color.WHITE
+	sprite.self_modulate = Color.WHITE
+	
+	# Intentar asignar la ilustración directamente
+	if character.illustration != null:
+		sprite.texture = character.illustration
+		print("Textura asignada directamente: ", character.illustration.resource_path)
+		print("Sprite visible: ", sprite.visible)
+		print("Sprite modulate: ", sprite.modulate)
+		print("Sprite parent visible: ", sprite.get_parent().visible)
+		return
+	
+	# Si no funciona, intentar cargar manualmente por nombre de personaje
+	var texture_path = ""
+	match character.name.to_lower():
+		"rafael":
+			texture_path = "res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png"
+		"matilde":
+			texture_path = "res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png"
+	
+	if texture_path != "":
+		var loaded_texture = load(texture_path)
+		if loaded_texture:
+			sprite.texture = loaded_texture
+			print("Textura cargada manualmente: ", texture_path)
+		else:
+			push_error("No se pudo cargar textura: ", texture_path)
+	else:
+		push_error("No hay textura definida para ", character.name)
 
 func _on_play_button_pressed() -> void:
 	ai_controller.on_play_pressed()

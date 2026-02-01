@@ -130,6 +130,7 @@ characters = Array[ExtResource("3_ipm0l")]([SubResource("Resource_kj5ae"), SubRe
 modulate = Color(0.605274, 0.605274, 0.605274, 1)
 
 [node name="P1_movable" type="Control" parent="." unique_id=1548782549]
+z_index = 10
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -138,6 +139,7 @@ offset_right = 100.0
 grow_vertical = 2
 
 [node name="player1_ilustration" type="Sprite2D" parent="P1_movable" unique_id=1524941196]
+z_index = 100
 position = Vector2(150, 337)
 scale = Vector2(0.15, 0.15)
 texture = ExtResource("3_x8414")
@@ -150,6 +152,7 @@ enabled = false
 texture = ExtResource("12_ijk02")
 
 [node name="P2_movable" type="Control" parent="." unique_id=646596790]
+z_index = 10
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -160,6 +163,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="player2_ilustration" type="Sprite2D" parent="P2_movable" unique_id=488385035]
+z_index = 100
 position = Vector2(650, 337)
 scale = Vector2(0.15, 0.15)
 texture = ExtResource("2_xrmg0")
@@ -231,6 +235,7 @@ offset_left = -237.5
 offset_right = 237.5
 
 [node name="AIController" type="Control" parent="." unique_id=511471977]
+z_index = 4096
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
