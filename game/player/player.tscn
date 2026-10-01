@@ -177,8 +177,8 @@ shape = SubResource("CircleShape2D_food1")
 
 [node name="HeldFoodSprite" type="Sprite2D" parent="." unique_id=547939449]
 texture_filter = 6
-position = Vector2(0, -110)
-scale = Vector2(0.35, 0.35)
+position = Vector2(0, -115)
+scale = Vector2(0.55, 0.55)
 visible = false
 
 [node name="PlayerUI" type="CanvasLayer" parent="." unique_id=821320165]
