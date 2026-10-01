@@ -57,22 +57,78 @@ class IntentController extends FighterController:
 	func kind_name() -> String:
 		return "smoke"
 
+## Watches both fighters of a game: damage taken, stock losses, and whether each
+## loss happened without a recent hit (a self-inflicted fall). Time is game time
+## (physics frames), so hit-stop does not distort it.
+class MatchLog extends RefCounted:
+	## A stock lost with no damage taken in this many seconds counts as self-inflicted.
+	const SELF_INFLICTED_WINDOW := 3.0
+
+	var game: Node2D
+	## Refill stocks after every loss so a long run never ends the match.
+	var keep_alive: bool
+	var damage_taken: Array[float] = [0.0, 0.0]
+	var hits_taken: Array[int] = [0, 0]
+	var losses: Array[int] = [0, 0]
+	var self_inflicted: Array[int] = [0, 0]
+	var notes: Array[String] = []
+	var _last_percent: Array[float] = [0.0, 0.0]
+	var _last_stocks: Array[int] = [Fighter.MAX_STOCKS, Fighter.MAX_STOCKS]
+	var _last_hit: Array[float] = [-100.0, -100.0]
+	var _start_frame: int
+
+	func _init(match_game: Node2D, refill: bool = false) -> void:
+		game = match_game
+		keep_alive = refill
+		_start_frame = Engine.get_physics_frames()
+		var fighters: Array[Fighter] = [game.get_node("Fighter1"), game.get_node("Fighter2")]
+		for i in 2:
+			fighters[i].damage_changed.connect(_on_damage.bind(i))
+			fighters[i].stocks_changed.connect(_on_stocks.bind(i))
+
+	func now() -> float:
+		return float(Engine.get_physics_frames() - _start_frame) / float(Engine.physics_ticks_per_second)
+
+	func _on_damage(percent: float, index: int) -> void:
+		if percent > _last_percent[index]:
+			damage_taken[index] += percent - _last_percent[index]
+			hits_taken[index] += 1
+			_last_hit[index] = now()
+		_last_percent[index] = percent
+
+	func _on_stocks(fighter: Fighter, stocks_left: int, index: int) -> void:
+		if stocks_left < _last_stocks[index]:
+			losses[index] += 1
+			if now() - _last_hit[index] > SELF_INFLICTED_WINDOW:
+				self_inflicted[index] += 1
+				notes.append("fighter %d fell at t=%.1f pos=(%.0f, %.0f) state=%s" % [index + 1, now(), fighter.position.x, fighter.position.y, fighter.state_machine.current_state.name])
+		if keep_alive and stocks_left < Fighter.MAX_STOCKS:
+			# Set inside the signal, before Fighter._lose_stock checks for defeat,
+			# so the fighter simply respawns.
+			fighter.stocks = Fighter.MAX_STOCKS
+			stocks_left = Fighter.MAX_STOCKS
+		_last_stocks[index] = stocks_left
+
 var tree: SceneTree
+var _watchdog_seconds: float = WATCHDOG_SECONDS
 var failures: int = 0
 var checks: int = 0
 var finished: bool = false
 
-func _init(scene_tree: SceneTree) -> void:
+## `watchdog_seconds` is game time under --fixed-fps (60 frames per second), so a
+## headless script that simulates minutes needs a larger budget than the default.
+func _init(scene_tree: SceneTree, watchdog_seconds: float = WATCHDOG_SECONDS) -> void:
+	_watchdog_seconds = watchdog_seconds
 	tree = scene_tree
 	# Keep the music and SFX quiet; the checks do not need audio.
 	AudioServer.set_bus_mute(0, true)
-	tree.create_timer(WATCHDOG_SECONDS, true, false, true).timeout.connect(_on_watchdog)
+	tree.create_timer(_watchdog_seconds, true, false, true).timeout.connect(_on_watchdog)
 
 func _on_watchdog() -> void:
 	if finished:
 		return
 	failures += 1
-	print("FAIL watchdog: script did not finish within %d s" % int(WATCHDOG_SECONDS))
+	print("FAIL watchdog: script did not finish within %d s" % int(_watchdog_seconds))
 	finish()
 
 func check(check_name: String, condition: bool, detail: String = "") -> void:
@@ -106,6 +162,17 @@ func attach_controllers(game: Node2D) -> Array:
 		game.get_node(fighter_name).set_controller(controller)
 		controllers.append(controller)
 	return controllers
+
+## Gives `fighter` a scripted CPU of `level` (a CpuDifficulty.Level). The seed
+## makes the run reproducible.
+func set_cpu(fighter: Fighter, level: int, rng_seed: int) -> ScriptedController:
+	var cpu := ScriptedController.new(CpuDifficulty.preset(level as CpuDifficulty.Level), rng_seed)
+	fighter.set_controller(cpu)
+	return cpu
+
+## Runs `seconds` of game time (physics frames).
+func sim(seconds: float) -> void:
+	await frames(int(seconds * Engine.physics_ticks_per_second))
 
 func despawn(game: Node) -> void:
 	game.queue_free()

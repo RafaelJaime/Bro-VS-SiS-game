@@ -14,14 +14,21 @@ export SHOT_DIR="${SHOT_DIR:-${TMPDIR:-/tmp}/bvs-smoke-shots}"
 # class_names resolve when the scripts run outside the editor.
 "$GODOT" --headless --path . --import >/dev/null 2>&1
 
-SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots)
+SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots cpu_combat cpu_recovery cpu_match cpu_select cpu_shots)
+# Scripts that simulate minutes of game time and take no screenshots: headless
+# runs are not paced to the display, so they finish in seconds.
+HEADLESS=" cpu_combat cpu_recovery cpu_match cpu_select "
 failed=0
 
 for name in "${SCRIPTS[@]}"; do
 	echo "=== ${name} ==="
-	output="$("$GODOT" --path . --resolution 800x600 --fixed-fps 60 --script "res://tests/smoke/${name}.gd" 2>&1)"
+	if [[ "$HEADLESS" == *" ${name} "* ]]; then
+		output="$("$GODOT" --headless --path . --fixed-fps 60 --script "res://tests/smoke/${name}.gd" 2>&1)"
+	else
+		output="$("$GODOT" --path . --resolution 800x600 --fixed-fps 60 --script "res://tests/smoke/${name}.gd" 2>&1)"
+	fi
 	code=$?
-	echo "$output" | grep -E '^(PASS|FAIL|SHOT|SUMMARY)'
+	echo "$output" | grep -E '^(PASS|FAIL|SHOT|SUMMARY|INFO)'
 	if echo "$output" | grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' >/dev/null; then
 		echo "FAIL ${name}: engine reported script errors"
 		echo "$output" | grep -E -B1 -A3 'SCRIPT ERROR|Parse Error|Failed to load script' | head -40
