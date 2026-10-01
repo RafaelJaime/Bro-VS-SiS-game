@@ -35,7 +35,7 @@ static func apply_hit(attacker: Fighter, target: Fighter, damage: float, knockba
 	# Skip juice (global time_scale hit-stop + SFX) under AI training: dozens
 	# of train.tscn's Game rows run in parallel, and time_scale is a single
 	# global Engine property, so one row's hit would stutter every other row.
-	if _is_training(target):
+	if Sfx.is_training(target):
 		return
 
 	if blocked:
@@ -43,12 +43,12 @@ static func apply_hit(attacker: Fighter, target: Fighter, damage: float, knockba
 	else:
 		_trigger_hit_stop(0.08, 0.05)
 
-	var sfx_path = Sfx.EXPLOSION if damage >= HEAVY_DAMAGE_THRESHOLD else Sfx.PUNCH
-	Sfx.play(sfx_path, target)
-
-static func _is_training(target: Node) -> bool:
-	var parent = target.get_parent() if target else null
-	return parent != null and parent.get("training") == true
+	if blocked:
+		Sfx.play_event(&"block", target)
+	elif damage >= HEAVY_DAMAGE_THRESHOLD:
+		Sfx.play_event(&"heavy_hit", target)
+	else:
+		Sfx.play_event(&"hit", target)
 
 ## Only the latest hit-stop may restore the clock. Every trigger takes a new
 ## token and its restore callback only acts while that token is still current,
@@ -72,6 +72,12 @@ static func _trigger_hit_stop(duration: float, scale: float) -> void:
 	timer.timeout.connect(func():
 		if token == _hit_stop_token:
 			Engine.time_scale = 1.0)
+
+## Slows the whole game to `scale` for `duration` real seconds (the "GAME!"
+## finish). Shares the hit-stop token, so it can never be cut short by an older
+## hit-stop and nothing can leave the clock slowed afterwards.
+static func slow_motion(duration: float, scale: float) -> void:
+	_trigger_hit_stop(duration, scale)
 
 ## Ends any running hit-stop at once (a Game leaving the tree mid-stop).
 static func cancel_hit_stop() -> void:

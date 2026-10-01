@@ -85,6 +85,7 @@ func _throw_food() -> void:
 	var direction: int = owner.facing
 	var spawn_marker = right_mark if direction > 0 else left_mark
 
+	Sfx.play_event(&"throw", owner)
 	var food_projectile = food_projectile_scene.instantiate()
 	food_projectile.food_name = food_name
 	food_projectile.direction = direction
