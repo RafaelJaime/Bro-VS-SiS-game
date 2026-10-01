@@ -8,12 +8,19 @@ extends RefCounted
 const GAME_SCENE := "res://game/game.tscn"
 const WATCHDOG_SECONDS := 120.0
 
-## Intent source for tests: levels (move_x) persist, presses fire exactly once.
+## Intent source for tests: levels (move_x, jump_held_level, block_held_level)
+## persist, presses fire exactly once.
 class IntentController extends FighterController:
 	var move_x: float = 0.0
+	## Level: keeps the jump key "down" after the press frame (full hop).
+	var jump_held_level: bool = false
+	## Level: keeps the block key down.
+	var block_held_level: bool = false
 	var _punch: bool = false
 	var _jump: bool = false
 	var _throw: bool = false
+	var _dash: bool = false
+	var _block: bool = false
 
 	func press_punch() -> void:
 		_punch = true
@@ -24,16 +31,27 @@ class IntentController extends FighterController:
 	func press_throw() -> void:
 		_throw = true
 
+	func press_dash() -> void:
+		_dash = true
+
+	func press_block() -> void:
+		_block = true
+
 	func sample(_delta: float) -> FighterIntent:
 		var intent := FighterIntent.new()
 		intent.move_x = move_x
 		intent.attack_pressed = _punch
 		intent.jump_pressed = _jump
-		intent.jump_held = _jump
+		intent.jump_held = _jump or jump_held_level
 		intent.throw_pressed = _throw
+		intent.dash_pressed = _dash
+		intent.block_pressed = _block
+		intent.block_held = _block or block_held_level
 		_punch = false
 		_jump = false
 		_throw = false
+		_dash = false
+		_block = false
 		return intent
 
 	func kind_name() -> String:
@@ -92,6 +110,22 @@ func attach_controllers(game: Node2D) -> Array:
 func despawn(game: Node) -> void:
 	game.queue_free()
 	await tree.process_frame
+
+## Waits `seconds` of real (unscaled) time, so hit-stop does not stretch it.
+func real_wait(seconds: float) -> void:
+	await tree.create_timer(seconds, true, false, true).timeout
+
+## Name of the fighter's current state ("Idle", "Jump", ...).
+func state_of(fighter: Fighter) -> String:
+	return String(fighter.state_machine.current_state.name)
+
+## Waits (in physics frames) until `fighter` is grounded; returns false on timeout.
+func wait_grounded(fighter: Fighter, max_frames: int = 240) -> bool:
+	for i in max_frames:
+		if fighter.is_on_floor():
+			return true
+		await tree.physics_frame
+	return fighter.is_on_floor()
 
 func floor_top(game: Node) -> float:
 	return game.get_state_snapshot()["stage"]["top"]

@@ -50,7 +50,8 @@ func _is_requested(action: String, intent: FighterIntent) -> bool:
 		"dash":
 			return intent.dash_pressed
 		"jump":
-			return intent.jump_pressed
+			# The jump buffer (Fighter) remembers a press for a few frames.
+			return owner.jump_buffer_timer > 0.0
 		"punch":
 			return intent.attack_pressed
 		"protect":
@@ -69,12 +70,24 @@ func exit_to_neutral() -> void:
 	finished.emit("Idle" if is_on_floor() else "Fall")
 
 func calculate_velocity(_speed: float, _direction: Vector2, delta: float) -> void:
-	state_machine.velocity.x = move_toward(state_machine.velocity.x, _direction.x * _speed, profile.acceleration * delta)
+	var accel := profile.ground_acceleration if is_on_floor() else profile.air_acceleration
+	state_machine.velocity.x = move_toward(state_machine.velocity.x, _direction.x * _speed, accel * delta)
 	velocity_updated.emit(state_machine.velocity)
 
-func calculate_gravity(delta: float) -> void:
-	if not owner.is_on_floor():
-		state_machine.velocity.y += gravity * delta
+## Adds gravity (scaled by `scale`), faster while falling and capped at the
+## profile's max fall speed. On the floor it only drops a stale downward speed,
+## so walking off a ledge starts a fall from zero, not from the last landing.
+func calculate_gravity(delta: float, scale: float = 1.0) -> void:
+	var velocity_y: float = state_machine.velocity.y
+	if owner.is_on_floor():
+		if velocity_y > 0.0:
+			state_machine.velocity.y = 0.0
+		return
+	var pull := gravity * scale
+	if velocity_y > 0.0:
+		pull *= profile.fall_gravity_multiplier
+	if velocity_y < profile.max_fall_speed:
+		state_machine.velocity.y = minf(velocity_y + pull * delta, profile.max_fall_speed)
 
 func is_on_floor() -> bool: 
 	return owner.is_on_floor()

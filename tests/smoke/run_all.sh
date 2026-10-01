@@ -10,7 +10,11 @@ cd "$(dirname "$0")/../.."
 GODOT="${GODOT:-$HOME/Library/Application Support/Steam/steamapps/common/Godot Engine/Godot.app/Contents/MacOS/Godot}"
 export SHOT_DIR="${SHOT_DIR:-${TMPDIR:-/tmp}/bvs-smoke-shots}"
 
-SCRIPTS=(stage_floor combat movement camera train_loads screenshots)
+# Refresh the imported assets and the global class cache first, so new
+# class_names resolve when the scripts run outside the editor.
+"$GODOT" --headless --path . --import >/dev/null 2>&1
+
+SCRIPTS=(stage_floor combat movement movement_feel camera train_loads screenshots)
 failed=0
 
 for name in "${SCRIPTS[@]}"; do

@@ -17,32 +17,30 @@ func _enter() -> void:
 		timer = Timer.new()
 		timer.one_shot = true
 		add_child(timer)
-	
-	timer.connect("timeout", _on_block_finished)
-	timer.start(block_duration)
 
-	# Aplicar una pequeña fricción si estás en el suelo
-	if owner.is_on_floor():
-		state_machine.velocity.x = move_toward(state_machine.velocity.x, 0, 200 * get_physics_process_delta_time())
-		owner.set_velocity(state_machine.velocity)
+	if not timer.timeout.is_connected(_on_block_finished):
+		timer.timeout.connect(_on_block_finished)
+	timer.start(block_duration)
 
 func _update(delta: float) -> void:
 	super._update(delta)
-	# Aplicar gravedad
-	state_machine.velocity.y += gravity * delta
-	owner.set_velocity(state_machine.velocity)
+	calculate_gravity(delta)
+	# A blocking fighter plants itself (friction on the ground, air drag in the air).
+	calculate_velocity(0.0, Vector2.ZERO, delta)
 
-	# Mantener al jugador en el suelo
-	if owner.is_on_floor():
-		state_machine.velocity.y = 0
+	# Hold-to-block, ground and air: the block lasts while the key is held, up to
+	# block_duration.
+	if not owner.intent.block_held:
+		exit_to_neutral()
 
 func _exit() -> void:
-	if timer.is_connected("timeout", _on_block_finished):
-		timer.disconnect("timeout", _on_block_finished)
+	timer.stop()
+	if timer.timeout.is_connected(_on_block_finished):
+		timer.timeout.disconnect(_on_block_finished)
 
 func _on_block_finished() -> void:
 	block_finished.emit()
-	finished.emit("Idle")
+	exit_to_neutral()
 
 # Called by Combat.apply_hit when the target is currently blocking. This is
 # the fix for the previously unused/dead receive_blocked_damage() codepath:

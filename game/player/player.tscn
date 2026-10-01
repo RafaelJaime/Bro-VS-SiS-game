@@ -134,15 +134,17 @@ available_actions = Array[String](["dash", "jump", "punch", "protect", "shoot"])
 [node name="Run" type="Node" parent="StateMachine" unique_id=1675715457 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("7_j0mij")
 state_machine = NodePath("..")
-available_actions = Array[String](["jump", "punch", "protect", "shoot"])
+available_actions = Array[String](["dash", "jump", "punch", "protect", "shoot"])
 
 [node name="Jump" type="Node" parent="StateMachine" unique_id=1240213622 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("8_gb4gm")
 state_machine = NodePath("..")
+available_actions = Array[String](["dash", "jump", "punch", "protect", "shoot"])
 
 [node name="Fall" type="Node" parent="StateMachine" unique_id=1039386031 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("9_uv2nh")
 state_machine = NodePath("..")
+available_actions = Array[String](["dash", "jump", "punch", "protect", "shoot"])
 
 [node name="Punch" type="Node" parent="StateMachine" unique_id=804022935 node_paths=PackedStringArray("punch_area", "state_machine")]
 script = ExtResource("10_j0mij")

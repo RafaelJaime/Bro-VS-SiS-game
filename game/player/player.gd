@@ -45,8 +45,10 @@ const PUSH_SPEED: float = 90.0
 # Smash: you face the way you move. No turning while an action owns the body.
 const TURN_DEADZONE: float = 0.1
 const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated"]
-const RESPAWN_INVULNERABILITY: float = 1.5
 const INVULNERABILITY_BLINK_INTERVAL: float = 0.15
+
+## How a jump request resolves this frame (see peek_jump / consume_jump).
+enum JumpKind { NONE, GROUND, AIR }
 
 var initial_position: Vector2
 # Ring-out bounds (blast zone). Falling or being knocked past any side costs a
@@ -71,6 +73,19 @@ var facing: int = 1
 # Name of the food currently held above the head, or "" when empty-handed.
 var held_food: String = ""
 
+# Air bookkeeping, ticked once per frame by _tick_movement. Tuning is in the
+# profile; these are only the counters.
+var jumps_left: int = 0
+var air_dash_available: bool = true
+var coyote_timer: float = 0.0
+var jump_buffer_timer: float = 0.0
+# Set by a ground jump so the floor contact of the take-off frame cannot refill
+# the coyote time (that would allow ground jump + coyote jump + double jump).
+var _coyote_blocked: bool = false
+
+var _invuln_timer: Timer
+var _blink_tween: Tween
+
 # Runs parent-first, before the state machine children use `profile`.
 func _enter_tree() -> void:
 	if profile == null:
@@ -78,6 +93,15 @@ func _enter_tree() -> void:
 
 func _ready():
 	initial_position = position
+	jumps_left = profile.max_air_jumps if profile.can_double_jump else 0
+	air_dash_available = profile.can_dash
+
+	# One node-owned timer ends invulnerability, so it pauses with the game, dies
+	# with the fighter and a newer grant can never be cut short by an older one.
+	_invuln_timer = Timer.new()
+	_invuln_timer.one_shot = true
+	add_child(_invuln_timer)
+	_invuln_timer.timeout.connect(_on_invulnerability_timeout)
 
 	# Aplicar configuración del personaje si ya está asignado
 	if character_ui:
@@ -94,6 +118,7 @@ func _physics_process(delta: float) -> void:
 	# The only controller sample per frame; parent-first physics order makes
 	# this intent visible to the state machine child in the same frame.
 	intent = FighterIntent.new() if (controls_locked or controller == null) else controller.sample(delta)
+	_tick_movement(delta)
 
 	if ai_controller_2d.needs_reset:
 		ai_controller_2d.reset()
@@ -104,6 +129,53 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_apply_soft_push(delta)
 	_check_blast_zone()
+
+# Floor contact is the result of the previous frame's move_and_slide. Landing
+# refills the air jump, air dash and coyote time; leaving the floor only runs the
+# coyote time down. A press always refreshes the jump buffer.
+func _tick_movement(delta: float) -> void:
+	if intent.jump_pressed:
+		jump_buffer_timer = profile.jump_buffer
+	else:
+		jump_buffer_timer = maxf(0.0, jump_buffer_timer - delta)
+
+	if is_on_floor():
+		if not _coyote_blocked:
+			coyote_timer = profile.coyote_time
+		restore_air_actions()
+	else:
+		_coyote_blocked = false
+		coyote_timer = maxf(0.0, coyote_timer - delta)
+
+## Refills the double jump and the air dash (landing, being hit, respawning).
+func restore_air_actions() -> void:
+	jumps_left = profile.max_air_jumps if profile.can_double_jump else 0
+	air_dash_available = profile.can_dash
+
+## What a jump would be right now, without spending anything. NONE unless a jump
+## was requested within the buffer window. GROUND on the floor or inside the
+## coyote window; AIR only on a fresh press with an air jump left.
+func peek_jump() -> JumpKind:
+	if jump_buffer_timer <= 0.0:
+		return JumpKind.NONE
+	if is_on_floor() or coyote_timer > 0.0:
+		return JumpKind.GROUND
+	if intent.jump_pressed and jumps_left > 0:
+		return JumpKind.AIR
+	return JumpKind.NONE
+
+## Resolves and spends the jump. Called once from Jump._enter.
+func consume_jump() -> JumpKind:
+	var kind := peek_jump()
+	match kind:
+		JumpKind.GROUND:
+			coyote_timer = 0.0
+			_coyote_blocked = true
+			jump_buffer_timer = 0.0
+		JumpKind.AIR:
+			jumps_left -= 1
+			jump_buffer_timer = 0.0
+	return kind
 
 func _update_facing() -> void:
 	if absf(intent.move_x) > TURN_DEADZONE and not _is_turn_locked():
@@ -175,8 +247,8 @@ func get_state_snapshot() -> Dictionary:
 			"punch": _cooldown_left("Punch"),
 			"shoot": _cooldown_left("Shoot"),
 		},
-		"jumps_left": 0, # Placeholder until the double jump exists.
-		"air_dash_available": false, # Placeholder until the air dash exists.
+		"jumps_left": jumps_left,
+		"air_dash_available": air_dash_available,
 		"is_invulnerable": is_invulnerable,
 		"controller": controller.kind_name() if controller else "none",
 	}
@@ -196,8 +268,8 @@ func reset_player():
 	damage_changed.emit(damage_percent)
 	stocks = MAX_STOCKS
 	stocks_changed.emit(self, stocks)
-	is_invulnerable = false
-	animated_sprite_2d.visible = true
+	_stop_invulnerability()
+	restore_air_actions()
 	clear_held_food()
 	velocity = Vector2.ZERO
 	position = initial_position
@@ -244,24 +316,41 @@ func _respawn() -> void:
 	damage_percent = 0.0
 	damage_changed.emit(damage_percent)
 	clear_held_food()
+	restore_air_actions()
 	velocity = Vector2.ZERO
 	position = initial_position + Vector2(0, RESPAWN_HEIGHT_OFFSET)
 	if state_machine:
 		state_machine._change_state("Fall")
-	_start_invulnerability()
+	grant_invulnerability(profile.respawn_invulnerability)
 
-func _start_invulnerability() -> void:
+## Makes the fighter immune to hits for `duration` seconds. A newer grant never
+## shortens a running one (the longer remaining time wins), and an older timer
+## can never end a newer grant because there is only one timer. The blink tween
+## is owned by this node, so it pauses with the game and dies with the fighter.
+func grant_invulnerability(duration: float, blink: bool = true) -> void:
 	is_invulnerable = true
-	var blink_tween = get_tree().create_tween()
-	var loops = int(RESPAWN_INVULNERABILITY / INVULNERABILITY_BLINK_INTERVAL)
-	blink_tween.set_loops(loops)
-	blink_tween.tween_property(animated_sprite_2d, "visible", false, 0.0)
-	blink_tween.tween_interval(INVULNERABILITY_BLINK_INTERVAL / 2.0)
-	blink_tween.tween_property(animated_sprite_2d, "visible", true, 0.0)
-	blink_tween.tween_interval(INVULNERABILITY_BLINK_INTERVAL / 2.0)
-	await get_tree().create_timer(RESPAWN_INVULNERABILITY).timeout
-	animated_sprite_2d.visible = true
+	_invuln_timer.start(maxf(_invuln_timer.time_left, duration))
+	if _blink_tween:
+		_blink_tween.kill()
+		_blink_tween = null
+	if blink:
+		_blink_tween = create_tween().set_loops()
+		_blink_tween.tween_property(animated_sprite_2d, "visible", false, 0.0)
+		_blink_tween.tween_interval(INVULNERABILITY_BLINK_INTERVAL / 2.0)
+		_blink_tween.tween_property(animated_sprite_2d, "visible", true, 0.0)
+		_blink_tween.tween_interval(INVULNERABILITY_BLINK_INTERVAL / 2.0)
+
+func _on_invulnerability_timeout() -> void:
+	_stop_invulnerability()
+
+func _stop_invulnerability() -> void:
+	if _invuln_timer:
+		_invuln_timer.stop()
+	if _blink_tween:
+		_blink_tween.kill()
+		_blink_tween = null
 	is_invulnerable = false
+	animated_sprite_2d.visible = true
 
 func is_holding_food() -> bool:
 	return held_food != ""

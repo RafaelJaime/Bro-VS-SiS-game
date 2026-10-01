@@ -31,6 +31,16 @@ func _enter() -> void:
 
 	start_action()
 
+func _update(delta: float) -> void:
+	super._update(delta)
+	# Grounded throws plant the fighter; air throws keep falling with air control.
+	calculate_gravity(delta)
+	if is_on_floor():
+		calculate_velocity(0.0, Vector2.ZERO, delta)
+	else:
+		set_direction()
+		calculate_velocity(profile.run_speed, state_machine.direction, delta)
+
 func setup_timers() -> void:
 	if not action_timer:
 		action_timer = Timer.new()
@@ -93,4 +103,4 @@ func _on_action_timer_timeout() -> void:
 	end_action()
 
 func end_action() -> void:
-	finished.emit("Idle")
+	exit_to_neutral()
