@@ -8,11 +8,11 @@ class_name FighterHud
 ## hit) and one mini face per stock.
 
 const FACE_DIR := "res://assets/images/game/characters/%s/face/%s_014.png"
-const PANEL_SIZE := Vector2(268.0, 130.0)
-const PANEL_MARGIN := 12.0
-const PORTRAIT_SIZE := 92.0
-const STOCK_SIZE := 24.0
-const PERCENT_FONT_SIZE := 56
+const PANEL_SIZE := Vector2(232.0, 100.0)
+const PANEL_MARGIN := 10.0
+const PORTRAIT_SIZE := 70.0
+const STOCK_SIZE := 20.0
+const PERCENT_FONT_SIZE := 48
 
 # Damage % at which the number reaches each colour of the ramp.
 const COLOR_STOPS: Array[Dictionary] = [
@@ -76,16 +76,16 @@ func _build() -> void:
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.04, 0.07, 0.62)
-	style.set_corner_radius_all(14)
+	style.bg_color = Color(0.04, 0.04, 0.07, 0.5)
+	style.set_corner_radius_all(12)
 	style.set_border_width_all(2)
 	style.border_color = Color(1.0, 1.0, 1.0, 0.25)
 	background.add_theme_stylebox_override("panel", style)
 	panel.add_child(background)
 
 	var portrait_x := 10.0 if left else PANEL_SIZE.x - 10.0 - PORTRAIT_SIZE
-	var text_x := PORTRAIT_SIZE + 20.0 if left else 10.0
-	var text_width := PANEL_SIZE.x - PORTRAIT_SIZE - 30.0
+	var text_x := PORTRAIT_SIZE + 18.0 if left else 8.0
+	var text_width := PANEL_SIZE.x - PORTRAIT_SIZE - 26.0
 
 	portrait = TextureRect.new()
 	portrait.name = "Portrait"
@@ -97,18 +97,18 @@ func _build() -> void:
 	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	panel.add_child(portrait)
 
-	name_label = _make_label("NameLabel", 22, text_x, 2.0, text_width, left)
-	percent_label = _make_label("PercentLabel", PERCENT_FONT_SIZE, text_x, 22.0, text_width, left)
+	name_label = _make_label("NameLabel", 18, text_x, 0.0, text_width, left)
+	percent_label = _make_label("PercentLabel", PERCENT_FONT_SIZE, text_x, 14.0, text_width, left)
 	percent_label.text = "0%"
-	percent_label.add_theme_constant_override("outline_size", 10)
+	percent_label.add_theme_constant_override("outline_size", 8)
 	percent_label.resized.connect(_center_percent_pivot)
 
 	stock_icons = HBoxContainer.new()
 	stock_icons.name = "Stocks"
 	stock_icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stock_icons.alignment = BoxContainer.ALIGNMENT_BEGIN if left else BoxContainer.ALIGNMENT_END
-	stock_icons.add_theme_constant_override("separation", 6)
-	stock_icons.position = Vector2(text_x, PANEL_SIZE.y - STOCK_SIZE - 8.0)
+	stock_icons.add_theme_constant_override("separation", 5)
+	stock_icons.position = Vector2(text_x, PANEL_SIZE.y - STOCK_SIZE - 6.0)
 	stock_icons.size = Vector2(text_width, STOCK_SIZE)
 	panel.add_child(stock_icons)
 	for i in Fighter.MAX_STOCKS:
