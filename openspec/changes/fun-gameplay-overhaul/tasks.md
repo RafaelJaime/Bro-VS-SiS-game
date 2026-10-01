@@ -164,18 +164,18 @@ Verification: `tests/smoke/table_stage.gd`, `hud_framing.gd` (CPU vs CPU, 30 s, 
 
 Specs: match-flow (countdown, sudden death, rematch, pause, instructions), food-fight-items (F2, F3, F8, SFX pitch). Design Decisions 15, 16, 21, 22.
 
-- [ ] 4.1 Edit `game/player/player.gd`: `set_stocks(n)` emits `stocks_changed`.
-- [ ] 4.2 Edit `game/game.gd` and `game/game.tscn`: `Phase` enum (COUNTDOWN, PLAYING, SUDDEN_DEATH, OVER); `Timer.autostart = false`; `UI/CountdownLabel` (centered, font size 96); countdown "3-2-1-GO" with pausable timers (`create_timer(step, false)`); lock and unlock fighters; training path starts immediately as today. Update the Game snapshot `phase`, `sudden_death`, `timer_running`.
-- [ ] 4.3 Edit `game/game.gd`: timeout logic (unequal stocks, equal stocks to sudden death with both at 1 stock, timer off, `TimerLabel` hidden, "SUDDEN DEATH" shown 1 s), `phase != OVER` guard in `_on_player_defeated`, null-guard `game_over` in training rows (F3). Edit `ui/global/timer_label.gd`: show `wait_time` while stopped.
-- [ ] 4.4 Edit `game/food/food_spawner.gd`: `start()` instead of self-start. (The F2 part, `food.position` instead of `global_position`, is done in S-A A.2.)
+- [x] 4.1 Edit `game/player/player.gd`: `set_stocks(n)` emits `stocks_changed`.
+- [x] 4.2 Edit `game/game.gd` and `game/game.tscn`: `Phase` enum (COUNTDOWN, PLAYING, SUDDEN_DEATH, OVER); `Timer.autostart = false`; `UI/CountdownLabel` (centered, font size 96); countdown "3-2-1-GO" with pausable timers (`create_timer(step, false)`); lock and unlock fighters; training path starts immediately as today. Update the Game snapshot `phase`, `sudden_death`, `timer_running`.
+- [x] 4.3 Edit `game/game.gd`: timeout logic (unequal stocks, equal stocks to sudden death with both at 1 stock, timer off, `TimerLabel` hidden, "SUDDEN DEATH" shown 1 s), `phase != OVER` guard in `_on_player_defeated`, null-guard `game_over` in training rows (F3). Edit `ui/global/timer_label.gd`: show `wait_time` while stopped.
+- [x] 4.4 Edit `game/food/food_spawner.gd`: `start()` instead of self-start. (The F2 part, `food.position` instead of `global_position`, is done in S-A A.2.)
 - [x] 4.5 **Moved to S-A (A.8).** Superseded layer plan: world 1, fighter body 2 (mask world), food 3, hurtbox 4. Original text: Edit `game/food/food_pickup.tscn`, `food_projectile.tscn`, `game/player/player.tscn`, `project.godot`: layers per Decision 21 (fighters on layer 2, food on layer 3, masks per table) and `[layer_names]`. Verify [S]: table in design matches every node's `collision_layer`/`collision_mask`; `train.tscn` inherits without edits.
-- [ ] 4.6 Edit `game/audio/sfx.gd`: `EVENTS` table with the design bands, `play_event()`, `is_training()` (moved from `Combat`), keep `play()`. Edit `game/combat/combat.gd`, `shoot.gd`, `jump.gd`, `player.gd`: call `play_event` for hit, heavy_hit, block, pickup, throw, jump, double_jump, ko. Verify [S]: bands do not overlap per source sound.
-- [ ] 4.7 Edit `game/ui/pause/pause.gd`: Esc toggles pause and unpause, `set_input_as_handled()`, ignored while game over is visible.
-- [ ] 4.8 Edit `scripts/SceneManager/scene_manager.gd`: `rematch()` replays `last_match`. Edit `game/ui/game_over/game_over.gd` and `game_over.tscn`: Replay calls `SceneManager.rematch()`, new "Characters" button opens character select; both unpause first.
-- [ ] 4.9 Fix the typo: `ui/instructions/instructions.tscn` title; rename `IntructionsButton` and `_on_intructions_button_pressed` in `ui/main_menu/main_menu.tscn` and `ui/main_menu/main_menu_buttons.gd`; add instruction lines for double jump, dash (double-tap), air actions. Verify [S]: `rg -i "Intructions"` returns nothing anywhere.
-- [ ] 4.10 Static review [S]: hit-stop and invulnerability untouched; training path equals baseline behavior.
-- [ ] 4.11 Remove temporary code and finalize comments.
-- [ ] 4.12 Static audit: no `print(` in per-frame paths; no new files under `assets/`.
+- [x] 4.6 Edit `game/audio/sfx.gd`: `EVENTS` table with the design bands, `play_event()`, `is_training()` (moved from `Combat`), keep `play()`. Edit `game/combat/combat.gd`, `shoot.gd`, `jump.gd`, `player.gd`: call `play_event` for hit, heavy_hit, block, pickup, throw, jump, double_jump, ko. Verify [S]: bands do not overlap per source sound.
+- [x] 4.7 Edit `game/ui/pause/pause.gd`: Esc toggles pause and unpause, `set_input_as_handled()`, ignored while game over is visible.
+- [x] 4.8 Edit `scripts/SceneManager/scene_manager.gd`: `rematch()` replays `last_match`. Edit `game/ui/game_over/game_over.gd` and `game_over.tscn`: Replay calls `SceneManager.rematch()`, new "Characters" button opens character select; both unpause first.
+- [x] 4.9 Fix the typo: `ui/instructions/instructions.tscn` title; rename `IntructionsButton` and `_on_intructions_button_pressed` in `ui/main_menu/main_menu.tscn` and `ui/main_menu/main_menu_buttons.gd`; add instruction lines for double jump, dash (double-tap), air actions. Verify [S]: `rg -i "Intructions"` returns nothing anywhere.
+- [x] 4.10 Static review [S]: hit-stop and invulnerability untouched; training path equals baseline behavior.
+- [x] 4.11 Remove temporary code and finalize comments.
+- [x] 4.12 Static audit: no `print(` in per-frame paths; no new files under `assets/`.
 - [ ] 4.13 Manual playtest S4 [P] (user): every match starts 3-2-1-GO with fighters locked; pause during countdown freezes digits; timeout tie goes to sudden death; double KO ends once; rematch keeps characters and controllers; "Characters" returns to select; Esc opens and closes pause; food passes through fighters and does not ride heads; pitch bands audibly different per event; food spawns in the correct place inside a train row (F2).
 
 ## Phase S5a: Match camera (moved to S-A)
