@@ -3,7 +3,7 @@ class_name Fighter
 
 signal updated_characterUI
 signal damage_changed(new_percent: float)
-signal stock_lost(player_instance: Fighter, stocks_left: int)
+signal stocks_changed(player_instance: Fighter, stocks_left: int)
 signal player_defeated(player_instance: Fighter)
 
 @export var character_ui: CharacterUI:
@@ -69,6 +69,7 @@ func reset_player():
 	damage_percent = 0.0
 	damage_changed.emit(damage_percent)
 	stocks = MAX_STOCKS
+	stocks_changed.emit(self, stocks)
 	is_invulnerable = false
 	animated_sprite_2d.visible = true
 	clear_held_food()
@@ -99,7 +100,7 @@ func _check_blast_zone() -> void:
 
 func _lose_stock() -> void:
 	stocks -= 1
-	stock_lost.emit(self, stocks)
+	stocks_changed.emit(self, stocks)
 	if stocks <= 0:
 		velocity = Vector2.ZERO
 		if state_machine and state_machine.state_map.has("Defeated"):

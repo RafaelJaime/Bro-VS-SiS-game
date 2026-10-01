@@ -206,7 +206,7 @@ position = Vector2(0, -110)
 scale = Vector2(0.35, 0.35)
 visible = false
 
-[node name="PlayerUI" type="CanvasLayer" parent="." unique_id=821320165 node_paths=PackedStringArray("leftHealth", "rightHealth", "leftTextureRect", "rightTextureRect", "leftNameLabel", "rightNameLabel", "leftProgressBar", "rightProgressBar")]
+[node name="PlayerUI" type="CanvasLayer" parent="." unique_id=821320165 node_paths=PackedStringArray("leftHealth", "rightHealth", "leftTextureRect", "rightTextureRect", "leftNameLabel", "rightNameLabel", "leftProgressBar", "rightProgressBar", "leftPercentLabel", "rightPercentLabel", "leftStockIcons", "rightStockIcons")]
 script = ExtResource("20_eeltd")
 leftHealth = NodePath("LeftHealth")
 rightHealth = NodePath("RightHealth")
@@ -216,6 +216,10 @@ leftNameLabel = NodePath("LeftHealth/MarginContainer/VBoxContainer/LeftNameLabel
 rightNameLabel = NodePath("RightHealth/MarginContainer/VBoxContainer/RightNameLabel")
 leftProgressBar = NodePath("LeftHealth/MarginContainer/VBoxContainer/LeftProgressBar")
 rightProgressBar = NodePath("RightHealth/MarginContainer/VBoxContainer/RightProgressBar")
+leftPercentLabel = NodePath("LeftHealth/MarginContainer/VBoxContainer/LeftPercentLabel")
+rightPercentLabel = NodePath("RightHealth/MarginContainer/VBoxContainer/RightPercentLabel")
+leftStockIcons = NodePath("LeftHealth/MarginContainer/VBoxContainer/LeftStockIcons")
+rightStockIcons = NodePath("RightHealth/MarginContainer/VBoxContainer/RightStockIcons")
 
 [node name="LeftHealth" type="Control" parent="PlayerUI" unique_id=1279879511]
 layout_mode = 3
@@ -257,6 +261,30 @@ theme_override_styles/background = SubResource("StyleBoxFlat_epc1c")
 theme_override_styles/fill = SubResource("StyleBoxFlat_kjljb")
 value = 50.0
 show_percentage = false
+
+[node name="LeftPercentLabel" type="Label" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer" unique_id=1413876695]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0%"
+
+[node name="LeftStockIcons" type="HBoxContainer" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer" unique_id=1413876696]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StockIcon0" type="ColorRect" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer/LeftStockIcons" unique_id=1413876697]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(0, 0, 1, 1)
+
+[node name="StockIcon1" type="ColorRect" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer/LeftStockIcons" unique_id=1413876698]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(0, 0, 1, 1)
+
+[node name="StockIcon2" type="ColorRect" parent="PlayerUI/LeftHealth/MarginContainer/VBoxContainer/LeftStockIcons" unique_id=1413876699]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(0, 0, 1, 1)
 
 [node name="RightHealth" type="Control" parent="PlayerUI" unique_id=925578206]
 layout_mode = 3
@@ -305,6 +333,32 @@ value = 50.0
 fill_mode = 1
 show_percentage = false
 
+[node name="RightPercentLabel" type="Label" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer" unique_id=1906719847]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0%"
+horizontal_alignment = 2
+
+[node name="RightStockIcons" type="HBoxContainer" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer" unique_id=1906719848]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 6
+
+[node name="StockIcon0" type="ColorRect" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer/RightStockIcons" unique_id=1906719849]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(1, 0, 0, 1)
+
+[node name="StockIcon1" type="ColorRect" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer/RightStockIcons" unique_id=1906719850]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(1, 0, 0, 1)
+
+[node name="StockIcon2" type="ColorRect" parent="PlayerUI/RightHealth/MarginContainer/VBoxContainer/RightStockIcons" unique_id=1906719851]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(1, 0, 0, 1)
+
 [node name="RightMark" type="Marker2D" parent="." unique_id=1991100822]
 position = Vector2(60, 1)
 
@@ -322,3 +376,4 @@ process_material = SubResource("ParticleProcessMaterial_0e4oy")
 
 [connection signal="updated_characterUI" from="." to="PlayerUI" method="_on_player_updated_character_ui"]
 [connection signal="damage_changed" from="." to="PlayerUI" method="_on_damage_changed"]
+[connection signal="stocks_changed" from="." to="PlayerUI" method="_on_stocks_changed"]

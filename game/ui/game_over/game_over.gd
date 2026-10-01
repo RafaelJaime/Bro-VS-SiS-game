@@ -9,9 +9,9 @@ extends Control
 
 # Set by Game right before this is made visible when the match ended by
 # stock elimination, so the correct (unambiguous) winner is shown instead of
-# falling back to the damage % comparison below. Full stocks-first win logic
-# (more stocks wins, tie -> lower %, else draw) lands in T4; this only fixes
-# the elimination case, which T2's ring-out/stocks made reachable.
+# falling back to the stocks/damage % comparison below (an eliminated player
+# can still have a lower % than the survivor, so that comparison alone would
+# get an elimination backwards).
 var forced_winner: Fighter = null
 
 func _ready():
@@ -24,18 +24,25 @@ func _on_visibility_changed():
 	if visible and player1 and player2:
 		var winner: Fighter = forced_winner
 		if winner == null:
-			if player1.damage_percent == player2.damage_percent:
+			winner = _resolve_timeout_winner()
+			if winner == null:
 				winner_name_label.text = ""
 				winner_label.text = "Draw"
 				up_gpu_particles_2d_5.modulate = Color(1, 1, 1, 1)
 				return
-			# Interim rule for a timeout (no elimination) until T4: lower % wins.
-			winner = player1 if player1.damage_percent < player2.damage_percent else player2
 		winner_name_label.text = winner.character_ui.name
 		winner_name_label.add_theme_color_override("font_color", winner.character_ui.color)
 		up_gpu_particles_2d_5.modulate = winner.character_ui.color
 	else:
 		push_error("P1 or P2 is not configured")
+
+# Timer-end rule (design doc): more stocks wins; tie -> lower %; else draw.
+func _resolve_timeout_winner() -> Fighter:
+	if player1.stocks != player2.stocks:
+		return player1 if player1.stocks > player2.stocks else player2
+	if player1.damage_percent != player2.damage_percent:
+		return player1 if player1.damage_percent < player2.damage_percent else player2
+	return null
 
 func _on_replay_button_pressed() -> void:
 	SceneManager.change_scene("res://ui/character_select/character_select.tscn")

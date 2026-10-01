@@ -35,7 +35,7 @@ depth must come from physics, items, and stage — not animation-heavy combos.
 - [x] T1 Damage % + scaled knockback + block fix (replace HP)
 - [x] T2 Ring-out stage: remove walls, platforms, blast zone, stocks, respawn + invulnerability
 - [x] T3 Food items: catalog resource, spawner, pickup/hold/throw (replaces shoot)
-- [ ] T4 HUD: % display + stock icons; game-over by stocks/timer
+- [x] T4 HUD: % display + stock icons; game-over by stocks/timer
 - [ ] T5 Juice: hit-stop, SFX, music
 - [ ] T6 AI controller compat + protect action bug fix
 
@@ -64,7 +64,7 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
   - `game/ui/game_over/game_over.gd`, `game/game.gd`: added `GameOver.forced_winner` / `set_forced_winner()`. `_on_player_defeated` now sets the forced winner to the defeated player's enemy before showing game-over (fixes a real bug T2 would otherwise introduce: the old "lower % wins" interim rule from T1 is actively wrong on an elimination, since the eliminated player can have *lower* % than the survivor). Timeout still clears the forced winner and falls back to the T1 interim "lower % wins" rule; full stocks-first win rule is still T4's job.
   - Deviation: respawn invulnerability duration/blink cadence, blast-zone margins, platform size/height, and the narrowed-floor/platform coordinates are first-pass numeric defaults (documented above) chosen from static geometry math only (no CLI/editor render available) — flagged for playtest tuning.
   - `train.tscn` needed no changes (no per-instance overrides of the removed Wall nodes, Floor shape, Fighter positions, or the renamed connection/method — verified by grep).
-- T3 done; commit `<T3_COMMIT_HASH>`.
+- T3 done; commit `a004c57`.
   - `game/food/food_catalog.gd` (new, `class_name FoodCatalog`): static `FOOD_ITEMS` dict mapping all 20 sprite names to a `WeightClass` (7 light/9 medium/4 heavy, matching the design doc exactly) and `WEIGHT_STATS` (damage %, throw speed, knockback, arc gravity_scale) per class — light 6%/fast/flat, medium 10%, heavy 16%/slow-arc. Textures loaded via `load()` at runtime only (never preload/ext_resource), per T0's note that the food PNGs have no `.import` files yet.
   - `game/food/food_pickup.gd` + `.tscn` (new): `FoodPickup` (`CharacterBody2D`) falls under gravity and lands on the floor/platforms using the project's existing default collision layer (same as Fighter). Not auto-picked-up on touch.
   - `game/food/food_projectile.gd` + `.tscn` (new): `FoodProjectile` (`Area2D`) is the thrown-food flying object — direction/speed/arc from `FoodCatalog`, hits go through `Combat.apply_hit` (so blocking/invulnerability both apply correctly to thrown food, not just punches). Not a reuse of `game/projectile/projectile.tscn`'s fire-VFX scene (judgment call: that scene's particle/shader setup is thematically a fireball and not worth retrofitting per-food-color; the *pattern* — Area2D + direction*speed + body_entered — is reused, just not the literal asset). `game/projectile/` (now fully unreferenced) deleted.
@@ -75,5 +75,13 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
   - `ui/instructions/instructions.tscn`: updated the two "G/K (Shoot)" control-hint labels to "G/K (Pick up / Throw)" since the key's behavior changed.
   - Deviation: spawn x-range (180-620), spawn height, platform/pickup/projectile collision radii, and throw speed/arc numbers are first-pass defaults from the design doc's qualitative guidance (static review only, no editor render) — flagged for playtest tuning, same as T2's geometry.
 
+- T4 done; commit `<T4_COMMIT_HASH>`.
+  - `game/player/player.gd`: renamed `stock_lost` → `stocks_changed` (not yet wired anywhere when T2 added it, so free to rename) and now also emitted from `reset_player()`, not just `_lose_stock()`, so the HUD refreshes stock icons on a full reset too.
+  - `game/player/player_ui.gd`: `set_ui()` now also tints/initializes a percent `Label` and a row of `ColorRect` "pip" stock icons (tinted with `character_ui.color`, not `face_texture`, since the in-game `CharacterUI` resources for Rafael/Matilde don't set `face_texture` — verified by reading `game/game.tscn`'s `Resource_vktc5`/`Resource_kaw54`). `update_damage()` updates the percent label text (`"%d%%"`) alongside the existing bar; new `_on_stocks_changed()` toggles pip visibility (`i < stocks_left`).
+  - `game/player/player.tscn`: added `LeftPercentLabel`/`RightPercentLabel` and `LeftStockIcons`/`RightStockIcons` (`HBoxContainer` of 3 `ColorRect`, 16×16) under each side's existing `VBoxContainer`; wired all four as new `PlayerUI` node_paths; added the `Fighter.stocks_changed → PlayerUI._on_stocks_changed` connection.
+  - `game/ui/game_over/game_over.gd`: implemented the full design-doc timeout rule via `_resolve_timeout_winner()` — more stocks wins; tied stocks → lower % wins; both tied → draw. `forced_winner` (set by `game.gd` on an actual elimination) still takes priority and skips this comparison entirely, since an eliminated player can have a lower % than the stock-having survivor.
+  - Deviation: stock icons are plain colored squares, not character art — no suitable small icon/portrait asset exists yet (`CharacterUI.face_texture` is unpopulated for both playable characters). Flagged for a future art pass; functionally correct and visually legible in the meantime.
+  - Deviation: percent label format is a plain `"NN%"` integer (rounded); no color-ramping by percent (e.g. Smash's white→red) — not in the design doc's explicit scope, left for a later juice pass if wanted.
+
 ## Next step
-T4: HUD (% display + stock icons; game-over by stocks/timer), then T5–T6.
+T5: juice (hit-stop, SFX, music), then T6.
