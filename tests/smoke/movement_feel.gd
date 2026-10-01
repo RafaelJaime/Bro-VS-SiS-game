@@ -101,6 +101,8 @@ func _coyote(s: RefCounted) -> void:
 
 	var late := await _walk_off_edge(s)
 	var late_fighter: Fighter = late[2]
+	# Holding away from the table keeps the fighter from grabbing the table leg.
+	late[1].move_x = -1.0
 	await s.frames(20)
 	late[1].jump_held_level = true
 	late[1].press_jump()

@@ -16,6 +16,11 @@ class IntentController extends FighterController:
 	var jump_held_level: bool = false
 	## Level: keeps the block key down.
 	var block_held_level: bool = false
+	## Level: keeps the punch key down (a charge). Release by setting it false.
+	var attack_held_level: bool = false
+	## Level: the held direction key (up, down, side).
+	var aim: FighterIntent.Aim = FighterIntent.Aim.NEUTRAL
+	var _special: bool = false
 	var _punch: bool = false
 	var _jump: bool = false
 	var _throw: bool = false
@@ -24,6 +29,12 @@ class IntentController extends FighterController:
 
 	func press_punch() -> void:
 		_punch = true
+
+	## Up + punch, the recovery chord (also an ordinary punch if recovery is spent).
+	func press_special() -> void:
+		_punch = true
+		_special = true
+		aim = FighterIntent.Aim.UP
 
 	func press_jump() -> void:
 		_jump = true
@@ -41,6 +52,9 @@ class IntentController extends FighterController:
 		var intent := FighterIntent.new()
 		intent.move_x = move_x
 		intent.attack_pressed = _punch
+		intent.attack_held = attack_held_level
+		intent.aim = aim
+		intent.special_pressed = _special
 		intent.jump_pressed = _jump
 		intent.jump_held = _jump or jump_held_level
 		intent.throw_pressed = _throw
@@ -48,6 +62,7 @@ class IntentController extends FighterController:
 		intent.block_pressed = _block
 		intent.block_held = _block or block_held_level
 		_punch = false
+		_special = false
 		_jump = false
 		_throw = false
 		_dash = false

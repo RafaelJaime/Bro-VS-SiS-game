@@ -229,7 +229,7 @@ func _winner_by_stocks() -> void:
 	s.check("timeout with unequal stocks: more stocks wins", game.winner == fighter_2, "winner=%s" % [game.winner])
 	s.check("timeout with unequal stocks: stocks and damage untouched", fighter_1.stocks == 2 and fighter_2.stocks == 3 and is_equal_approx(fighter_2.damage_percent, 80.0))
 	await _wait_results(game)
-	s.check("timeout with unequal stocks: the results name the winner", game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel").text == fighter_2.character_ui.name)
+	s.check("timeout with unequal stocks: the results name the winner", game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel").text == fighter_2.character_ui.name.to_upper())
 	await _leave(game)
 
 func _double_ko() -> void:
@@ -269,9 +269,19 @@ func _game_and_results() -> void:
 	s.check("the match is decided exactly once", overs[0] == 1, "count=%d" % overs[0])
 	var portrait: TextureRect = game.game_over.get_node("CenterContainer/VBoxContainer/WinnerPortrait")
 	s.check("the results show the winner's art", portrait.texture != null)
-	s.check("the results name the winner", game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel").text == fighter_1.character_ui.name)
+	s.check("the results name the winner", game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel").text == fighter_1.character_ui.name.to_upper())
+	var result_name: Label = game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel")
+	var result_wins: Label = game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerLabel")
+	s.check("the results read '<NAME> WINS!' in big letters", (result_name.text + result_wins.text).strip_edges() == fighter_1.character_ui.name.to_upper() + " WINS!" and result_name.get_theme_font_size("font_size") >= 56, "text=%s size=%d" % [result_name.text + result_wins.text, result_name.get_theme_font_size("font_size")])
+	var buttons: HBoxContainer = game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer2")
+	s.check("the results have clear text buttons: Rematch, Characters, Main Menu", [buttons.get_child(0).text, buttons.get_child(1).text, buttons.get_child(2).text] == ["Rematch", "Characters", "Main Menu"])
+	var timer_hidden: bool = not game.timer_label.visible
+	var huds_hidden := true
+	for fighter in [fighter_1, fighter_2]:
+		huds_hidden = huds_hidden and not (fighter.get_node("PlayerUI") as CanvasLayer).visible
+	s.check("the in-game timer and fighter panels are hidden behind the results", timer_hidden and huds_hidden, "timer_hidden=%s huds_hidden=%s" % [timer_hidden, huds_hidden])
 	await s.frames(10)
-	await s.screenshot("s4_results")
+	await s.screenshot("s5b_results")
 	await _press_escape()
 	s.check("pause stays closed on the results screen", paused and not _pause_menu(game).visible)
 	await _leave(game)

@@ -88,8 +88,11 @@ func _ring_out_and_respawn(s: RefCounted) -> void:
 
 	# Ring-out through the side blast zone (walking on in the air) also costs a stock.
 	var side_start := runner.stocks
-	runner.position = Vector2(snappedf(0.0, 1.0), 200.0)
-	runner.velocity = Vector2(-900.0, 0.0)
+	# Fast and high, so the fighter is far out before it falls into the reach of a
+	# table leg (the legs are a ledge now, see ledge.gd).
+	runner.position = Vector2(snappedf(0.0, 1.0), 60.0)
+	runner.state_machine.velocity = Vector2(-1800.0, 0.0)
+	runner.velocity = runner.state_machine.velocity
 	await s.frames(120)
 	s.check("side blast zone costs a stock", runner.stocks == side_start - 1, "stocks=%d" % runner.stocks)
 	await s.despawn(game)

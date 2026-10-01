@@ -69,5 +69,13 @@ func _run() -> void:
 	await s.frames(2)
 	s.check("stocks keep decrementing", hud1.visible_stock_count() == 1 and hud2.visible_stock_count() == 3, "p1=%d p2=%d" % [hud1.visible_stock_count(), hud2.visible_stock_count()])
 	await s.screenshot("s2_hud_after_stock_loss")
+
+	# 300%: the darkest red must stay readable (thick outline and a shadow).
+	f2.set_damage_percent(300.0)
+	await s.frames(40)
+	var high: Label = hud2.percent_label
+	var high_color: Color = high.get_theme_color("font_color")
+	s.check("300% is dark red with a thick dark outline and a shadow", high.text == "300%" and high_color.r > 0.4 and high_color.r < 0.6 and high_color.g < 0.1 and high.get_theme_constant("outline_size") >= 10 and high.get_theme_color("font_outline_color").get_luminance() < 0.1 and high.get_theme_color("font_shadow_color").a > 0.5 and high.get_theme_constant("shadow_offset_y") > 0, "color=%s outline=%d" % [high_color, high.get_theme_constant("outline_size")])
+	await s.screenshot("s5b_hud_300")
 	await s.despawn(game)
 	s.finish()
