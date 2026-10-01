@@ -412,6 +412,8 @@ func prepare_sudden_death(damage: float) -> void:
 	clear_held_food()
 	restore_air_actions()
 	velocity = Vector2.ZERO
+	if state_machine:
+		state_machine.velocity = Vector2.ZERO
 	position = initial_position
 	if state_machine:
 		state_machine._change_state("Fall")
@@ -455,6 +457,10 @@ func _respawn() -> void:
 	clear_held_food()
 	restore_air_actions()
 	velocity = Vector2.ZERO
+	# The state machine owns the velocity the states integrate; a stale knockback
+	# there would carry the respawned fighter straight back out.
+	if state_machine:
+		state_machine.velocity = Vector2.ZERO
 	position = initial_position + Vector2(0, RESPAWN_HEIGHT_OFFSET)
 	if state_machine:
 		state_machine._change_state("Fall")
