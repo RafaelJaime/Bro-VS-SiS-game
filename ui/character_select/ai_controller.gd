@@ -6,6 +6,7 @@ extends Control
 @onready var search_button_p1: Button = $ControlP1/SearchButton
 @onready var option_button_p1: OptionButton = $ControlP1/OptionButton
 @onready var back_button_p1: Button = $ControlP1/BackButton
+@onready var controller_option_p1: OptionButton = $ControlP1/ControllerOption
 
 # P2
 @onready var ai_button_p2: Button = $ControlP2/AIButton
@@ -13,6 +14,11 @@ extends Control
 @onready var search_button_p2: Button = $ControlP2/SearchButton
 @onready var option_button_p2: OptionButton = $ControlP2/OptionButton
 @onready var back_button_p2: Button = $ControlP2/BackButton
+@onready var controller_option_p2: OptionButton = $ControlP2/ControllerOption
+
+# Entries of ControllerOption, in order: Human, then CPU Easy, Normal, Hard.
+# Entry N (N >= 1) is the CpuDifficulty.Level N - 1.
+const OPTION_HUMAN := 0
 
 func _ready() -> void:
 	ModelManager.models_loaded.connect(_on_models_loaded)
@@ -30,8 +36,21 @@ func _get_player_controls(is_p2: bool) -> Dictionary:
 		"ai_button": ai_button,
 		"search_button": search_button,
 		"option_button": option_button,
-		"back_button": back_button
+		"back_button": back_button,
+		"controller_option": controller_option_p2 if is_p2 else controller_option_p1,
 	}
+
+## The controller this player picked: Human, a CPU level, or (when a model was
+## chosen from the HuggingFace list) the policy that model drives. The model is
+## explicit: it only wins when the user selected one, never because a file exists.
+func get_controller_config(is_p2: bool) -> ControllerConfig:
+	var controls = _get_player_controls(is_p2)
+	if controls.option_button.selected >= 0:
+		return ControllerConfig.policy(ModelManager.get_model_path(1 if is_p2 else 0))
+	var index: int = controls.controller_option.selected
+	if index <= OPTION_HUMAN:
+		return ControllerConfig.human()
+	return ControllerConfig.cpu(index - 1)
 
 func _on_models_loaded(player_id: int, models: Array) -> void:
 	var is_p2 = player_id == 1
@@ -66,6 +85,7 @@ func initial_menu(is_p2: bool = false) -> void:
 	var controls = _get_player_controls(is_p2)
 	
 	controls.ai_button.visible = true
+	controls.controller_option.visible = true
 	controls.text_edit.visible = false
 	controls.search_button.visible = false
 	controls.option_button.visible = false
@@ -77,6 +97,7 @@ func search_user_menu(is_p2: bool = false) -> void:
 	var controls = _get_player_controls(is_p2)
 	
 	controls.ai_button.visible = false
+	controls.controller_option.visible = false
 	controls.text_edit.visible = true
 	controls.search_button.visible = true
 	controls.option_button.visible = false

@@ -127,10 +127,12 @@ func set_ilustration(character: CharacterUI, sprite: Sprite2D):
 
 func _on_play_button_pressed() -> void:
 	ai_controller.on_play_pressed()
-	
+	var config_1: ControllerConfig = ai_controller.get_controller_config(false)
+	var config_2: ControllerConfig = ai_controller.get_controller_config(true)
+
 	if player1_selected.equals(player2_selected):
 		var player2_copy = player2_selected.duplicate()
 		player2_copy.color = player2_selected.color.inverted()
-		SceneManager.play_game(player1_selected, player2_copy)
+		SceneManager.play_game(player1_selected, player2_copy, config_1, config_2)
 	else:
-		SceneManager.play_game(player1_selected, player2_selected)
+		SceneManager.play_game(player1_selected, player2_selected, config_1, config_2)

@@ -285,6 +285,23 @@ offset_right = 37.0
 offset_bottom = 40.0
 text = "<"
 
+[node name="ControllerOption" type="OptionButton" parent="AIController/ControlP1"]
+visible = false
+layout_mode = 0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = -10.0
+selected = 0
+item_count = 4
+popup/item_0/text = "Human"
+popup/item_0/id = 0
+popup/item_1/text = "CPU Easy"
+popup/item_1/id = 1
+popup/item_2/text = "CPU Normal"
+popup/item_2/id = 2
+popup/item_3/text = "CPU Hard"
+popup/item_3/id = 3
+
 [node name="ControlP2" type="Control" parent="AIController" unique_id=476611909]
 anchors_preset = 0
 offset_left = 550.0
@@ -328,6 +345,23 @@ layout_mode = 0
 offset_right = 37.0
 offset_bottom = 40.0
 text = "<"
+
+[node name="ControllerOption" type="OptionButton" parent="AIController/ControlP2"]
+visible = false
+layout_mode = 0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = -10.0
+selected = 2
+item_count = 4
+popup/item_0/text = "Human"
+popup/item_0/id = 0
+popup/item_1/text = "CPU Easy"
+popup/item_1/id = 1
+popup/item_2/text = "CPU Normal"
+popup/item_2/id = 2
+popup/item_3/text = "CPU Hard"
+popup/item_3/id = 3
 
 [connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="AIController/ControlP1/AIButton" to="AIController" method="_on_ai_button_pressed" binds= [false]]
