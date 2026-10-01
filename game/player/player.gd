@@ -27,6 +27,7 @@ enum PlayerNumber { JUGADOR1, JUGADOR2 }
 
 # Ring-out stage bounds (blast zone). Falling or being knocked past these
 # costs a stock, whether it happened by walking off or by knockback.
+# Bounds are local to the owning Game so offset Game rows (train.tscn) work.
 const MAX_STOCKS: int = 3
 const BLAST_LEFT: float = -150.0
 const BLAST_RIGHT: float = 950.0
@@ -95,7 +96,7 @@ func get_knockback_scale() -> float:
 func _check_blast_zone() -> void:
 	if stocks <= 0:
 		return
-	if global_position.x < BLAST_LEFT or global_position.x > BLAST_RIGHT or global_position.y > BLAST_BOTTOM:
+	if position.x < BLAST_LEFT or position.x > BLAST_RIGHT or position.y > BLAST_BOTTOM:
 		_lose_stock()
 
 func _lose_stock() -> void:
