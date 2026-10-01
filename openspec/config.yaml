@@ -1,0 +1,30 @@
+schema: spec-driven
+context: |
+  Project: BVS / BroVSis (bro-vs-sis-game). 2D fighting game in Godot 4.6 (GL Compatibility), GDScript.
+  Built for RL training (godot_rl_agents addon, ONNX inference). Autoloads: ModelManager, SceneManager.
+  Layout: game/ (combat, food, player, audio, ui), scripts/ (AIController, SceneManager), ui/, addons/.
+  CI: .github/workflows/deploy-pages.yml (web export deploy only; no tests).
+  Active feature branch: feat/kitchen-food-fight (odd/tasks/kitchen-food-fight.md).
+strict_tdd: false   # no test runner or workspace-level test command exists
+projects:
+  - path: .
+    stack: Godot 4.6 / GDScript
+    test_command: null
+    framework: null
+testing:
+  runner: none
+  layers: {unit: false, integration: false, e2e: false}
+  coverage: false
+  linter: false
+  type_checker: false
+  formatter: false
+rules:
+  proposal: {}
+  specs: {}
+  design: {}
+  tasks:
+    delivery_strategy: single-pr
+    review_budget_lines: 400
+  apply: {}
+  verify: {note: "No runner; verify statically. User rule forbids running tests locally."}
+  archive: {}
