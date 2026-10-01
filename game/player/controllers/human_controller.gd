@@ -8,6 +8,10 @@ extends FighterController
 const DOUBLE_TAP_WINDOW := 0.30
 
 var _last_tap_dir: int = 0
+## Game time of the last tap, in seconds of physics ticks. The window follows the
+## simulation clock, not the wall clock, so it does not depend on how fast the
+## frames are produced (a recording or a test running faster than real time
+## would otherwise turn every second step into a dash).
 var _last_tap_time: float = 0.0
 
 func sample(_delta: float) -> FighterIntent:
@@ -54,6 +58,9 @@ static func _aim(up_held: bool, down_held: bool, move_x: float) -> FighterIntent
 func kind_name() -> String:
 	return "human"
 
+static func _game_time() -> float:
+	return float(Engine.get_physics_frames()) / float(Engine.physics_ticks_per_second)
+
 func _detect_double_tap(left: String, right: String) -> bool:
 	var tap := 0
 	if Input.is_action_just_pressed(left):
@@ -63,7 +70,7 @@ func _detect_double_tap(left: String, right: String) -> bool:
 	if tap == 0:
 		return false
 
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := _game_time()
 	if tap == _last_tap_dir and now - _last_tap_time < DOUBLE_TAP_WINDOW:
 		_last_tap_dir = 0
 		_last_tap_time = 0.0
