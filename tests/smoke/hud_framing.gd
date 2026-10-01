@@ -99,10 +99,11 @@ func _run() -> void:
 			on_stage_samples += 1
 			var rect := _fighter_rect(fighters[i])
 			lowest_feet = maxf(lowest_feet, rect.end.y)
-			# A launched fighter (Hurt) may outrun the camera for a moment; every
-			# other on-stage pose must stay inside the screen. Above the top edge is
-			# a high jump, not an occlusion.
-			if s.state_of(fighters[i]) != "Hurt" and (rect.position.x < -1.0 or rect.end.x > screen.x + 1.0 or rect.end.y > screen.y + 1.0):
+			# Only a launched fighter (Hurt) shown by the off-screen bubble may be
+			# out of view; every other on-stage pose must stay inside the screen.
+			# Above the top edge is a high jump, not an occlusion.
+			var bubble: bool = s.state_of(fighters[i]) == "Hurt" and (camera as MatchCamera).is_indicating(fighters[i])
+			if not bubble and (rect.position.x < -1.0 or rect.end.x > screen.x + 1.0 or rect.end.y > screen.y + 1.0):
 				clipped.append("t=%.1f f%d rect=%s" % [mlog.now(), i + 1, rect])
 			for hud_rect in hud_rects:
 				if rect.intersects(hud_rect.grow(HUD_CLEARANCE)):

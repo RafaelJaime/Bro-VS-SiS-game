@@ -5,7 +5,8 @@ extends SceneTree
 ## SHOT_DIR, and checks the whole run:
 ##   - no script error (run_all.sh also greps the engine output),
 ##   - while a fighter is inside the blast zones it is on screen (center, and its
-##     head with a margin), sampled every physics frame,
+##     head with a margin), sampled every physics frame; only a launched (Hurt)
+##     fighter that the camera shows with its off-screen bubble may be out of view,
 ##   - no stray pixels: no saturated blue specks in the top band of any gameplay
 ##     frame, and no particle emitter running during play except the hit sparks,
 ##   - the match flow reaches the results with a winner.
@@ -27,6 +28,7 @@ var s: RefCounted
 var shot_index: int = 0
 var samples: int = 0
 var off_screen: int = 0
+var bubbled: int = 0
 var head_clipped: int = 0
 var first_off: String = ""
 var first_clipped: String = ""
@@ -85,7 +87,10 @@ func _sample(game: Game) -> void:
 		samples += 1
 		var screen := canvas * fighter.position
 		var inside := screen.x >= -SCREEN_MARGIN and screen.x <= size.x + SCREEN_MARGIN and screen.y >= -SCREEN_MARGIN and screen.y <= size.y + SCREEN_MARGIN
-		if not inside:
+		var bubble: bool = fighter.state_machine.current_state.name == &"Hurt" and (game.get_node("Camera2D") as MatchCamera).is_indicating(fighter)
+		if bubble:
+			bubbled += 1
+		if not inside and not bubble:
 			off_screen += 1
 			if first_off == "":
 				first_off = "fighter %d at t=%.1f pos=%s screen=%s" % [index + 1, game.timer.wait_time - game.timer.time_left, fighter.position, screen]
@@ -163,5 +168,5 @@ func _run() -> void:
 	s.check("reel: no stray blue specks in the top band of any gameplay frame", stray_hits.is_empty(), " | ".join(stray_hits))
 	s.check("reel: no stray particle emitter ran during play", emitter_hits.is_empty(), ", ".join(emitter_hits))
 	s.check("reel: a screenshot was saved every 2 game seconds", shot_index >= int(MATCH_CLOCK / SHOT_EVERY) - 3, "%d frames" % shot_index)
-	print("INFO reel frames=%d samples=%d" % [shot_index, samples])
+	print("INFO reel frames=%d samples=%d bubble samples=%d" % [shot_index, samples, bubbled])
 	s.finish()

@@ -125,6 +125,48 @@ func _run() -> void:
 	s.check("the view stays inside the extended world after a high launch", inside)
 	fighter_1.set_physics_process(true)
 
+	await _framing_and_bubble(s, game, camera, fighter_1, fighter_2)
+
 	var snapshot: Dictionary = game.get_state_snapshot()
 	s.check("snapshot has a camera key with center and zoom", snapshot.has("camera") and snapshot["camera"].has("center") and snapshot["camera"].has("zoom"))
 	s.finish()
+
+# Hard fit: fighters standing at the far ends of the table are fully inside the
+# screen (the whole rectangle, not just the center). Then a fighter launched
+# beyond what any zoom can frame gets the off-screen bubble, and only then.
+func _framing_and_bubble(s: RefCounted, game: Node2D, camera: MatchCamera, fighter_1: Fighter, fighter_2: Fighter) -> void:
+	var stage: Dictionary = game.get_state_snapshot()["stage"]
+	fighter_1.set_physics_process(false)
+	fighter_2.set_physics_process(false)
+	var size := camera.get_viewport_rect().size
+	var worst_out := 0.0
+	var bubble_seen := false
+	for i in 120:
+		fighter_1.position = Vector2(stage["left"] + 20.0, camera.stage_top - 90.0)
+		fighter_2.position = Vector2(stage["right"] - 20.0, camera.stage_top - 90.0)
+		fighter_1.velocity = Vector2.ZERO
+		fighter_2.velocity = Vector2.ZERO
+		await s.frames(1)
+		bubble_seen = bubble_seen or camera.is_indicating(fighter_1) or camera.is_indicating(fighter_2)
+	var canvas := game.get_viewport().get_canvas_transform()
+	for fighter in [fighter_1, fighter_2]:
+		var rect := camera.fighter_rect(fighter)
+		var low: Vector2 = canvas * rect.position
+		var high: Vector2 = canvas * rect.end
+		worst_out = maxf(worst_out, maxf(maxf(-low.x, -low.y), maxf(high.x - size.x, high.y - size.y)))
+	s.check("fighters at both ends of the table are fully on screen", worst_out <= 0.0 and not bubble_seen, "worst overshoot=%.1f px zoom=%.2f bubble=%s" % [worst_out, camera.zoom.x, str(bubble_seen)])
+
+	# One fighter far beyond the left blast zone, the other at the right end.
+	var shown := false
+	for i in 120:
+		fighter_1.position = Vector2(camera.world_rect.position.x - 700.0, camera.stage_top - 90.0)
+		fighter_2.position = Vector2(stage["right"] - 20.0, camera.stage_top - 90.0)
+		await s.frames(1)
+		shown = shown or camera.is_indicating(fighter_1)
+	var indicator := camera.get_node("OffscreenLayer/OffscreenIndicator") as OffscreenIndicator
+	await s.screenshot("offscreen_indicator")
+	s.check("a fighter no zoom can frame gets the off-screen bubble", shown and indicator.visible and not camera.is_indicating(fighter_2), "indicating f1=%s f2=%s" % [str(camera.is_indicating(fighter_1)), str(camera.is_indicating(fighter_2))])
+	var bubble_pos := OffscreenIndicator.bubble_position(Vector2(-900.0, 300.0), size, camera.hud_reserve)
+	s.check("the bubble sits on the screen edge, inside the screen", bubble_pos.x < 80.0 and bubble_pos.x >= 0.0 and bubble_pos.y >= 0.0 and bubble_pos.y <= size.y - camera.hud_reserve, "pos=%s" % [bubble_pos])
+	fighter_1.set_physics_process(true)
+	fighter_2.set_physics_process(true)
