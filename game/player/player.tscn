@@ -305,4 +305,4 @@ explosiveness = 1.0
 process_material = SubResource("ParticleProcessMaterial_0e4oy")
 
 [connection signal="updated_characterUI" from="." to="PlayerUI" method="_on_player_updated_character_ui"]
-[connection signal="update_health" from="StateMachine/Hurt" to="PlayerUI" method="_on_hurt_update_health"]
+[connection signal="damage_changed" from="." to="PlayerUI" method="_on_damage_changed"]

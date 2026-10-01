@@ -12,12 +12,13 @@ func _ready():
 
 func _on_visibility_changed():
 	if visible and player1 and player2:
-		if player1.health == player2.health:
+		if player1.damage_percent == player2.damage_percent:
 			winner_name_label.text = ""
 			winner_label.text = "Draw"
 			up_gpu_particles_2d_5.modulate = Color(1, 1, 1, 1)
-		else: 
-			var winner: Fighter = player1 if player1.health > player2.health else player2
+		else:
+			# Interim rule until stocks land (T2/T4): lower damage % wins.
+			var winner: Fighter = player1 if player1.damage_percent < player2.damage_percent else player2
 			winner_name_label.text = winner.character_ui.name
 			winner_name_label.add_theme_color_override("font_color", winner.character_ui.color)
 			up_gpu_particles_2d_5.modulate = winner.character_ui.color

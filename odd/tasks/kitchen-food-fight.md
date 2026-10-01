@@ -32,7 +32,7 @@ depth must come from physics, items, and stage — not animation-heavy combos.
 
 ## Tasks
 - [x] T0 Slice food sheet into 20 transparent 96px PNGs (`assets/images/game/food/`) — route: inline (scripted, mechanical)
-- [ ] T1 Damage % + scaled knockback + block fix (replace HP)
+- [x] T1 Damage % + scaled knockback + block fix (replace HP)
 - [ ] T2 Ring-out stage: remove walls, platforms, blast zone, stocks, respawn + invulnerability
 - [ ] T3 Food items: catalog resource, spawner, pickup/hold/throw (replaces shoot)
 - [ ] T4 HUD: % display + stock icons; game-over by stocks/timer
@@ -45,6 +45,16 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
 ## Progress / Evidence
 - Branch `feat/kitchen-food-fight` created.
 - T0 done; contact sheet visually verified.
+- T1 done; commit `<T1_COMMIT_HASH>`.
+  - `game/player/player.gd`: replaced `health`/`max_health` with `damage_percent` (float, starts 0, no cap), added `add_damage()`, `get_knockback_scale()` (`1 + percent/50`), `damage_changed` signal.
+  - `game/combat/combat.gd` (new): `Combat.apply_hit(attacker, target, damage, knockback_base)` centralizes block/no-block resolution so punch and future thrown food share one path.
+  - `game/player/StateMachine/PlayerStateMachine/States/hurt.gd`: reads `pending_damage`/`pending_knockback` set by the attacker, calls `owner.add_damage()`, scales knockback by `get_knockback_scale()`, no longer ends the match on 0 HP (no death by damage — ring-out/stocks come in T2). Blink-flash intensity now ramps with `damage_percent` (capped visually at 150%) instead of inverse health.
+  - `game/player/StateMachine/PlayerStateMachine/States/protect.gd`: fixed the dead `receive_blocked_damage()` bug — `Combat.apply_hit` now actually calls it when the target is blocking (previously blocking gave full immunity). Halves % gained (`block_damage_reduction=0.5`), knockback = 30% of base (`block_knockback_reduction=0.3`, reinterpreted as "fraction retained" per design wording "30% knockback"), then scaled by `get_knockback_scale()`.
+  - `game/player/StateMachine/PlayerStateMachine/States/punch.gd`: added `punch_damage=8.0`, `punch_knockback=Vector2(220,-120)` exports; `_on_punch_area_body_entered` now calls `Combat.apply_hit` instead of blindly forcing `Hurt` (which is what caused the block bug).
+  - `game/player/player_ui.gd`, `game/player/player.tscn`: HUD rewired from the old `update_health`/Hurt-only signal to `Fighter.damage_changed` → `PlayerUI._on_damage_changed`. Progress bar now shows `damage_percent` against a visual-only 200 cap; full %/stock HUD redesign is T4's job.
+  - `game/ui/game_over/game_over.gd`: timeout winner is interim "lower damage % wins" (final stocks-first rule lands with T2/T4).
+  - Deviation: `train.tscn` (RL training rig, out of scope per design doc) still has two `Hurt` node overrides for the now-removed `knockback_force` export; Godot silently ignores orphaned property overrides on load (non-fatal), left untouched to avoid risking the generated multi-row training scene without being able to run the editor.
+  - Deviation: `Hurt.player_defeated` signal kept declared-but-unemitted in T1 (game.tscn's existing connection stays structurally valid); T2 wires real elimination via blast-zone detection.
 
 ## Next step
-T1–T6 delegated to one writer (2+ non-trivial files per task).
+T2: ring-out stage (remove walls, add platforms, blast-zone detection, stocks, respawn + invulnerability), then T3–T6.

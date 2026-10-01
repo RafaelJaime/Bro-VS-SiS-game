@@ -4,6 +4,8 @@ extends Motion
 @export var punch_duration: float = 0.3
 @export var punch_cooldown: float = 0.7
 @export var punch_distance: float = 50.0
+@export var punch_damage: float = 8.0
+@export var punch_knockback: Vector2 = Vector2(220, -120)
 
 var punch_timer: Timer
 var cooldown_timer: Timer
@@ -75,12 +77,7 @@ func _on_punch_timer_timeout() -> void:
 func _on_punch_area_body_entered(body: Node2D) -> void:
 	if owner != null and body != owner and body is Fighter:
 		print("¡Hace daño a ", body.name, "!")
-		if body.state_machine.current_state.name != "Protect":
-			body.state_machine._change_state("Hurt")
-		else:
-			var current_state = body.state_machine.current_state
-			if current_state is Motion:
-				current_state.finished.emit("Idle")
+		Combat.apply_hit(owner, body, punch_damage, punch_knockback)
 
 func _exit() -> void:
 	if punch_area and punch_area.is_connected("body_entered", _on_punch_area_body_entered):

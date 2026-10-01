@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name Fighter
 
 signal updated_characterUI
+signal damage_changed(new_percent: float)
 
 @export var character_ui: CharacterUI:
 	set(value):
@@ -21,8 +22,9 @@ enum PlayerNumber { JUGADOR1, JUGADOR2 }
 @onready var state_machine: Node = $StateMachine
 
 var initial_position: Vector2
-var max_health: int = 100
-var health: int = 100
+# Damage % (Smash-style ring-out combat). Starts at 0 and has no upper cap;
+# it never kills by itself, it only scales knockback (see get_knockback_scale).
+var damage_percent: float = 0.0
 
 func _ready():
 	initial_position = position
@@ -45,13 +47,24 @@ func set_velocity_from_motion(vel: Vector2) -> void:
 	velocity = vel
 
 func reset_player():
-	health = max_health
+	damage_percent = 0.0
+	damage_changed.emit(damage_percent)
 	velocity = Vector2.ZERO
 	position = initial_position
 
 func game_over():
 	ai_controller_2d.done = true
 	ai_controller_2d.needs_reset = true
+
+# Adds damage and notifies listeners (HUD, etc.).
+func add_damage(amount: float) -> void:
+	damage_percent += amount
+	damage_changed.emit(damage_percent)
+
+# Smash-style knockback scaling: the higher the accumulated damage %,
+# the stronger any knockback applied to this fighter becomes.
+func get_knockback_scale() -> float:
+	return 1.0 + damage_percent / 50.0
 
 # Método simplificado que solo usa los recursos
 func _apply_character_ui_settings():

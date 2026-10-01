@@ -41,9 +41,10 @@ func set_ui(label: Label, progressBar: ProgressBar, textureRect: TextureRect) ->
 	progressBar.add_theme_stylebox_override("background", bg_style)
 	progressBar.add_theme_stylebox_override("fill", fill_style)
 
-	# Valores de la barra
-	progressBar.max_value = owner.max_health
-	progressBar.value = owner.health
+	# Valores de la barra (damage %). 200 is a visual-only scaling cap for the
+	# bar fill; actual damage % has no gameplay cap. Full % + stock HUD lands in T4.
+	progressBar.max_value = 200.0
+	progressBar.value = owner.damage_percent
 
 	create_gradient(textureRect)
 
@@ -73,15 +74,15 @@ func create_gradient(textureRect: TextureRect) -> void:
 	# Asignar la textura al TextureRect
 	textureRect.texture = gradient_texture
 
-func update_health() -> void:
+func update_damage(new_percent: float) -> void:
 	match owner.control_scheme:
 		0:
-			leftProgressBar.value = owner.health
+			leftProgressBar.value = new_percent
 		1:
-			rightProgressBar.value = owner.health
+			rightProgressBar.value = new_percent
 
-func _on_hurt_update_health() -> void:
-	update_health()
+func _on_damage_changed(new_percent: float) -> void:
+	update_damage(new_percent)
 
 func _on_player_updated_character_ui() -> void:
 	set_ui_with_control_scheme()
