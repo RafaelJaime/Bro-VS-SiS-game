@@ -299,6 +299,9 @@ material = SubResource("ShaderMaterial_j8tme")
 script = ExtResource("29_food1")
 food_pickup_scene = ExtResource("30_food2")
 
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+autoplay = false
+
 [node name="Timer" type="Timer" parent="."]
 wait_time = 99.0
 autostart = true

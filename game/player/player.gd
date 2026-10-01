@@ -101,6 +101,11 @@ func _check_blast_zone() -> void:
 func _lose_stock() -> void:
 	stocks -= 1
 	stocks_changed.emit(self, stocks)
+	# Skip SFX under AI training (see Combat._is_training: dozens of
+	# train.tscn's Game rows run in parallel, so this would just be noise).
+	var parent = get_parent()
+	if not (parent and parent.get("training") == true):
+		Sfx.play(Sfx.EXPLOSION, self)
 	if stocks <= 0:
 		velocity = Vector2.ZERO
 		if state_machine and state_machine.state_map.has("Defeated"):

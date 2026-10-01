@@ -36,7 +36,7 @@ depth must come from physics, items, and stage — not animation-heavy combos.
 - [x] T2 Ring-out stage: remove walls, platforms, blast zone, stocks, respawn + invulnerability
 - [x] T3 Food items: catalog resource, spawner, pickup/hold/throw (replaces shoot)
 - [x] T4 HUD: % display + stock icons; game-over by stocks/timer
-- [ ] T5 Juice: hit-stop, SFX, music
+- [x] T5 Juice: hit-stop, SFX, music
 - [ ] T6 AI controller compat + protect action bug fix
 
 ## Delivery
@@ -75,7 +75,7 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
   - `ui/instructions/instructions.tscn`: updated the two "G/K (Shoot)" control-hint labels to "G/K (Pick up / Throw)" since the key's behavior changed.
   - Deviation: spawn x-range (180-620), spawn height, platform/pickup/projectile collision radii, and throw speed/arc numbers are first-pass defaults from the design doc's qualitative guidance (static review only, no editor render) — flagged for playtest tuning, same as T2's geometry.
 
-- T4 done; commit `<T4_COMMIT_HASH>`.
+- T4 done; commit `fb17d67`.
   - `game/player/player.gd`: renamed `stock_lost` → `stocks_changed` (not yet wired anywhere when T2 added it, so free to rename) and now also emitted from `reset_player()`, not just `_lose_stock()`, so the HUD refreshes stock icons on a full reset too.
   - `game/player/player_ui.gd`: `set_ui()` now also tints/initializes a percent `Label` and a row of `ColorRect` "pip" stock icons (tinted with `character_ui.color`, not `face_texture`, since the in-game `CharacterUI` resources for Rafael/Matilde don't set `face_texture` — verified by reading `game/game.tscn`'s `Resource_vktc5`/`Resource_kaw54`). `update_damage()` updates the percent label text (`"%d%%"`) alongside the existing bar; new `_on_stocks_changed()` toggles pip visibility (`i < stocks_left`).
   - `game/player/player.tscn`: added `LeftPercentLabel`/`RightPercentLabel` and `LeftStockIcons`/`RightStockIcons` (`HBoxContainer` of 3 `ColorRect`, 16×16) under each side's existing `VBoxContainer`; wired all four as new `PlayerUI` node_paths; added the `Fighter.stocks_changed → PlayerUI._on_stocks_changed` connection.
@@ -83,5 +83,13 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
   - Deviation: stock icons are plain colored squares, not character art — no suitable small icon/portrait asset exists yet (`CharacterUI.face_texture` is unpopulated for both playable characters). Flagged for a future art pass; functionally correct and visually legible in the meantime.
   - Deviation: percent label format is a plain `"NN%"` integer (rounded); no color-ramping by percent (e.g. Smash's white→red) — not in the design doc's explicit scope, left for a later juice pass if wanted.
 
+- T5 done; commit `<T5_COMMIT_HASH>`.
+  - `game/audio/sfx.gd` (new, `class_name Sfx`): one-shot SFX playback with no persistent node required (spawns a temporary `AudioStreamPlayer` under the tree root, frees itself on `finished`). Streams loaded via `load()` at runtime only (freesound assets have no `.import` files yet, same caveat as T0/T3).
+  - `game/combat/combat.gd`: `apply_hit` now triggers hit-stop (`Engine.time_scale` dipped to 0.05 for 0.08s on an unblocked hit, 0.3 for 0.04s on a blocked one, restored via an `ignore_time_scale` `SceneTreeTimer` so the restore timer itself isn't affected by the freeze it created) and picks punch vs explosion SFX by a damage threshold (`>= 16.0`, i.e. heavy food only) — so punches and light/medium food play `cartoonpunch.wav`, heavy food plays `fireball-explosion.wav`. Both are skipped during AI training (new `_is_training()` check via the Fighter's parent `Game.training` flag) because `Engine.time_scale` is a single global property and `train.tscn` runs dozens of `Game` rows in parallel — one row's hit would otherwise stutter every other row.
+  - `game/player/player.gd`: `_lose_stock()` plays the explosion SFX on every stock loss (same training guard).
+  - `game/game.gd`, `game/game.tscn`: added a `MusicPlayer` `AudioStreamPlayer` node; `_ready()` loads `run-cinematic-music.mp3` via `load()`, sets `.loop = true`, and plays it — but only when `training == false` (same reasoning: ~50 training instances all playing music would be noise). Stopped in `_game_over()`'s non-training branch.
+  - Deviation: no distinct "food throw" SFX exists as an asset (only punch + explosion), so light/medium food impacts reuse the punch sound and heavy food uses the explosion sound; this was already the plan going into T5, not a new deviation discovered mid-task.
+  - Deviation: hit-stop/SFX duration and scale values (0.04-0.08s, 0.05-0.3 scale) are first-pass defaults, same playtest-tuning caveat as T2/T3's numeric defaults.
+
 ## Next step
-T5: juice (hit-stop, SFX, music), then T6.
+T6: AI controller compat + protect/shoot action bug fix.
