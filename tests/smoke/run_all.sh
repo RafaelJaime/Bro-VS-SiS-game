@@ -14,7 +14,7 @@ export SHOT_DIR="${SHOT_DIR:-${TMPDIR:-/tmp}/bvs-smoke-shots}"
 # class_names resolve when the scripts run outside the editor.
 "$GODOT" --headless --path . --import >/dev/null 2>&1
 
-SCRIPTS=(stage_floor combat movement movement_feel hit_rules camera train_loads screenshots)
+SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud camera train_loads screenshots)
 failed=0
 
 for name in "${SCRIPTS[@]}"; do
