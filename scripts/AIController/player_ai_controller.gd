@@ -9,17 +9,10 @@ var shoot_action: float = 0.0
 var protect_action: float = 0.0
 
 func _ready() -> void:
-	var player_id: int = 0 if owner.control_scheme == 0 else 1
-	
-	if ModelManager.model_exists(player_id):
-		print("Voy a hacer load del player ", player_id)
-		print("Modelo existe: ", FileAccess.file_exists(ModelManager.get_model_path(player_id)))
-		onnx_model_path = ModelManager.get_model_path(player_id)
-		control_mode = AIController2D.ControlModes.ONNX_INFERENCE
-		print("Modelo ONNX cargado para jugador: ", player_id)
-	else:
-		print("No hay modelo para jugador: ", player_id)
-		control_mode = AIController2D.ControlModes.HUMAN
+	# Do not override control_mode here: the scene (player.tscn = HUMAN,
+	# train.tscn = TRAINING) and SceneManager/ControllerConfig decide it. The
+	# old auto-ONNX logic made a stale user://Agent{N}.onnx hijack human input.
+	super._ready()
 
 func get_obs() -> Dictionary:
 	var obs = []
