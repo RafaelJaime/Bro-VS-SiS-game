@@ -47,7 +47,9 @@ func _update(delta: float) -> void:
 	var active := _elapsed >= duration * profile.punch_active_start \
 			and _elapsed < duration * profile.punch_active_end
 	_set_hitbox_active(active)
-	if active:
+	# monitoring is switched deferred, so the area only reports overlaps from the
+	# frame after it turned on.
+	if active and punch_area.monitoring:
 		_hit_overlapping_hurtboxes()
 
 func _duration() -> float:

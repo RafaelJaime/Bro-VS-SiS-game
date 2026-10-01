@@ -1,7 +1,9 @@
 extends Motion
 class_name Hurt
 
-@export var hurt_duration: float = 0.5
+## Node-level override of the hitstun (train.tscn pins it to 0.5 s). Negative
+## means "scale with the knockback", see _hitstun_for.
+@export var hurt_duration: float = -1.0
 @export var particles: GPUParticles2D
 
 # Set by the attacker (via Combat.apply_hit) right before the state machine
@@ -11,6 +13,15 @@ var pending_knockback: Vector2 = Vector2(200, -100)
 
 var timer: Timer
 var shake: FastNoiseLite
+
+func _ready() -> void:
+	super._ready()
+	# One timer, connected once. _exit stops it, so a stale timeout can never
+	# end a later Hurt early.
+	timer = Timer.new()
+	timer.one_shot = true
+	add_child(timer)
+	timer.timeout.connect(_on_hurt_finished)
 
 func _enter() -> void:
 	shake = FastNoiseLite.new()
@@ -32,6 +43,8 @@ func _enter() -> void:
 
 	state_machine.velocity = final_knockback
 	owner.set_velocity(state_machine.velocity)
+	# Being hit refills the air jump and air dash.
+	owner.restore_air_actions()
 
 	# Emitir señal para animación
 	super._enter()
@@ -48,31 +61,31 @@ func _enter() -> void:
 	particles.restart()
 	particles.emitting = true
 
-	# Crear temporizador para salir del estado
-	if not timer:
-		timer = Timer.new()
-		timer.one_shot = true
-		add_child(timer)
-
-	timer.connect("timeout", _on_hurt_finished)
-	timer.start(hurt_duration)
+	timer.start(_hitstun_for(final_knockback))
 
 func _update(delta: float) -> void:
 	super._update(delta)
-	state_machine.velocity.y += gravity * delta
+	# Light gravity while in hitstun keeps the launch arc long; x momentum is kept.
+	state_machine.velocity.y += gravity * profile.hurt_gravity_scale * delta
 	owner.set_velocity(state_machine.velocity)
 
 func _exit() -> void:
-	if timer.is_connected("timeout", _on_hurt_finished):
-		timer.disconnect("timeout", _on_hurt_finished)
+	timer.stop()
+
+# Harder hits stun longer: clamp(base + |knockback| * per_knockback, min, max).
+func _hitstun_for(knockback: Vector2) -> float:
+	if hurt_duration >= 0.0:
+		return hurt_duration
+	var stun := profile.hitstun_base + knockback.length() * profile.hitstun_per_knockback
+	return clampf(stun, profile.hitstun_min, profile.hitstun_max)
 
 func _on_hurt_finished() -> void:
 	# No death by damage %: ring-out (stock loss) is handled by Fighter's
-	# blast-zone detection, not here.
-	if owner.is_on_floor():
-		finished.emit("Idle")
-	else:
-		finished.emit("Fall")
+	# blast-zone detection, not here. Invulnerability is granted only when the
+	# hitstun ends, never on a Hurt-to-Hurt re-entry, so combos inside hitstun
+	# stay possible while a punch can never stun-lock.
+	owner.grant_invulnerability(profile.post_hit_invulnerability)
+	exit_to_neutral()
 
 func set_shader_blink(new_value: float) -> void:
 	var sprite = state_machine.animated_sprite_2d

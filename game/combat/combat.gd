@@ -50,15 +50,30 @@ static func _is_training(target: Node) -> bool:
 	var parent = target.get_parent() if target else null
 	return parent != null and parent.get("training") == true
 
+## Only the latest hit-stop may restore the clock. Every trigger takes a new
+## token and its restore callback only acts while that token is still current,
+## so overlapping hit-stops can neither end each other early nor leave a stale
+## time scale behind.
+static var _hit_stop_token: int = 0
+
 ## Briefly slows the whole game down to sell the impact of a hit ("hit-stop" /
 ## "hit-pause"), then restores normal speed. duration is real (unscaled) time.
 static func _trigger_hit_stop(duration: float, scale: float) -> void:
 	var tree = Engine.get_main_loop() as SceneTree
 	if not tree:
 		return
+	_hit_stop_token += 1
+	var token := _hit_stop_token
 	Engine.time_scale = scale
 	# process_always=true, process_in_physics=false, ignore_time_scale=true:
 	# this timer must keep counting real time while time_scale is near zero,
 	# otherwise it would (almost) never fire.
 	var timer = tree.create_timer(duration, true, false, true)
-	timer.timeout.connect(func(): Engine.time_scale = 1.0)
+	timer.timeout.connect(func():
+		if token == _hit_stop_token:
+			Engine.time_scale = 1.0)
+
+## Ends any running hit-stop at once (a Game leaving the tree mid-stop).
+static func cancel_hit_stop() -> void:
+	_hit_stop_token += 1
+	Engine.time_scale = 1.0

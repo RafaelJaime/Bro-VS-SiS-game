@@ -35,6 +35,12 @@ func _ready() -> void:
 	if not training:
 		_start_music()
 
+func _exit_tree() -> void:
+	# A hit-stop still running when the match ends must not leave the whole game
+	# slowed. Training never touches Engine.time_scale (Sync owns it there).
+	if not training:
+		Combat.cancel_hit_stop()
+
 func _start_music() -> void:
 	if not music_player:
 		return
