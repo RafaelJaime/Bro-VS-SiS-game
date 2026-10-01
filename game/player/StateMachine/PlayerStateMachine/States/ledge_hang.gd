@@ -20,6 +20,9 @@ var phase: Phase = Phase.HANG
 var hang_time: float = 0.0
 
 var _side: int = 0
+## Holding away through the grab does not let go until the stick has been released
+## once (Smash: letting go needs a fresh push, so grabbing while pushing away works).
+var _stick_rearmed: bool = false
 var _climb_time: float = 0.0
 var _climb_total: float = 0.45
 var _climb_attack: bool = false
@@ -32,6 +35,7 @@ func _enter() -> void:
 	animation_state_changed.emit("jump")
 	phase = Phase.HANG
 	hang_time = 0.0
+	_stick_rearmed = false
 	_side = owner.ledge_side
 	owner.restore_air_actions()
 	owner.position = owner.ledge_anchor
@@ -59,6 +63,8 @@ func _update(delta: float) -> void:
 
 	owner.position = owner.ledge_anchor
 	hang_time += delta
+	if absf(owner.intent.move_x) <= 0.5:
+		_stick_rearmed = true
 	if hang_time >= profile.ledge_max_hang:
 		_let_go()
 		return
@@ -67,11 +73,12 @@ func _update(delta: float) -> void:
 
 	var intent: FighterIntent = owner.intent
 	var toward := intent.move_x * -_side # +1 when pushing toward the table.
+	var pushing_away := toward < -0.5 and _stick_rearmed
 	if intent.attack_pressed:
 		_start_climb(true)
 	elif intent.jump_pressed:
 		_ledge_jump()
-	elif intent.aim == FighterIntent.Aim.DOWN or toward < -0.5:
+	elif intent.aim == FighterIntent.Aim.DOWN or pushing_away:
 		_let_go()
 	elif intent.aim == FighterIntent.Aim.UP or toward > 0.5:
 		_start_climb(false)

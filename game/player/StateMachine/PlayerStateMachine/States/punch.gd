@@ -3,8 +3,8 @@ extends Motion
 ## The punch, in two phases. A grounded fighter that enters with the punch key held
 ## CHARGES until the key is released (a smash); everything else, an air punch, a
 ## tap or a controller that never holds the key (the CPU, the RL policy), goes
-## straight to the SWING. The swing picks one of five variants from the aim at
-## the moment it fires, scales it by the charge, and keeps the one hitbox of the
+## straight to the SWING. The swing picks one of five variants from the aim held
+## when the punch started, scales it by the charge, and keeps the one hitbox of the
 ## S-A punch: live only between `punch_active_start` and `punch_active_end`.
 
 @export var punch_area: Area2D
@@ -31,6 +31,9 @@ var _swing_facing: int = 1
 var _hold_time: float = 0.0
 var _charge: float = 0.0
 var _attack: AttackProfile
+## The aim held when the punch started (Smash: the direction is read at the press,
+## so letting go of it before the swing or the release changes nothing).
+var _start_aim: FighterIntent.Aim = FighterIntent.Aim.NEUTRAL
 
 func _ready() -> void:
 	super._ready()
@@ -58,6 +61,7 @@ func _enter() -> void:
 	_elapsed = 0.0
 	_hold_time = 0.0
 	_charge = 0.0
+	_start_aim = owner.intent.aim
 	_set_hitbox_active(false)
 
 	# Charging only starts on the ground, from a held key (spec: no air charge).
@@ -106,7 +110,7 @@ static func charge_for(hold: float, p: FighterProfile) -> float:
 func _fire() -> void:
 	phase = Phase.SWING
 	_elapsed = 0.0
-	_attack = _select_attack(owner.intent.aim)
+	_attack = _select_attack(_start_aim)
 	owner.last_attack_direction = _attack.direction
 	owner.charge_level = _charge
 	owner.set_charge_visual(-1.0)

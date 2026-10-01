@@ -227,6 +227,10 @@ func _run() -> void:
 # ------------------------------------------------------------------ ui flow
 
 func _ui_to_match() -> void:
+	# A throwaway first-launch flag, so the test never touches the real one.
+	MainMenu.flag_path = "user://smoke_intro_seen.cfg"
+	DirAccess.remove_absolute(MainMenu.flag_path)
+	s.check("KB ui: the intro flag is unset on a first launch", not MainMenu.intro_seen())
 	var main_scene: PackedScene = load(ProjectSettings.get_setting("application/run/main_scene"))
 	var main := main_scene.instantiate()
 	root.add_child(main)
@@ -236,12 +240,26 @@ func _ui_to_match() -> void:
 	await s.screenshot("kb_01_main_menu")
 
 	var menu: Node = scene_manager.current_scene
-	# The "What is this game?" dialog greets a new player: dismiss it first.
+	# The "What is this game?" dialog greets a new player once: dismiss it first.
 	var dialog: AcceptDialog = menu.get_node("AcceptDialog")
-	s.check("KB ui: the intro dialog is open on the main menu", dialog.visible)
+	s.check("KB ui: the intro dialog is open on the first launch", dialog.visible)
+	s.check("KB ui: the first launch records the intro flag", MainMenu.intro_seen())
 	await click(dialog.get_ok_button())
 	await s.real_wait(0.4)
 	s.check("KB ui: the OK button closes the intro dialog", not dialog.visible)
+	await click(menu.get_node("InfoButton"))
+	await s.real_wait(0.4)
+	s.check("KB ui: the info button reopens the intro dialog", dialog.visible)
+	await click(dialog.get_ok_button())
+	await s.real_wait(0.4)
+	s.check("KB ui: the reopened dialog closes again", not dialog.visible)
+	# A second launch (a fresh menu instance, the flag now set) stays quiet.
+	var second: Control = load(MENU_SCENE).instantiate()
+	root.add_child(second)
+	await s.frames(5)
+	s.check("KB ui: a later launch does not open the intro dialog", not (second.get_node("AcceptDialog") as AcceptDialog).visible)
+	second.queue_free()
+	await s.frames(2)
 	await s.screenshot("kb_01b_main_menu_clear")
 	await click(menu.get_node("MainMenuButtons/PlayButton"))
 	await s.frames(10)
@@ -309,6 +327,7 @@ func _controls() -> void:
 
 	await _locomotion()
 	await _punches()
+	await _press_time_aim()
 	await _recovery_and_fall()
 	await _block()
 	await _food()
@@ -553,6 +572,32 @@ func _pause() -> void:
 	s.check("KB pause: Esc opens the pause menu and freezes the timer and P1", running and opened and stayed, "running=%s opened=%s frozen=%s" % [running, opened, stayed])
 	s.check("KB pause: Esc again resumes the match and the timer", resumed and ticking, "resumed=%s ticking=%s" % [resumed, ticking])
 
+## Smash reads the direction when the punch starts: letting go of it right after
+## the press (before the swing, before a charged release) still throws it.
+func _press_time_aim() -> void:
+	await reset_scene(620.0, 400.0)
+	await set_gap(100.0)
+	press(&"P1_right")
+	await s.frames(2)
+	press(&"P1_punch")
+	await s.frames(1)
+	release(&"P1_right")
+	await s.frames(5)
+	release(&"P1_punch")
+	await s.frames(5)
+	s.check("KB press-time aim: releasing D before the punch key still throws the side punch", p1.last_attack_direction == &"side", "dir=%s" % p1.last_attack_direction)
+	await reset_scene(620.0, 400.0)
+	await set_gap(100.0)
+	press(&"P1_up")
+	await s.frames(2)
+	press(&"P1_punch")
+	await s.frames(1)
+	release(&"P1_up")
+	await s.sim(0.5)
+	release(&"P1_punch")
+	await s.frames(5)
+	s.check("KB press-time aim: a charged up smash keeps the direction held at the start", p1.last_attack_direction == &"up", "dir=%s" % p1.last_attack_direction)
+
 func _ledge() -> void:
 	await reset_scene(700.0, 200.0)
 	var stage := _stage()
@@ -574,6 +619,34 @@ func _ledge() -> void:
 	await s.sim(1.0)
 	var onto_table: bool = p1.is_on_floor() and p1.position.x > stage["left"] and p1.position.x < stage["right"] and _state(p1) != "LedgeHang" and p1.stocks == stocks_before
 	s.check("KB ledge climb: E on the leg climbs back onto the table", onto_table, "state=%s pos=(%.0f, %.0f)" % [_state(p1), p1.position.x, p1.position.y])
+
+	await _ledge_held_keys()
+
+## Smash: holding away from the table does not stop the grab (the fighter turns to
+## face the stage), only holding down does.
+func _ledge_held_keys() -> void:
+	await reset_scene(700.0, 200.0)
+	var stage := _stage()
+	# Walk off the end, let go, then push away (A) just before the leg and keep holding it.
+	press(&"P1_left")
+	await wait_until(func(): return p1.position.x < stage["left"] - 12.0, 300)
+	release(&"P1_left")
+	await wait_until(func(): return p1.position.y > stage["top"] - 60.0, 120)
+	press(&"P1_left")
+	var grabbed := await wait_until(func(): return _state(p1) == "LedgeHang", 400)
+	s.check("KB ledge grab: holding away (A) all the way down still grabs the leg", grabbed and p1.ledge_side == -1 and p1.facing == 1, "state=%s side=%d facing=%d" % [_state(p1), p1.ledge_side, p1.facing])
+	await s.sim(0.4)
+	s.check("KB ledge grab: a direction held through the grab does not drop the fighter", _state(p1) == "LedgeHang", "state=%s" % _state(p1))
+	release(&"P1_left")
+	await reset_scene(700.0, 200.0)
+	press(&"P1_left")
+	await wait_until(func(): return p1.position.x < stage["left"] - 12.0, 300)
+	release(&"P1_left")
+	press(&"P1_down")
+	await s.sim(0.5)
+	s.check("KB ledge grab: holding down (C) skips the grab", _state(p1) != "LedgeHang" and p1.ledge_side == 0, "state=%s" % _state(p1))
+	release(&"P1_down")
+	await wait_until(func(): return p1.is_on_floor() or p1.stocks < Fighter.MAX_STOCKS, 600)
 
 # ------------------------------------------------- CPU Hard and the strategy
 

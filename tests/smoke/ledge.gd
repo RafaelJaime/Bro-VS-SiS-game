@@ -84,8 +84,21 @@ func _run() -> void:
 	away[1][0].move_x = -1.0
 	_drop_at(away[0], away[2], -1, 40.0)
 	await s.frames(3)
-	s.check("pushing away from the table skips the grab", s.state_of(away[2]) != "LedgeHang")
+	s.check("pushing away from the table still grabs the leg", s.state_of(away[2]) == "LedgeHang" and away[2].ledge_side == -1, "state=%s" % s.state_of(away[2]))
+	await s.sim(0.6)
+	s.check("a direction held through the grab does not drop the fighter at once", s.state_of(away[2]) == "LedgeHang")
+	away[1][0].move_x = 0.0
+	await s.frames(2)
+	away[1][0].move_x = -1.0
+	await s.frames(3)
+	s.check("a fresh push away lets go", s.state_of(away[2]) != "LedgeHang")
 	await s.despawn(away[0])
+	var down_skip := await _setup(s)
+	down_skip[1][0].aim = FighterIntent.Aim.DOWN
+	_drop_at(down_skip[0], down_skip[2], -1, 40.0)
+	await s.frames(3)
+	s.check("holding down skips the grab", s.state_of(down_skip[2]) != "LedgeHang")
+	await s.despawn(down_skip[0])
 	var rising := await _setup(s)
 	_drop_at(rising[0], rising[2], -1, 40.0)
 	rising[2].velocity.y = -400.0

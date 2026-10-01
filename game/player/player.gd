@@ -224,7 +224,8 @@ func _state_name() -> String:
 # --------------------------------------------------------------------- ledge
 
 ## Grabs a table leg when an airborne fighter falls past the end of the table
-## within reach (Smash ledge grab). Holding away from the table or down skips it.
+## within reach (Smash ledge grab). Only holding down (fast fall) skips it: pushing away does not,
+## and the fighter turns to face the stage on the grab.
 func _try_ledge_grab() -> void:
 	if not profile.can_ledge_grab or _ledge_lockout > 0.0 or stocks <= 0:
 		return
@@ -237,8 +238,6 @@ func _try_ledge_grab() -> void:
 		return
 	for ledge: Dictionary in game.get_ledges():
 		var side: int = ledge["side"]
-		if intent.move_x * side > 0.5:
-			continue # Pushing away from the table.
 		var hang_x: float = ledge["x"] + side * profile.ledge_hang_offset
 		var top: float = ledge["top"]
 		var lowest: float = ledge["bottom"] - _feet_offset

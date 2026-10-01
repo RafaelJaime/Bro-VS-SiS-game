@@ -1,15 +1,17 @@
-[gd_scene load_steps=7 format=3 uid="uid://bb5yiqlmlv2kn"]
+[gd_scene load_steps=8 format=3 uid="uid://bb5yiqlmlv2kn"]
 
 [ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_i5wg5"]
 [ext_resource type="Texture2D" uid="uid://nqearmljsu7i" path="res://assets/logos/imagen_titulo.png" id="4_3c04x"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="5_3c04x"]
 [ext_resource type="Texture2D" uid="uid://cs4l1bvx80ih4" path="res://assets/images/ui/buttons/Ilustracion_3Botones original.png" id="5_joh67"]
 [ext_resource type="Script" uid="uid://cin6p1xshscv3" path="res://ui/main_menu/main_menu_buttons.gd" id="5_u184e"]
+[ext_resource type="Script" path="res://ui/main_menu/main_menu.gd" id="7_menu"]
 [ext_resource type="Script" uid="uid://d0jsh3xsisg5h" path="res://ui/global/links_rich_text_label.gd" id="6_joh67"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 0
+script = ExtResource("7_menu")
 
 [node name="background" parent="." instance=ExtResource("1_i5wg5")]
 
@@ -59,11 +61,19 @@ flat = true
 script = ExtResource("5_3c04x")
 metadata/_custom_type_script = "uid://bivny4qorquqo"
 
+[node name="InfoButton" type="Button" parent="."]
+offset_left = 744.0
+offset_top = 16.0
+offset_right = 784.0
+offset_bottom = 56.0
+focus_mode = 0
+tooltip_text = "What is this game?"
+text = "?"
+
 [node name="AcceptDialog" type="AcceptDialog" parent="."]
 title = "What is this game? 🎮"
 initial_position = 2
 size = Vector2i(462, 314)
-visible = true
 ok_button_text = "I wanna play!"
 dialog_autowrap = true
 
