@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Source of a fighter's FighterIntent. A Fighter owns exactly one controller
 ## and samples it once per physics frame. Subclasses: HumanController,
-## PolicyController (and ScriptedController for the CPU in a later slice).
+## PolicyController and ScriptedController (the CPU).
 
 var fighter: Fighter
 

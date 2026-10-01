@@ -80,6 +80,12 @@ func get_state_snapshot() -> Dictionary:
 		"sudden_death": false,
 		"stage": _shape_bounds(floor_shape) if floor_shape else {},
 		"platforms": [], # The counter is the only surface.
+		"blast_zone": {
+			"left": blast_left,
+			"right": blast_right,
+			"top": blast_top,
+			"bottom": blast_bottom,
+		},
 		"camera": {
 			"center": camera.get_screen_center_position() if camera else Vector2.ZERO,
 			"zoom": camera.zoom.x if camera else 1.0,

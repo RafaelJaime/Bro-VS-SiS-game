@@ -213,8 +213,7 @@ func _resolve_controller() -> FighterController:
 		ControllerKind.POLICY:
 			return PolicyController.new()
 		ControllerKind.CPU:
-			# TODO(S3): ScriptedController. Human placeholder until then.
-			return HumanController.new()
+			return ScriptedController.new(CpuDifficulty.preset(CpuDifficulty.Level.NORMAL))
 	return _resolve_auto_controller()
 
 # AUTO: follow the AIController2D mode set by the scene. TRAINING, ONNX and
