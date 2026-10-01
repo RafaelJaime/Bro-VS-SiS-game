@@ -34,7 +34,11 @@ func _run() -> void:
 		for fighter_name in ["Fighter1", "Fighter2"]:
 			if game.get_node(fighter_name).is_on_floor():
 				standing += 1
+	var running := true
+	for game in games:
+		running = running and game.phase == Game.Phase.PLAYING and not game.timer.is_stopped() and not game.get_node("UI/CountdownLabel").visible
 	s.check("every Game is in training mode", all_training)
+	s.check("training rows start at once: no countdown, timer running", running)
 	s.check("training games free the backdrop", no_backdrop)
 	s.check("all 50 fighters stand on their own floor", standing == 50, "standing=%d" % standing)
 

@@ -85,6 +85,7 @@ func _run() -> void:
 	scene_manager.play_game(char_1, char_2, ai.get_controller_config(false), ai.get_controller_config(true))
 	await s.frames(3)
 	var game: Node = scene_manager.current_scene
+	game.skip_countdown()
 	var fighter_1: Fighter = game.get_node("Fighter1")
 	var fighter_2: Fighter = game.get_node("Fighter2")
 	s.check("play_game gives P1 a human controller", _controller_of(fighter_1) is HumanController)

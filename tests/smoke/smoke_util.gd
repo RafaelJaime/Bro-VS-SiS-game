@@ -145,14 +145,18 @@ func frames(count: int) -> void:
 		await tree.physics_frame
 
 ## Instantiates game.tscn. Positions given here are applied before _ready, so
-## they also become the fighters' respawn anchors and initial facing.
-func spawn_game(p1_x: float = NAN, p2_x: float = NAN) -> Node2D:
+## they also become the fighters' respawn anchors and initial facing. The match
+## countdown is skipped unless `with_countdown` is set, so scripts that test
+## movement or combat can act at once.
+func spawn_game(p1_x: float = NAN, p2_x: float = NAN, with_countdown: bool = false) -> Node2D:
 	var game: Node2D = load(GAME_SCENE).instantiate()
 	if not is_nan(p1_x):
 		game.get_node("Fighter1").position.x = p1_x
 	if not is_nan(p2_x):
 		game.get_node("Fighter2").position.x = p2_x
 	tree.root.add_child(game)
+	if not with_countdown:
+		game.skip_countdown()
 	return game
 
 func attach_controllers(game: Node2D) -> Array:
