@@ -116,6 +116,39 @@ func _resolve_auto_controller() -> FighterController:
 		return PolicyController.new()
 	return HumanController.new()
 
+## Read-only view of this fighter for consumers such as the CPU and the future
+## schema module. Unversioned and not a schema: it is an open Dictionary, keys
+## may be added later, and nothing here is a stable contract yet.
+func get_state_snapshot() -> Dictionary:
+	var state_name: StringName = &""
+	if state_machine and state_machine.current_state:
+		state_name = StringName(state_machine.current_state.name)
+	return {
+		"position": position, # Game-local: the Fighter is a child of Game.
+		"velocity": velocity,
+		"facing": facing,
+		"on_floor": is_on_floor(),
+		"damage_percent": damage_percent,
+		"stocks": stocks,
+		"held_food": held_food,
+		"state": state_name,
+		"cooldowns": {
+			"punch": _cooldown_left("Punch"),
+			"shoot": _cooldown_left("Shoot"),
+		},
+		"jumps_left": 0, # Placeholder until the double jump exists.
+		"air_dash_available": false, # Placeholder until the air dash exists.
+		"is_invulnerable": is_invulnerable,
+		"controller": controller.kind_name() if controller else "none",
+	}
+
+func _cooldown_left(state_name: String) -> float:
+	var state = state_machine.state_map.get(state_name) if state_machine else null
+	if state == null:
+		return 0.0
+	var cooldown_timer: Timer = state.cooldown_timer
+	return cooldown_timer.time_left if cooldown_timer else 0.0
+
 func set_velocity_from_motion(vel: Vector2) -> void:
 	velocity = vel
 

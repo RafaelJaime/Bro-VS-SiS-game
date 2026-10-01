@@ -31,6 +31,54 @@ func _start_music() -> void:
 	music_player.volume_db = -8.0
 	music_player.play()
 
+## Read-only view of the match for consumers such as the CPU and the future
+## schema module. Unversioned and not a schema: it is an open Dictionary, keys
+## may be added later, and nothing here is a stable contract yet. All positions
+## are local to this Game, so offset rows (train.tscn) work.
+func get_state_snapshot() -> Dictionary:
+	var foods: Array = []
+	var projectiles: Array = []
+	for child in get_children():
+		if child is FoodPickup and not child.picked_up:
+			foods.append({"name": child.food_name, "position": child.position})
+		elif child is FoodProjectile:
+			projectiles.append({
+				"position": child.position,
+				"velocity": child.velocity,
+				"shooter": 1 if child.shooter == fighter_1 else 2,
+			})
+
+	var platforms: Array = []
+	for platform_path in ["StaticBody2D/PlatformLeft", "StaticBody2D/PlatformRight"]:
+		var platform_shape := get_node_or_null(platform_path) as CollisionShape2D
+		if platform_shape:
+			platforms.append(_shape_bounds(platform_shape))
+
+	var floor_shape := get_node_or_null("StaticBody2D/Floor") as CollisionShape2D
+	return {
+		"phase": "playing", # Placeholder until the match phase machine exists.
+		"timer_left": timer.time_left if timer else 0.0,
+		"timer_running": timer != null and not timer.is_stopped(),
+		"sudden_death": false,
+		"stage": _shape_bounds(floor_shape) if floor_shape else {},
+		"platforms": platforms,
+		"foods": foods,
+		"projectiles": projectiles,
+		"fighters": [
+			fighter_1.get_state_snapshot() if fighter_1 else {},
+			fighter_2.get_state_snapshot() if fighter_2 else {},
+		],
+	}
+
+# Top surface and horizontal extent of a rectangle collider, Game-local.
+func _shape_bounds(shape_node: CollisionShape2D) -> Dictionary:
+	var rect_shape := shape_node.shape as RectangleShape2D
+	var center := to_local(shape_node.global_position)
+	if rect_shape == null:
+		return {"left": center.x, "right": center.x, "top": center.y}
+	var half := rect_shape.size / 2.0
+	return {"left": center.x - half.x, "right": center.x + half.x, "top": center.y - half.y}
+
 func _on_player_defeated(player_instance: Fighter) -> void:
 	if player_instance and player_instance.enemy is Fighter:
 		game_over.set_forced_winner(player_instance.enemy)
