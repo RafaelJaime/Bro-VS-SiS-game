@@ -368,11 +368,36 @@ func _reset_players_for_training() -> void:
 
 # ------------------------------------------------------------------- banner
 
+## The banner is a screen-space label (UI CanvasLayer): the camera zoom never
+## touches it. Its text is shrunk so that, at the largest pop-in scale, it still
+## fits the viewport width with a margin.
+const BANNER_POP_SCALE := 1.5
+const BANNER_MARGIN := 0.9
+
+func _fit_font_size(text: String, wanted: int) -> int:
+	var font := countdown_label.get_theme_font("font")
+	var outline := countdown_label.get_theme_constant("outline_size")
+	var limit := countdown_label.get_viewport_rect().size.x * BANNER_MARGIN / BANNER_POP_SCALE
+	var size := wanted
+	while size > 16 and font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + outline * 2.0 > limit:
+		size -= 4
+	return size
+
+## The banner text's rect on screen (viewport pixels) at its current scale.
+func banner_screen_rect() -> Rect2:
+	var font := countdown_label.get_theme_font("font")
+	var size := countdown_label.get_theme_font_size("font_size")
+	var outline := countdown_label.get_theme_constant("outline_size")
+	var text_size := font.get_string_size(countdown_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, size) + Vector2.ONE * outline * 2.0
+	var center := countdown_label.get_global_rect().get_center()
+	var shown := text_size * countdown_label.scale
+	return Rect2(center - shown / 2.0, shown)
+
 func _center_banner_pivot() -> void:
 	if countdown_label:
 		countdown_label.pivot_offset = countdown_label.size / 2.0
 
-## Big centered text that pops in (scales down from 2.2x with an overshoot). With
+## Big centered text that pops in (scales down from BANNER_POP_SCALE with an overshoot). With
 ## `hold` > 0 it fades out afterwards. `speed` compensates a slowed game clock.
 func _show_banner(text: String, color: Color, font_size: int, hold: float = 0.0, speed: float = 1.0) -> void:
 	if countdown_label == null:
@@ -380,10 +405,10 @@ func _show_banner(text: String, color: Color, font_size: int, hold: float = 0.0,
 	if _banner_tween:
 		_banner_tween.kill()
 	countdown_label.text = text
-	countdown_label.add_theme_font_size_override("font_size", font_size)
+	countdown_label.add_theme_font_size_override("font_size", _fit_font_size(text, font_size))
 	countdown_label.add_theme_color_override("font_color", color)
 	countdown_label.modulate.a = 1.0
-	countdown_label.scale = Vector2.ONE * 2.2
+	countdown_label.scale = Vector2.ONE * BANNER_POP_SCALE
 	countdown_label.visible = true
 	_banner_tween = create_tween()
 	_banner_tween.set_speed_scale(speed)

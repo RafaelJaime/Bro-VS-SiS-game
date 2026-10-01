@@ -184,6 +184,27 @@ func _timer_pauses() -> void:
 	s.check("pause: the on-screen button resumes too", not paused and not menu.visible)
 	await _leave(game)
 
+## Every banner (3/2/1/GO!/GAME!/SUDDEN DEATH) at its worst moment (the start of
+## the pop-in) is fully inside the viewport at any camera zoom.
+func _banners_fit_any_zoom() -> void:
+	var game: Game = s.spawn_game()
+	var viewport := Rect2(Vector2.ZERO, game.get_viewport().get_visible_rect().size)
+	var camera: Camera2D = game.get_node("Camera2D")
+	var banners: Array = [["3", 170], ["2", 170], ["1", 170], ["GO!", 190], ["GAME!", 170], ["SUDDEN DEATH", 84], ["A VERY LONG ANNOUNCEMENT TEXT", 170]]
+	for zoom in [0.58, 1.0, 1.15]:
+		camera.zoom = Vector2.ONE * zoom
+		var worst := ""
+		for banner in banners:
+			game._show_banner(banner[0], Color.WHITE, banner[1])
+			await s.frames(1)
+			var rect: Rect2 = game.banner_screen_rect()
+			if not viewport.encloses(rect):
+				worst += " %s=%s;" % [banner[0], str(rect)]
+		s.check("banners fit the viewport at camera zoom %.2f" % zoom, worst.is_empty(), worst)
+	game._hide_banner()
+	game.queue_free()
+	await s.frames(2)
+
 func _sudden_death() -> void:
 	var game: Game = s.spawn_game()
 	var controllers: Array = s.attach_controllers(game)
@@ -362,6 +383,7 @@ func _run() -> void:
 	await _spawner_waits_for_go()
 	await _pause_in_countdown()
 	await _timer_pauses()
+	await _banners_fit_any_zoom()
 	await _sudden_death()
 	await _winner_by_stocks()
 	await _double_ko()
