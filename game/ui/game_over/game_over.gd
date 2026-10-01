@@ -7,6 +7,7 @@ extends Control
 @onready var up_gpu_particles_2d_5: GPUParticles2D = $UpGPUParticles2D
 @onready var winner_portrait: TextureRect = $CenterContainer/VBoxContainer/WinnerPortrait
 @onready var winner_label: Label = $CenterContainer/VBoxContainer/HBoxContainer/WinnerLabel
+@onready var replay_button: Button = $CenterContainer/VBoxContainer/HBoxContainer2/ReplayButton
 
 # Set by Game when the match is decided (elimination, or more stocks at
 # time-up; a tie goes to sudden death, so there is always a winner).
@@ -23,15 +24,17 @@ func _on_visibility_changed():
 		var winner: Fighter = forced_winner
 		if winner == null:
 			winner_name_label.text = ""
-			winner_label.text = "Draw"
+			winner_label.text = "DRAW"
 			winner_portrait.texture = null
 			up_gpu_particles_2d_5.modulate = Color(1, 1, 1, 1)
+			replay_button.grab_focus()
 			return
-		winner_label.text = "is victorious!"
+		winner_label.text = " WINS!"
 		winner_portrait.texture = winner_texture(winner.character_ui)
-		winner_name_label.text = winner.character_ui.name
-		winner_name_label.add_theme_color_override("font_color", winner.character_ui.color)
+		winner_name_label.text = winner.character_ui.name.to_upper()
+		winner_name_label.add_theme_color_override("font_color", winner.character_ui.color.lightened(0.45))
 		up_gpu_particles_2d_5.modulate = winner.character_ui.color
+		replay_button.grab_focus()
 	elif visible:
 		push_error("P1 or P2 is not configured")
 

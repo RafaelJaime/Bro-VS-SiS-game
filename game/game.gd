@@ -341,6 +341,13 @@ func _end_match(winning_fighter: Fighter) -> void:
 
 func _show_results() -> void:
 	_hide_banner()
+	# The results own the screen: no timer and no fighter panels behind them.
+	if timer_label:
+		timer_label.visible = false
+	for fighter in [fighter_1, fighter_2]:
+		var hud := fighter.get_node_or_null("PlayerUI") as CanvasLayer
+		if hud:
+			hud.visible = false
 	if music_player:
 		music_player.stop()
 	Combat.cancel_hit_stop()

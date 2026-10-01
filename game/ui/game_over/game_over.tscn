@@ -1,8 +1,6 @@
 [gd_scene load_steps=15 format=3 uid="uid://r47fsncbeolm"]
 
 [ext_resource type="Script" uid="uid://bya4rtk1lnt74" path="res://game/ui/game_over/game_over.gd" id="1_3gwt4"]
-[ext_resource type="Texture2D" uid="uid://cvqrx1db2o3b4" path="res://assets/images/ui/buttons/button5.png" id="2_3gwt4"]
-[ext_resource type="Texture2D" uid="uid://cvg6trsxcoic1" path="res://assets/images/ui/buttons/button6.png" id="2_uv10m"]
 [ext_resource type="Texture2D" uid="uid://br35025wl14bc" path="res://assets/textures/Confetti/413409734-86c17908-9984-45a3-947d-e2d0175b7119.png" id="4_88cxy"]
 [ext_resource type="Texture2D" uid="uid://48ti3w6o4e6v" path="res://game/ui/game_over/confetti.tres" id="5_4u8sn"]
 
@@ -163,13 +161,13 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_y = 5
 theme_override_constants/outline_size = 5
 theme_override_constants/shadow_outline_size = 5
-theme_override_font_sizes/font_size = 40
-text = "Game over"
+theme_override_font_sizes/font_size = 30
+text = "GAME SET"
 horizontal_alignment = 1
 
 [node name="WinnerPortrait" type="TextureRect" parent="CenterContainer/VBoxContainer"]
 texture_filter = 6
-custom_minimum_size = Vector2(0, 250)
+custom_minimum_size = Vector2(0, 230)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
@@ -191,42 +189,49 @@ horizontal_alignment = 1
 [node name="WinnerNameLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(1, 1, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 32
-text = "Matilde "
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 64
+text = "MATILDE"
 horizontal_alignment = 1
 
 [node name="WinnerLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 0, 1)
-theme_override_font_sizes/font_size = 30
-text = "is victorious!"
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 64
+text = " WINS!"
 horizontal_alignment = 1
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 16
 alignment = 1
 
 [node name="ReplayButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(190, 56)
 layout_mode = 2
-theme_override_constants/icon_max_width = 100
-icon = ExtResource("2_3gwt4")
-flat = true
-icon_alignment = 1
+theme_override_font_sizes/font_size = 24
+text = "Rematch"
 
 [node name="CharactersButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(190, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Characters"
 
 [node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(190, 56)
 layout_mode = 2
-theme_override_constants/icon_max_width = 100
-icon = ExtResource("2_uv10m")
-flat = true
-icon_alignment = 1
+theme_override_font_sizes/font_size = 24
+text = "Main Menu"
 
 [connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer2/ReplayButton" to="." method="_on_replay_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer2/CharactersButton" to="." method="_on_characters_button_pressed"]

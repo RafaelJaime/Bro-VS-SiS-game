@@ -45,7 +45,7 @@ anchor_bottom = 1.0
 offset_top = 67.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 200
+theme_override_constants/separation = 160
 alignment = 1
 
 [node name="ItemList2" type="GridContainer" parent="HBoxContainer"]
@@ -53,7 +53,7 @@ layout_mode = 2
 columns = 2
 
 [node name="TextureRect2" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("5_qsfhk")
 expand_mode = 5
@@ -63,7 +63,7 @@ layout_mode = 2
 text = "A and D (Run)"
 
 [node name="TextureRect" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("4_c22lu")
 expand_mode = 5
@@ -73,7 +73,7 @@ layout_mode = 2
 text = "W (Jump)"
 
 [node name="TextureRect3" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("6_kv0fg")
 expand_mode = 5
@@ -83,7 +83,7 @@ layout_mode = 2
 text = "S (Protect)"
 
 [node name="TextureRect4" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("7_ciqjv")
 expand_mode = 5
@@ -93,7 +93,7 @@ layout_mode = 2
 text = "F (Punch)"
 
 [node name="TextureRect5" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("8_02qom")
 expand_mode = 5
@@ -107,7 +107,7 @@ layout_mode = 2
 columns = 2
 
 [node name="TextureRect2" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_wtdte")
 expand_mode = 5
@@ -117,7 +117,7 @@ layout_mode = 2
 text = "L and R Arrows (Run)"
 
 [node name="TextureRect" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_s20an")
 expand_mode = 5
@@ -127,7 +127,7 @@ layout_mode = 2
 text = "Up arrow (Jump) "
 
 [node name="TextureRect3" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_aumwn")
 expand_mode = 5
@@ -137,7 +137,7 @@ layout_mode = 2
 text = "Down arrow (Protect) "
 
 [node name="TextureRect4" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_155o7")
 expand_mode = 5
@@ -147,7 +147,7 @@ layout_mode = 2
 text = "J (Punch)"
 
 [node name="TextureRect5" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_nqyir")
 expand_mode = 5
@@ -163,17 +163,18 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -330.0
-offset_top = -190.0
-offset_right = 330.0
-offset_bottom = -110.0
+offset_left = -380.0
+offset_top = -250.0
+offset_right = 395.0
+offset_bottom = -105.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_font_sizes/font_size = 16
-text = "Double jump: press Jump again in the air.
-Dash: double-tap a direction, on the ground or in the air.
-Punch, block and throw also work in the air.
-Esc or Start: pause and resume."
+theme_override_font_sizes/font_size = 14
+text = "Aim: E (up) and C (down) for Player 1, I (up) and Comma (down) for Player 2.
+Hold Punch to charge a smash. Aim + Punch: up, down and side attacks.
+Up + Punch in the air: recovery jump, once per airtime. Down while falling: fast fall.
+Fall past a table end to grab the leg: Up climbs, Jump ledge-jumps, Down lets go, Punch attacks.
+Double jump: Jump again. Dash: double-tap a direction. Esc or Start: pause."
 horizontal_alignment = 1
 autowrap_mode = 3
 

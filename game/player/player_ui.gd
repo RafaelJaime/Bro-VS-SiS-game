@@ -19,7 +19,7 @@ const COLOR_STOPS: Array[Dictionary] = [
 	{"percent": 0.0, "color": Color(1.0, 1.0, 1.0)},
 	{"percent": 60.0, "color": Color(1.0, 0.92, 0.2)},
 	{"percent": 120.0, "color": Color(1.0, 0.15, 0.1)},
-	{"percent": 200.0, "color": Color(0.45, 0.0, 0.05)},
+	{"percent": 200.0, "color": Color(0.55, 0.02, 0.06)},
 ]
 
 var panel: Control
@@ -100,7 +100,11 @@ func _build() -> void:
 	name_label = _make_label("NameLabel", 18, text_x, 0.0, text_width, left)
 	percent_label = _make_label("PercentLabel", PERCENT_FONT_SIZE, text_x, 14.0, text_width, left)
 	percent_label.text = "0%"
-	percent_label.add_theme_constant_override("outline_size", 8)
+	# Thick dark outline plus a drop shadow keep even the darkest red readable.
+	percent_label.add_theme_constant_override("outline_size", 12)
+	percent_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.9))
+	percent_label.add_theme_constant_override("shadow_offset_x", 3)
+	percent_label.add_theme_constant_override("shadow_offset_y", 4)
 	percent_label.resized.connect(_center_percent_pivot)
 
 	stock_icons = HBoxContainer.new()
