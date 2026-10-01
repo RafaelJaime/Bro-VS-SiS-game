@@ -55,6 +55,14 @@ func play_game(character1: CharacterUI, character2: CharacterUI, cfg1: Controlle
 	else:
 		push_error("Could not find two Fighter nodes in the game scene.")
 
+## Instant rematch: the same characters and controller configs, fresh state.
+## Falls back to the main menu when no match has been played yet.
+func rematch() -> void:
+	if last_match.is_empty():
+		change_scene("res://ui/main_menu/main_menu.tscn")
+		return
+	play_game(last_match["character1"], last_match["character2"], last_match["cfg1"], last_match["cfg2"])
+
 func change_scene_splash(scene_path: String):
 	if current_scene:
 		history.append(current_scene_path)

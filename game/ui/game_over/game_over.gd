@@ -5,13 +5,11 @@ extends Control
 
 @onready var winner_name_label: Label = $CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel
 @onready var up_gpu_particles_2d_5: GPUParticles2D = $UpGPUParticles2D
+@onready var winner_portrait: TextureRect = $CenterContainer/VBoxContainer/WinnerPortrait
 @onready var winner_label: Label = $CenterContainer/VBoxContainer/HBoxContainer/WinnerLabel
 
-# Set by Game right before this is made visible when the match ended by
-# stock elimination, so the correct (unambiguous) winner is shown instead of
-# falling back to the stocks/damage % comparison below (an eliminated player
-# can still have a lower % than the survivor, so that comparison alone would
-# get an elimination backwards).
+# Set by Game when the match is decided (elimination, or more stocks at
+# time-up; a tie goes to sudden death, so there is always a winner).
 var forced_winner: Fighter = null
 
 func _ready():
@@ -24,30 +22,45 @@ func _on_visibility_changed():
 	if visible and player1 and player2:
 		var winner: Fighter = forced_winner
 		if winner == null:
-			winner = _resolve_timeout_winner()
-			if winner == null:
-				winner_name_label.text = ""
-				winner_label.text = "Draw"
-				up_gpu_particles_2d_5.modulate = Color(1, 1, 1, 1)
-				return
+			winner_name_label.text = ""
+			winner_label.text = "Draw"
+			winner_portrait.texture = null
+			up_gpu_particles_2d_5.modulate = Color(1, 1, 1, 1)
+			return
+		winner_label.text = "is victorious!"
+		winner_portrait.texture = winner_texture(winner.character_ui)
 		winner_name_label.text = winner.character_ui.name
 		winner_name_label.add_theme_color_override("font_color", winner.character_ui.color)
 		up_gpu_particles_2d_5.modulate = winner.character_ui.color
-	else:
+	elif visible:
 		push_error("P1 or P2 is not configured")
 
-# Timer-end rule (design doc): more stocks wins; tie -> lower %; else draw.
-func _resolve_timeout_winner() -> Fighter:
-	if player1.stocks != player2.stocks:
-		return player1 if player1.stocks > player2.stocks else player2
-	if player1.damage_percent != player2.damage_percent:
-		return player1 if player1.damage_percent < player2.damage_percent else player2
+# Winner art: the character select's illustration, else the face portrait; the
+# built-in fighters carry neither, so fall back to the art next to their sprites.
+const ART_DIR := "res://assets/images/game/characters/%s/%s"
+
+static func winner_texture(character: CharacterUI) -> Texture2D:
+	if character == null:
+		return null
+	if character.illustration:
+		return character.illustration
+	if character.face_texture:
+		return character.face_texture
+	var key := character.name.to_lower()
+	var initial := key.substr(0, 1)
+	for path in [ART_DIR % [key, "ilustration/Ilustracion_%s1.png" % initial], ART_DIR % [key, "face/%s_014.png" % initial]]:
+		if ResourceLoader.exists(path):
+			return load(path)
 	return null
 
 func _on_replay_button_pressed() -> void:
-	SceneManager.change_scene("res://ui/character_select/character_select.tscn")
 	get_tree().paused = false
+	SceneManager.rematch()
+
+func _on_characters_button_pressed() -> void:
+	get_tree().paused = false
+	SceneManager.change_scene("res://ui/character_select/character_select.tscn")
 
 func _on_main_menu_button_pressed() -> void:
-	SceneManager.change_scene("res://ui/main_menu/main_menu.tscn")
 	get_tree().paused = false
+	SceneManager.change_scene("res://ui/main_menu/main_menu.tscn")

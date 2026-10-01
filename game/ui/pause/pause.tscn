@@ -36,12 +36,12 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
-text = "Pause"
+text = "PAUSED"
 horizontal_alignment = 1
 
 [node name="Label2" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-text = "Press anywhere to continue"
+text = "Press Esc (or Start) to resume"
 horizontal_alignment = 1
 
 [node name="UnpauseButton" type="Button" parent="."]

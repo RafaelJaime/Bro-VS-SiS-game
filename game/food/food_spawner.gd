@@ -21,7 +21,16 @@ func _ready() -> void:
 	spawn_timer.one_shot = true
 	add_child(spawn_timer)
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
-	_schedule_next_spawn()
+
+## Starts dropping food. The Game calls it when the match begins (after the
+## countdown), so nothing falls while the fighters are still locked.
+func start() -> void:
+	if spawn_timer.is_stopped():
+		_schedule_next_spawn()
+
+## Stops dropping food (the match is over). Food already on the counter stays.
+func stop() -> void:
+	spawn_timer.stop()
 
 func _schedule_next_spawn() -> void:
 	spawn_timer.start(randf_range(spawn_min_interval, spawn_max_interval))

@@ -275,7 +275,6 @@ autoplay = false
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 99.0
-autostart = true
 
 [node name="UI" type="CanvasLayer" parent="."]
 layer = 2
@@ -295,15 +294,34 @@ horizontal_alignment = 1
 script = ExtResource("4_4fuuu")
 timer = NodePath("../../Timer")
 
+[node name="CountdownLabel" type="Label" parent="UI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 18
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 8
+theme_override_font_sizes/font_size = 96
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="GameOver" parent="UI" node_paths=PackedStringArray("player1", "player2") instance=ExtResource("7_u5opy")]
 process_mode = 2
 visible = false
 player1 = NodePath("../../Fighter1")
 player2 = NodePath("../../Fighter2")
 
-[node name="Pause" parent="UI" node_paths=PackedStringArray("game_over_scene") instance=ExtResource("7_y36n6")]
+[node name="Pause" parent="UI" node_paths=PackedStringArray("game_over_scene", "game") instance=ExtResource("7_y36n6")]
 visible = false
 game_over_scene = NodePath("../GameOver")
+game = NodePath("../..")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0

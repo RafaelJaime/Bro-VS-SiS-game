@@ -277,6 +277,30 @@ func game_over():
 	ai_controller_2d.done = true
 	ai_controller_2d.needs_reset = true
 
+## Sets the stock count and notifies listeners (HUD, etc.). Does not touch the
+## state machine, so lowering it to 0 does not defeat the fighter by itself.
+func set_stocks(count: int) -> void:
+	stocks = count
+	stocks_changed.emit(self, stocks)
+
+## Sets the damage % outright (sudden death) and notifies listeners.
+func set_damage_percent(percent: float) -> void:
+	damage_percent = percent
+	damage_changed.emit(damage_percent)
+
+## Sudden death (Smash rule): one stock, 300% damage, back on the start spot and
+## standing in the air like a respawn, with no hit or invulnerability left over.
+func prepare_sudden_death(damage: float) -> void:
+	set_stocks(1)
+	set_damage_percent(damage)
+	_stop_invulnerability()
+	clear_held_food()
+	restore_air_actions()
+	velocity = Vector2.ZERO
+	position = initial_position
+	if state_machine:
+		state_machine._change_state("Fall")
+
 # Adds damage and notifies listeners (HUD, etc.).
 func add_damage(amount: float) -> void:
 	damage_percent += amount
@@ -298,11 +322,9 @@ func _check_blast_zone() -> void:
 func _lose_stock() -> void:
 	stocks -= 1
 	stocks_changed.emit(self, stocks)
-	# Skip SFX under AI training (see Combat._is_training: dozens of
-	# train.tscn's Game rows run in parallel, so this would just be noise).
-	var parent = get_parent()
-	if not (parent and parent.get("training") == true):
-		Sfx.play(Sfx.EXPLOSION, self)
+	# Sfx skips itself under AI training (dozens of train.tscn Game rows run in
+	# parallel, so it would just be noise).
+	Sfx.play_event(&"ko", self)
 	if stocks <= 0:
 		velocity = Vector2.ZERO
 		if state_machine and state_machine.state_map.has("Defeated"):
@@ -365,6 +387,7 @@ func pick_up_food(pickup: FoodPickup) -> void:
 	held_food = pickup.food_name
 	held_food_sprite.texture = FoodCatalog.get_texture(held_food)
 	held_food_sprite.visible = true
+	Sfx.play_event(&"pickup", self)
 	pickup.queue_free()
 
 func clear_held_food() -> void:
