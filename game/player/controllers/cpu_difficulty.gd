@@ -35,6 +35,15 @@ enum Level { EASY, NORMAL, HARD }
 ## The bot stops walking toward the opponent at this distance.
 @export var approach_stop_distance: float = 60.0
 
+@export_group("Smash moves")
+## Directional punches: up at an opponent above, the down-air spike on one below,
+## the side punch on a damaged opponent near the edge. Easy only throws the
+## ordinary punch.
+@export var use_directional: bool = true
+## Up-recovery (up + punch in the air) when the double jump is not enough. The bot
+## never charges a smash.
+@export var use_up_recovery: bool = true
+
 @export_group("Recovery")
 ## Chance, per recovery decision, that the bot uses its double jump or air dash
 ## when it is needed. Easy often fumbles it, Hard never does.
@@ -55,6 +64,8 @@ static func preset(level: Level) -> CpuDifficulty:
 			d.pickup_seek_distance = 120.0
 			d.approach_stop_distance = 75.0
 			d.recovery_skill = 0.60
+			d.use_directional = false
+			d.use_up_recovery = false
 		Level.HARD:
 			d.decision_interval = 0.12
 			d.action_accuracy = 0.95
