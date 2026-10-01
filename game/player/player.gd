@@ -32,13 +32,7 @@ enum ControllerKind { AUTO, HUMAN, CPU, POLICY }
 @onready var held_food_sprite: Sprite2D = $HeldFoodSprite
 @onready var state_machine: Node = $StateMachine
 
-# Ring-out stage bounds (blast zone). Falling or being knocked past these
-# costs a stock, whether it happened by walking off or by knockback.
-# Bounds are local to the owning Game so offset Game rows (train.tscn) work.
 const MAX_STOCKS: int = 3
-const BLAST_LEFT: float = -150.0
-const BLAST_RIGHT: float = 950.0
-const BLAST_BOTTOM: float = 750.0
 const RESPAWN_HEIGHT_OFFSET: float = -250.0
 const RESPAWN_INVULNERABILITY: float = 1.5
 const INVULNERABILITY_BLINK_INTERVAL: float = 0.15
@@ -55,6 +49,11 @@ var is_invulnerable: bool = false
 var controller: FighterController
 var intent: FighterIntent = FighterIntent.new()
 var controls_locked: bool = false
+# Ring-out bounds (blast zone). Falling or being knocked past any side costs a
+# stock, whether it happened by walking off or by knockback. Local to the
+# owning Game (which overwrites this default from its exports) so offset Game
+# rows (train.tscn) work.
+var blast_zone: Rect2 = Rect2(-100.0, -400.0, 1376.0, 1210.0)
 # +1 when the enemy is to the right, -1 when to the left.
 var facing: int = 1
 # Name of the food currently held above the head, or "" when empty-handed.
@@ -177,12 +176,12 @@ func add_damage(amount: float) -> void:
 func get_knockback_scale() -> float:
 	return profile.knockback_scale * (1.0 + damage_percent / 50.0)
 
-# Ring-out detection: falling off stage or being knocked past the visible
-# play area (in any direction) costs a stock.
+# Ring-out detection: falling off stage or being knocked past the blast zone
+# (in any direction) costs a stock.
 func _check_blast_zone() -> void:
 	if stocks <= 0:
 		return
-	if position.x < BLAST_LEFT or position.x > BLAST_RIGHT or position.y > BLAST_BOTTOM:
+	if not blast_zone.has_point(position):
 		_lose_stock()
 
 func _lose_stock() -> void:

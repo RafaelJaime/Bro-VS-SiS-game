@@ -2,6 +2,14 @@ extends Node2D
 
 @export var training: bool = false
 
+# Ring-out bounds (blast zones), local to this Game so offset rows (train.tscn)
+# work. Smash has a top blast zone as well as the sides and the bottom. The
+# world art is 1176x902; the zones sit just outside the visible stage.
+@export var blast_left: float = -100.0
+@export var blast_right: float = 1276.0
+@export var blast_top: float = -400.0
+@export var blast_bottom: float = 810.0
+
 @onready var game_over: Control = $UI/GameOver
 @onready var fighter_1: Fighter = $Fighter1
 @onready var fighter_2: Fighter = $Fighter2
@@ -13,6 +21,15 @@ extends Node2D
 const MUSIC_PATH := "res://assets/sounds/freesound/466126__nightwolfcfm__run-cinematic-music.mp3"
 
 func _ready() -> void:
+	var blast_zone := Rect2(blast_left, blast_top, blast_right - blast_left, blast_bottom - blast_top)
+	fighter_1.blast_zone = blast_zone
+	fighter_2.blast_zone = blast_zone
+
+	# The kitchen art is only for human matches: train.tscn runs 25 Game
+	# instances and would just pay for 25 copies of a 1176x902 texture.
+	if training and has_node("Backdrop"):
+		$Backdrop.queue_free()
+
 	# Skip music during AI training (train.tscn runs many Game instances in
 	# parallel, so playing it there would just be noise).
 	if not training:
@@ -48,20 +65,19 @@ func get_state_snapshot() -> Dictionary:
 				"shooter": 1 if child.shooter == fighter_1 else 2,
 			})
 
-	var platforms: Array = []
-	for platform_path in ["StaticBody2D/PlatformLeft", "StaticBody2D/PlatformRight"]:
-		var platform_shape := get_node_or_null(platform_path) as CollisionShape2D
-		if platform_shape:
-			platforms.append(_shape_bounds(platform_shape))
-
 	var floor_shape := get_node_or_null("StaticBody2D/Floor") as CollisionShape2D
+	var camera := get_node_or_null("Camera2D") as Camera2D
 	return {
 		"phase": "playing", # Placeholder until the match phase machine exists.
 		"timer_left": timer.time_left if timer else 0.0,
 		"timer_running": timer != null and not timer.is_stopped(),
 		"sudden_death": false,
 		"stage": _shape_bounds(floor_shape) if floor_shape else {},
-		"platforms": platforms,
+		"platforms": [], # The counter is the only surface.
+		"camera": {
+			"center": camera.get_screen_center_position() if camera else Vector2.ZERO,
+			"zoom": camera.zoom.x if camera else 1.0,
+		},
 		"foods": foods,
 		"projectiles": projectiles,
 		"fighters": [

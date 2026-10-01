@@ -8,9 +8,10 @@ class_name FoodSpawner
 @export var spawn_min_interval: float = 3.0
 @export var spawn_max_interval: float = 5.0
 @export var max_alive: int = 4
-@export var spawn_x_min: float = 180.0
-@export var spawn_x_max: float = 620.0
-@export var spawn_y: float = -50.0
+## Spawn range in this spawner's local space (the Game origin), over the counter.
+@export var spawn_x_min: float = 100.0
+@export var spawn_x_max: float = 760.0
+@export var spawn_y: float = 40.0
 
 var alive_food: Array = []
 var spawn_timer: Timer
@@ -46,5 +47,7 @@ func _spawn_food() -> void:
 	var food = food_pickup_scene.instantiate()
 	food.food_name = FoodCatalog.get_random_food_name()
 	get_parent().add_child(food)
-	food.global_position = Vector2(randf_range(spawn_x_min, spawn_x_max), spawn_y)
+	# Local coordinates: the spawner sits at its Game's origin, so this stays
+	# correct for offset Game rows (train.tscn).
+	food.position = position + Vector2(randf_range(spawn_x_min, spawn_x_max), spawn_y)
 	alive_food.append(food)

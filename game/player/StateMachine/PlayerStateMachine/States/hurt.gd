@@ -38,6 +38,7 @@ func _enter() -> void:
 	# Camera shake
 	var camera_tween = get_tree().create_tween()
 	camera_tween.tween_method(shake_camera, 5.0, 1.0, 0.3)
+	camera_tween.tween_callback(reset_camera_shake)
 	# Blink
 	var blink_tween = get_tree().create_tween()
 	blink_tween.tween_method(set_shader_blink, 1.0, 0.5, 0.3)
@@ -86,6 +87,11 @@ func set_shader_blink(new_value: float) -> void:
 func reset_shader_blink() -> void:
 	var sprite = state_machine.animated_sprite_2d
 	sprite.material.set_shader_parameter("blink_intensity", 0.0)
+
+func reset_camera_shake() -> void:
+	var camera: Camera2D = get_viewport().get_camera_2d()
+	if camera:
+		camera.offset = Vector2.ZERO
 
 func shake_camera(intensity: float) -> void:
 	var camera: Camera2D = get_viewport().get_camera_2d()
