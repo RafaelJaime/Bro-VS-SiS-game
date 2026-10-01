@@ -283,11 +283,24 @@ func set_charge_visual(charge: float) -> void:
 		return
 	if charge < 0.0:
 		charge_glow.visible = false
+		animated_sprite_2d.modulate = Color.WHITE
+		animated_sprite_2d.offset = Vector2.ZERO
 		return
+	# The fighter keeps its own colors: a bright flash (modulate above 1 brightens
+	# the sprite) at 10-15 Hz that speeds up with the charge, plus a tiny shake.
+	var seconds := Time.get_ticks_msec() / 1000.0
+	var hz := lerpf(profile.charge_flash_hz.x, profile.charge_flash_hz.y, charge)
+	var flash_on := sin(seconds * TAU * hz) > 0.0
+	var boost := lerpf(profile.charge_flash_boost.x, profile.charge_flash_boost.y, charge) if flash_on else 0.0
+	animated_sprite_2d.modulate = Color(1.0 + boost, 1.0 + boost, 1.0 + boost, 1.0)
+	var shake := lerpf(profile.charge_shake.x, profile.charge_shake.y, charge)
+	animated_sprite_2d.offset = Vector2(randf_range(-shake, shake), randf_range(-shake, shake))
+	# A small additive glow at the fist: white-hot with a hint of the fighter's color.
 	var tint: Color = character_ui.color if character_ui else Color.WHITE
 	var alpha := lerpf(profile.charge_glow_alpha.x, profile.charge_glow_alpha.y, charge)
-	var pulse := 1.0 + 0.08 * sin(Time.get_ticks_msec() / 60.0)
-	charge_glow.modulate = Color(tint, alpha)
+	var pulse := 1.0 + 0.1 * sin(seconds * TAU * hz)
+	charge_glow.modulate = Color(Color.WHITE.lerp(tint, 0.25), alpha)
+	charge_glow.position = Vector2(profile.charge_glow_offset.x * facing, profile.charge_glow_offset.y)
 	charge_glow.scale = Vector2.ONE * lerpf(profile.charge_glow_scale.x, profile.charge_glow_scale.y, charge) * pulse
 	charge_glow.visible = true
 

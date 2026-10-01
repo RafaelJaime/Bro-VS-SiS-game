@@ -85,9 +85,18 @@ extends Resource
 ## Damage and knockback multipliers at full charge (1.0 at no charge).
 @export var charge_damage_max: float = 1.6
 @export var charge_knockback_max: float = 1.5
-## Glow sprite scale and alpha at the start and at the end of the charge.
-@export var charge_glow_scale: Vector2 = Vector2(0.25, 0.7)
-@export var charge_glow_alpha: Vector2 = Vector2(0.25, 0.9)
+## Charge look (Smash style): the fighter keeps its colors and flashes bright, and
+## a small additive glow sits at the fist. All values go from the start to the end
+## of the charge. Glow sprite scale (the texture is 512 px) and alpha:
+@export var charge_glow_scale: Vector2 = Vector2(0.1, 0.28)
+@export var charge_glow_alpha: Vector2 = Vector2(0.45, 0.9)
+## Flash rate in Hz, how much brighter the sprite gets on a flash frame (added to
+## 1.0 per channel) and the sprite shake in pixels.
+@export var charge_flash_hz: Vector2 = Vector2(10.0, 15.0)
+@export var charge_flash_boost: Vector2 = Vector2(0.35, 0.9)
+@export var charge_shake: Vector2 = Vector2(0.0, 1.5)
+## Glow position in front of the fist (x is mirrored by the facing).
+@export var charge_glow_offset: Vector2 = Vector2(50.0, 2.0)
 
 @export_group("Recovery")
 ## Up-recovery: one upward burst per airtime (up + punch in the air). The fighter

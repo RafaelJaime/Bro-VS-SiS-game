@@ -82,13 +82,29 @@ func _run() -> void:
 	var scale_a := attacker.charge_glow.scale.x
 	var snap_charge: float = attacker.get_state_snapshot()["charge_level"]
 	s.check("glow shows while charging and the snapshot has the charge", attacker.charge_glow.visible and snap_charge > 0.2 and snap_charge < 0.8, "visible=%s charge=%.2f" % [attacker.charge_glow.visible, snap_charge])
-	s.check("the glow modulate follows the character color", attacker.charge_glow.modulate.b > 0.5 and attacker.charge_glow.modulate.r < 0.5, "modulate=%s" % attacker.charge_glow.modulate)
+	# Smash-like: the fighter keeps its own colors (a brightening flash, never a
+	# solid color), a small glow sits in front of the fist.
+	var sprite := attacker.animated_sprite_2d
+	var flash_min := 99.0
+	var flash_max := 0.0
+	var hue_kept := true
+	var glow_bounded := true
+	for i in 30:
+		await s.frames(1)
+		var m := sprite.modulate
+		flash_min = minf(flash_min, m.r)
+		flash_max = maxf(flash_max, m.r)
+		hue_kept = hue_kept and is_equal_approx(m.r, m.g) and is_equal_approx(m.g, m.b)
+		glow_bounded = glow_bounded and attacker.charge_glow.scale.x <= 0.4 and attacker.charge_glow.global_position.x > attacker.global_position.x + 20.0
+	s.check("charging flashes the sprite brighter without tinting it", hue_kept and flash_max > 1.2 and flash_min <= 1.001, "modulate r %.2f..%.2f" % [flash_min, flash_max])
+	s.check("the charge never replaces the sprite colors (no material, no self_modulate)", sprite.self_modulate == Color.WHITE and sprite.modulate.a == 1.0 and attacker.charge_glow.modulate.r > 0.7 and attacker.charge_glow.modulate.g > 0.7 and attacker.charge_glow.modulate.b > 0.7, "glow=%s" % attacker.charge_glow.modulate)
+	s.check("the glow is small and sits in front of the fist", glow_bounded and attacker.charge_glow.scale.x < 0.4, "scale=%.2f x=%.0f fighter x=%.0f" % [attacker.charge_glow.scale.x, attacker.charge_glow.global_position.x, attacker.global_position.x])
 	await s.screenshot("s5b_charging_glow")
 	await s.frames(40)
 	s.check("the glow grows with the charge", attacker.charge_glow.scale.x > scale_a * 0.95, "%.2f -> %.2f" % [scale_a, attacker.charge_glow.scale.x])
 	Combat.apply_hit(victim, attacker, 5.0, Vector2(200.0, -100.0))
 	await s.frames(3)
-	s.check("being hit cancels the charge and hides the glow", not attacker.charge_glow.visible and is_zero_approx(attacker.charge_level) and s.state_of(attacker) == "Hurt", "state=%s" % s.state_of(attacker))
+	s.check("being hit cancels the charge and hides the glow", not attacker.charge_glow.visible and is_zero_approx(attacker.charge_level) and s.state_of(attacker) == "Hurt" and attacker.animated_sprite_2d.offset == Vector2.ZERO, "state=%s" % s.state_of(attacker))
 	await s.despawn(setup[0])
 
 	var released := await _setup(s)
@@ -99,6 +115,7 @@ func _run() -> void:
 	released[1][0].attack_held_level = false
 	await s.frames(3)
 	s.check("the glow hides after the release", not rel_fighter.charge_glow.visible)
+	s.check("the flash and shake reset after the release", rel_fighter.animated_sprite_2d.modulate == Color.WHITE and rel_fighter.animated_sprite_2d.offset == Vector2.ZERO, "modulate=%s offset=%s" % [rel_fighter.animated_sprite_2d.modulate, rel_fighter.animated_sprite_2d.offset])
 	await s.despawn(released[0])
 
 	# No air charge.
