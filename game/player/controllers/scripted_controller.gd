@@ -111,13 +111,14 @@ var _threat_active := false
 var _pickup_tries := 0
 var _pickup_blocked_until := 0.0
 
-## `rng_seed` makes a bot reproducible (tests); a negative value randomizes.
+## `rng_seed` makes a bot reproducible (tests); a negative value takes its seed
+## from GameRng, which is random in real play and fixed once a test seeds it.
 func _init(d: CpuDifficulty = null, rng_seed: int = -1) -> void:
 	difficulty = d if d != null else CpuDifficulty.preset(CpuDifficulty.Level.NORMAL)
 	if rng_seed >= 0:
 		_rng.seed = rng_seed
 	else:
-		_rng.randomize()
+		_rng.seed = GameRng.next_seed()
 
 func kind_name() -> String:
 	return "cpu"

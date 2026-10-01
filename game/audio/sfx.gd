@@ -51,7 +51,7 @@ static func play_event(event: StringName, requester: Node, pitch_mul: float = 1.
 ## A random pitch inside the event's band.
 static func pick_pitch(event: StringName) -> float:
 	var entry: Array = EVENTS[event]
-	return randf_range(entry[1], entry[2])
+	return GameRng.randf_range(entry[1], entry[2])
 
 ## True when `node` lives in a Game row that is running AI training.
 static func is_training(node: Node) -> bool:

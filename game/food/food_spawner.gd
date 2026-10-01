@@ -33,7 +33,7 @@ func stop() -> void:
 	spawn_timer.stop()
 
 func _schedule_next_spawn() -> void:
-	spawn_timer.start(randf_range(spawn_min_interval, spawn_max_interval))
+	spawn_timer.start(GameRng.randf_range(spawn_min_interval, spawn_max_interval))
 
 func _on_spawn_timer_timeout() -> void:
 	_cleanup_freed()
@@ -58,5 +58,5 @@ func _spawn_food() -> void:
 	get_parent().add_child(food)
 	# Local coordinates: the spawner sits at its Game's origin, so this stays
 	# correct for offset Game rows (train.tscn).
-	food.position = position + Vector2(randf_range(spawn_x_min, spawn_x_max), spawn_y)
+	food.position = position + Vector2(GameRng.randf_range(spawn_x_min, spawn_x_max), spawn_y)
 	alive_food.append(food)

@@ -7,6 +7,9 @@ extends RefCounted
 
 const GAME_SCENE := "res://game/game.tscn"
 const WATCHDOG_SECONDS := 120.0
+## Seed of the shared gameplay generator (GameRng): food drops, unseeded bots,
+## SFX pitch. Every script runs with the same one so a run is reproducible.
+const GAME_SEED := 20260501
 
 ## Intent source for tests: levels (move_x, jump_held_level, block_held_level)
 ## persist, presses fire exactly once.
@@ -135,6 +138,7 @@ var finished: bool = false
 func _init(scene_tree: SceneTree, watchdog_seconds: float = WATCHDOG_SECONDS) -> void:
 	_watchdog_seconds = watchdog_seconds
 	tree = scene_tree
+	GameRng.seed_all(GAME_SEED)
 	# Keep the music and SFX quiet; the checks do not need audio.
 	AudioServer.set_bus_mute(0, true)
 	tree.create_timer(_watchdog_seconds, true, false, true).timeout.connect(_on_watchdog)

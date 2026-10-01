@@ -51,8 +51,9 @@ func _full_match(s: RefCounted) -> void:
 	paused = false
 	await s.despawn(game)
 
-# The opponent hovers off the stage (held there every frame). A chasing bot would
-# walk off the edge; this one has to stop at it and keep its stocks.
+# The opponent hovers off the stage (held there every frame). Smash allows
+# edgeguarding, so the bot may go for them (even past the edge), but it must never
+# lose a stock to its own chase: it has to keep all its stocks.
 func _edge_guard(s: RefCounted, level: int, side: int) -> void:
 	var game: Node2D = s.spawn_game()
 	s.attach_controllers(game)
@@ -69,7 +70,8 @@ func _edge_guard(s: RefCounted, level: int, side: int) -> void:
 		await s.frames(1)
 		farthest = maxf(farthest, (cpu.position.x - edge) * side)
 	var level_name := "Hard" if level == Level.HARD else "Normal"
-	s.check("CPU %s never follows an off-stage opponent over the %s edge" % [level_name, "right" if side > 0 else "left"], cpu.stocks == Fighter.MAX_STOCKS and human.stocks == Fighter.MAX_STOCKS and farthest < 0.0, "stocks=%d/%d farthest past the edge=%.0f" % [cpu.stocks, human.stocks, farthest])
+	print("INFO CPU %s %s edge: farthest past the edge=%.0f" % [level_name, "right" if side > 0 else "left", farthest])
+	s.check("CPU %s never loses a stock following an off-stage opponent over the %s edge" % [level_name, "right" if side > 0 else "left"], cpu.stocks == Fighter.MAX_STOCKS, "cpu stocks=%d" % cpu.stocks)
 	await s.despawn(game)
 
 func _run() -> void:

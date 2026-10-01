@@ -294,7 +294,7 @@ func set_charge_visual(charge: float) -> void:
 	var boost := lerpf(profile.charge_flash_boost.x, profile.charge_flash_boost.y, charge) if flash_on else 0.0
 	animated_sprite_2d.modulate = Color(1.0 + boost, 1.0 + boost, 1.0 + boost, 1.0)
 	var shake := lerpf(profile.charge_shake.x, profile.charge_shake.y, charge)
-	animated_sprite_2d.offset = Vector2(randf_range(-shake, shake), randf_range(-shake, shake))
+	animated_sprite_2d.offset = Vector2(GameRng.randf_range(-shake, shake), GameRng.randf_range(-shake, shake))
 	# A small additive glow at the fist: white-hot with a hint of the fighter's color.
 	var tint: Color = character_ui.color if character_ui else Color.WHITE
 	var alpha := lerpf(profile.charge_glow_alpha.x, profile.charge_glow_alpha.y, charge)

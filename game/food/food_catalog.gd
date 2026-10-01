@@ -67,7 +67,7 @@ static func get_texture(food_name: String) -> Texture2D:
 
 static func get_random_food_name() -> String:
 	var names = FOOD_ITEMS.keys()
-	return names[randi() % names.size()]
+	return names[GameRng.randi_below(names.size())]
 
 static func get_damage(food_name: String) -> float:
 	return get_stats(food_name)["damage"]
