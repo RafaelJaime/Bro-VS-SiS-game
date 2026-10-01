@@ -35,6 +35,7 @@
 [ext_resource type="Script" path="res://game/camera/match_camera.gd" id="32_camera"]
 [ext_resource type="Script" path="res://game/stage/table_stage.gd" id="33_table"]
 [ext_resource type="Script" path="res://game/stage/fighter_shadows.gd" id="34_shadows"]
+[ext_resource type="Script" path="res://game/stage/backdrop_extension.gd" id="35_ext"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_feb5d"]
 size = Vector2(800, 60)
@@ -236,6 +237,9 @@ texture_filter = 6
 position = Vector2(-158, 0)
 centered = false
 texture = ExtResource("31_backdrop")
+
+[node name="BackdropExtension" type="Node2D" parent="."]
+script = ExtResource("35_ext")
 
 [node name="TableStage" type="Node2D" parent="."]
 script = ExtResource("33_table")

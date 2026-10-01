@@ -30,7 +30,7 @@ func _run() -> void:
 	var fighter_1: Fighter = game.get_node("Fighter1")
 	var fighter_2: Fighter = game.get_node("Fighter2")
 
-	s.check("limits cover the 1176x902 world (backdrop at x=-158)", camera.limit_left == -158 and camera.limit_top == 0 and camera.limit_right == 1018 and camera.limit_bottom == 902, "limits=%d,%d,%d,%d" % [camera.limit_left, camera.limit_top, camera.limit_right, camera.limit_bottom])
+	s.check("limits cover the backdrop plus its wall extension (-300,-300 to 1160,902)", camera.limit_left == -300 and camera.limit_top == -300 and camera.limit_right == 1160 and camera.limit_bottom == 902, "limits=%d,%d,%d,%d" % [camera.limit_left, camera.limit_top, camera.limit_right, camera.limit_bottom])
 
 	await s.frames(180)
 	var near_zoom := camera.zoom.x
@@ -46,7 +46,7 @@ func _run() -> void:
 	var far_zoom := camera.zoom.x
 	var far_center := camera.get_screen_center_position()
 	s.check("zoom shrinks (zooms out) when the fighters separate", far_zoom < near_zoom - 0.05, "near=%.3f far=%.3f gap %.0f -> %.0f" % [near_zoom, far_zoom, near_gap, absf(fighter_2.position.x - fighter_1.position.x)])
-	s.check("zoom stays within 0.75..1.15", far_zoom >= 0.749 and far_zoom <= 1.151 and near_zoom >= 0.749 and near_zoom <= 1.151, "near=%.3f far=%.3f" % [near_zoom, far_zoom])
+	s.check("zoom stays within 0.75..1.15 for fighters on the table", far_zoom >= 0.749 and far_zoom <= 1.151 and near_zoom >= 0.749 and near_zoom <= 1.151, "near=%.3f far=%.3f" % [near_zoom, far_zoom])
 	s.check("view never leaves the camera limits while fighters separate", inside)
 
 	fighter_1.position.x = 700.0
@@ -59,6 +59,71 @@ func _run() -> void:
 	s.check("zoom grows again when the fighters come together", camera.zoom.x > far_zoom + 0.05, "far=%.3f close=%.3f" % [far_zoom, camera.zoom.x])
 	s.check("view stays inside the limits at the right edge", inside and _view_inside_limits(camera))
 	s.check("camera center moved from the start", near_center.distance_to(right_center) > 40.0)
+
+	# --- high launches and the up-recovery apex stay in view ---
+	var controllers := s.attach_controllers(game)
+	fighter_1.position = Vector2(430.0, 440.0)
+	fighter_1.velocity = Vector2.ZERO
+	fighter_2.position = Vector2(500.0, 440.0)
+	fighter_2.velocity = Vector2.ZERO
+	await s.frames(120)
+	var ctl = controllers[0]
+	ctl.jump_held_level = true
+	ctl.press_jump()
+	await s.frames(18)
+	ctl.press_jump()
+	await s.frames(14)
+	ctl.jump_held_level = false
+	ctl.press_special()
+	var apex := fighter_1.position.y
+	var shot_taken := false
+	var clipped := 0
+	var worst := 0.0
+	var offscreen := 0
+	var lowest_view_top := INF
+	for i in 80:
+		await s.frames(1)
+		apex = minf(apex, fighter_1.position.y)
+		if not shot_taken and fighter_1.position.y < -150.0:
+			shot_taken = true
+			await s.screenshot("final_recovery_apex")
+		var canvas := game.get_viewport().get_canvas_transform()
+		var head := (canvas * (fighter_1.position + Vector2(0.0, -70.0))).y
+		var feet := canvas * fighter_1.position
+		if head < 0.0:
+			clipped += 1
+			worst = maxf(worst, -head)
+		if feet.y < 0.0 or feet.y > 600.0 or feet.x < 0.0 or feet.x > 800.0:
+			offscreen += 1
+		inside = inside and _view_inside_limits(camera)
+		lowest_view_top = minf(lowest_view_top, camera.get_screen_center_position().y - 300.0 / camera.zoom.x)
+	s.check("the up-recovery rises well above the table", apex < 200.0, "apex y=%.0f" % apex)
+	s.check("the camera keeps the fighter and its head in view over the recovery apex", clipped == 0 and offscreen == 0, "%d frames head cut (worst %.0f px), %d off screen, apex y=%.0f zoom=%.2f" % [clipped, worst, offscreen, apex, camera.zoom.x])
+	s.check("the camera followed above the old top of the backdrop or zoomed out", lowest_view_top < 40.0 or camera.zoom.x < 0.9, "view top %.0f zoom %.2f" % [lowest_view_top, camera.zoom.x])
+	s.check("the view stays inside the extended world", inside)
+	await s.wait_grounded(fighter_1, 300)
+	await s.frames(2)
+
+	# A launch far above the table: the camera zooms out (below the normal minimum
+	# if it must) so the fighter stays visible, and the table stays above the HUD.
+	fighter_1.position = Vector2(430.0, -120.0)
+	fighter_1.velocity = Vector2.ZERO
+	fighter_1.set_physics_process(false)
+	var high_ok := true
+	for i in 90:
+		await s.frames(1)
+		fighter_1.position = Vector2(430.0, -120.0)
+		fighter_1.velocity = Vector2.ZERO
+		inside = inside and _view_inside_limits(camera)
+	var canvas_high := game.get_viewport().get_canvas_transform()
+	var head_high := (canvas_high * (fighter_1.position + Vector2(0.0, -70.0))).y
+	var table_screen := (canvas_high * Vector2(0.0, camera.stage_top + camera.sprite_overhang)).y
+	await s.screenshot("final_high_launch")
+	s.check("a fighter at y=-120 is fully in view", head_high >= 0.0 and (canvas_high * fighter_1.position).y <= 600.0, "head screen y=%.0f zoom=%.2f" % [head_high, camera.zoom.x])
+	s.check("zooming out for a high fighter may go below 0.75 but not below the floor", camera.zoom.x >= camera.min_view_zoom - 0.001 and camera.zoom.x < 0.75, "zoom=%.3f" % camera.zoom.x)
+	s.check("the tabletop still stays above the HUD band", table_screen <= 600.0 - camera.hud_reserve + 1.0, "table at screen y=%.0f" % table_screen)
+	s.check("the view stays inside the extended world after a high launch", inside)
+	fighter_1.set_physics_process(true)
 
 	var snapshot: Dictionary = game.get_state_snapshot()
 	s.check("snapshot has a camera key with center and zoom", snapshot.has("camera") and snapshot["camera"].has("center") and snapshot["camera"].has("zoom"))

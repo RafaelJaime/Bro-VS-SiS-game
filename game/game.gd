@@ -84,7 +84,7 @@ func _ready() -> void:
 	# The kitchen art and the table are only for human matches: train.tscn runs
 	# 25 Game instances and would just pay for 25 copies of a 1176x902 texture.
 	if training:
-		for decor in ["Backdrop", "TableStage"]:
+		for decor in ["Backdrop", "BackdropExtension", "TableStage"]:
 			if has_node(decor):
 				get_node(decor).queue_free()
 
