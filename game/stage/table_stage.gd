@@ -27,6 +27,8 @@ const BASEBOARD := Color(0.72, 0.4, 0.24)
 
 ## Seam between the cloth strip rows: one gingham period is 78 px tall.
 const CLOTH_PERIOD := 78.0
+## How far the outer legs stick out past the table ends.
+const LEG_OVERHANG := 4.0
 ## Rows of the strip used for the drape (red, white, red); the art is 128 tall.
 const DRAPE_ROWS := 120.0
 
@@ -103,8 +105,10 @@ func _leg_xs() -> Array[Dictionary]:
 		legs.append({"x": left_x + width * 0.16, "back": true})
 		legs.append({"x": right_x - width * 0.16 - leg_width * 0.8, "back": true})
 	if leg_count >= 2:
-		legs.append({"x": left_x + 24.0, "back": false})
-		legs.append({"x": right_x - 24.0 - leg_width, "back": false})
+		# The outer legs are flush with the table ends: they are the ledge (grab
+		# zone) of the stage, see Game.get_ledges().
+		legs.append({"x": left_x - LEG_OVERHANG, "back": false})
+		legs.append({"x": right_x + LEG_OVERHANG - leg_width, "back": false})
 	return legs
 
 func _draw_legs() -> void:

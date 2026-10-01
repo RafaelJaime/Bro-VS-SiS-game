@@ -45,6 +45,8 @@ func _enter() -> void:
 	owner.set_velocity(state_machine.velocity)
 	# Being hit refills the air jump and air dash.
 	owner.restore_air_actions()
+	# A hit also makes the next ledge grab a full one again.
+	owner.ledge_grabs = 0
 
 	# Emitir señal para animación
 	super._enter()

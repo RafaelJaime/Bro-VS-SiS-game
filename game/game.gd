@@ -35,6 +35,11 @@ signal match_over(winner: Fighter)
 @export var blast_top: float = -400.0
 @export var blast_bottom: float = 810.0
 
+## Table legs at both ends of the table are grab zones (Smash ledge). They run
+## from the tabletop down to the bottom of the legs; when a TableStage is present
+## its leg bottom wins over this default (floor top 480, leg bottom 738).
+@export var ledge_depth: float = 258.0
+
 @onready var game_over: Control = get_node_or_null("UI/GameOver")
 @onready var fighter_1: Fighter = $Fighter1
 @onready var fighter_2: Fighter = $Fighter2
@@ -65,6 +70,7 @@ var _flow_callback: Callable
 var _countdown_index: int = 0
 var _skip_pending: bool = false
 var _banner_tween: Tween
+var _ledges: Array = []
 
 # Loaded via load() at runtime, not preload()/ext_resource: this freesound
 # asset has no .import file yet (same caveat as T0's food sprites).
@@ -140,6 +146,9 @@ func get_state_snapshot() -> Dictionary:
 			})
 
 	var floor_shape := get_node_or_null("StaticBody2D/Floor") as CollisionShape2D
+	var ledges: Array = get_ledges().duplicate(true)
+	for ledge: Dictionary in ledges:
+		ledge["occupied"] = (fighter_1 and fighter_1.ledge_side == ledge["side"]) or (fighter_2 and fighter_2.ledge_side == ledge["side"])
 	var camera := get_node_or_null("Camera2D") as Camera2D
 	return {
 		"phase": String(Phase.find_key(phase)).to_lower(),
@@ -158,6 +167,7 @@ func get_state_snapshot() -> Dictionary:
 			"center": camera.get_screen_center_position() if camera else Vector2.ZERO,
 			"zoom": camera.zoom.x if camera else 1.0,
 		},
+		"ledges": ledges,
 		"foods": foods,
 		"projectiles": projectiles,
 		"fighters": [
@@ -165,6 +175,31 @@ func get_state_snapshot() -> Dictionary:
 			fighter_2.get_state_snapshot() if fighter_2 else {},
 		],
 	}
+
+## The two table legs a fighter can grab, Game-local: `side` -1 left end, +1 right
+## end; `x` the table end (the fighter hangs just outside it); `top` the tabletop;
+## `bottom` the lowest grab height. Empty in training (the table is not there and
+## the RL environment stays as it was).
+func get_ledges() -> Array:
+	if training:
+		return []
+	if _ledges.is_empty():
+		var floor_shape := get_node_or_null("StaticBody2D/Floor") as CollisionShape2D
+		if floor_shape == null:
+			return []
+		var bounds := _shape_bounds(floor_shape)
+		var depth := ledge_depth
+		var table := get_node_or_null("TableStage") as TableStage
+		if table != null and table.floor_y > 0.0:
+			depth = table.floor_y - bounds["top"]
+		for side in [-1, 1]:
+			_ledges.append({
+				"side": side,
+				"x": bounds["left"] if side < 0 else bounds["right"],
+				"top": bounds["top"],
+				"bottom": bounds["top"] + depth,
+			})
+	return _ledges
 
 # Top surface and horizontal extent of a rectangle collider, Game-local.
 func _shape_bounds(shape_node: CollisionShape2D) -> Dictionary:

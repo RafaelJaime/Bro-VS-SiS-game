@@ -11,6 +11,7 @@ func can_enter() -> bool:
 
 func _enter() -> void:
 	_in_air = not is_on_floor()
+	owner.fast_falling = false
 	if _in_air:
 		owner.air_dash_available = false
 		state_machine.velocity.y = 0.0

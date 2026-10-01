@@ -31,6 +31,7 @@ enum ControllerKind { AUTO, HUMAN, CPU, POLICY }
 @onready var punch_area: Area2D = $PunchArea
 @onready var pickup_area: Area2D = $PickupArea
 @onready var held_food_sprite: Sprite2D = $HeldFoodSprite
+@onready var charge_glow: Sprite2D = $ChargeGlow
 @onready var state_machine: Node = $StateMachine
 
 const MAX_STOCKS: int = 3
@@ -44,7 +45,10 @@ const PUSH_HEIGHT: float = 120.0
 const PUSH_SPEED: float = 90.0
 # Smash: you face the way you move. No turning while an action owns the body.
 const TURN_DEADZONE: float = 0.1
-const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated"]
+const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated", "LedgeHang"]
+# Air states a fighter can grab a table leg from. Punches, throws and blocks in the
+# air finish first (Smash), a hit never grabs.
+const LEDGE_GRAB_STATES: Array[String] = ["Jump", "Fall", "Recovery", "Helpless", "Dash"]
 const INVULNERABILITY_BLINK_INTERVAL: float = 0.15
 
 ## How a jump request resolves this frame (see peek_jump / consume_jump).
@@ -83,6 +87,25 @@ var jump_buffer_timer: float = 0.0
 # the coyote time (that would allow ground jump + coyote jump + double jump).
 var _coyote_blocked: bool = false
 
+# Smash moves. `recovery_available` is the once-per-airtime up-recovery; it comes
+# back on landing, on being hit and on a ledge grab. `charge_level` is 0..1 while
+# a punch is charging. `fast_falling` lasts until the fighter lands or acts.
+var recovery_available: bool = true
+var charge_level: float = 0.0
+var last_attack_direction: StringName = &"neutral"
+var fast_falling: bool = false
+# Set by a ledge jump for the next Jump._enter (0.0 = use the profile's jump).
+var jump_velocity_override: float = 0.0
+
+# Ledge (table leg) bookkeeping. `ledge_side` is -1 for the left end, +1 for the
+# right end and 0 when not hanging. `ledge_grabs` counts grabs since the last
+# time the fighter touched the ground or was hit (it shortens the invulnerability).
+var ledge_side: int = 0
+var ledge_grabs: int = 0
+var ledge_anchor: Vector2 = Vector2.ZERO
+var _ledge_lockout: float = 0.0
+var _feet_offset: float = 94.0
+
 var _invuln_timer: Timer
 var _blink_tween: Tween
 
@@ -93,6 +116,9 @@ func _enter_tree() -> void:
 
 func _ready():
 	initial_position = position
+	var body := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if body and body.shape is RectangleShape2D:
+		_feet_offset = body.position.y + (body.shape as RectangleShape2D).size.y / 2.0
 	jumps_left = profile.max_air_jumps if profile.can_double_jump else 0
 	air_dash_available = profile.can_dash
 
@@ -128,6 +154,7 @@ func _physics_process(delta: float) -> void:
 	_update_facing()
 	move_and_slide()
 	_apply_soft_push(delta)
+	_try_ledge_grab()
 	_check_blast_zone()
 
 # Floor contact is the result of the previous frame's move_and_slide. Landing
@@ -139,10 +166,12 @@ func _tick_movement(delta: float) -> void:
 	else:
 		jump_buffer_timer = maxf(0.0, jump_buffer_timer - delta)
 
+	_ledge_lockout = maxf(0.0, _ledge_lockout - delta)
 	if is_on_floor():
 		if not _coyote_blocked:
 			coyote_timer = profile.coyote_time
 		restore_air_actions()
+		ledge_grabs = 0
 	else:
 		_coyote_blocked = false
 		coyote_timer = maxf(0.0, coyote_timer - delta)
@@ -151,6 +180,8 @@ func _tick_movement(delta: float) -> void:
 func restore_air_actions() -> void:
 	jumps_left = profile.max_air_jumps if profile.can_double_jump else 0
 	air_dash_available = profile.can_dash
+	recovery_available = true
+	fast_falling = false
 
 ## What a jump would be right now, without spending anything. NONE unless a jump
 ## was requested within the buffer window. GROUND on the floor or inside the
@@ -183,15 +214,90 @@ func _update_facing() -> void:
 	animated_sprite_2d.flip_h = facing < 0
 
 func _is_turn_locked() -> bool:
+	return TURN_LOCKED_STATES.has(_state_name())
+
+func _state_name() -> String:
 	if state_machine == null or state_machine.current_state == null:
-		return false
-	return TURN_LOCKED_STATES.has(state_machine.current_state.name)
+		return ""
+	return String(state_machine.current_state.name)
+
+# --------------------------------------------------------------------- ledge
+
+## Grabs a table leg when an airborne fighter falls past the end of the table
+## within reach (Smash ledge grab). Holding away from the table or down skips it.
+func _try_ledge_grab() -> void:
+	if not profile.can_ledge_grab or _ledge_lockout > 0.0 or stocks <= 0:
+		return
+	if is_on_floor() or velocity.y < -profile.ledge_max_rise:
+		return
+	if not LEDGE_GRAB_STATES.has(_state_name()) or intent.aim == FighterIntent.Aim.DOWN:
+		return
+	var game := get_parent()
+	if game == null or not game.has_method("get_ledges"):
+		return
+	for ledge: Dictionary in game.get_ledges():
+		var side: int = ledge["side"]
+		if intent.move_x * side > 0.5:
+			continue # Pushing away from the table.
+		var hang_x: float = ledge["x"] + side * profile.ledge_hang_offset
+		var top: float = ledge["top"]
+		var lowest: float = ledge["bottom"] - _feet_offset
+		var highest: float = top + profile.ledge_hang_depth - profile.ledge_snap_up
+		if absf(position.x - hang_x) > profile.ledge_reach_x or position.y < highest or position.y > lowest:
+			continue
+		_grab_ledge(side, Vector2(hang_x, maxf(position.y, top + profile.ledge_hang_depth)))
+		return
+
+func _grab_ledge(side: int, anchor: Vector2) -> void:
+	# One fighter per leg: the newcomer kicks the one hanging there (ledge trump).
+	if enemy is Fighter and enemy.ledge_side == side:
+		enemy.trump_off_ledge()
+	ledge_side = side
+	ledge_anchor = anchor
+	ledge_grabs += 1
+	state_machine._change_state("LedgeHang")
+
+## Kicked off the leg by another fighter: falls away and cannot regrab at once.
+func trump_off_ledge() -> void:
+	if ledge_side == 0:
+		return
+	var side := ledge_side
+	state_machine.velocity = Vector2(side * 120.0, 0.0)
+	velocity = state_machine.velocity
+	state_machine._change_state("Fall")
+	block_ledge_grab(profile.ledge_regrab_lockout)
+
+## No ledge grab for `seconds` (after letting go of a leg or being trumped).
+func block_ledge_grab(seconds: float) -> void:
+	_ledge_lockout = maxf(_ledge_lockout, seconds)
+
+## Invulnerability of the current grab: the first one gets the full time, every
+## further grab since the ground (or a hit) gets `ledge_invuln_decay` less.
+func ledge_invulnerability() -> float:
+	return maxf(0.0, profile.ledge_invuln_first - profile.ledge_invuln_decay * (ledge_grabs - 1))
+
+## Glow while charging a smash: `charge` 0..1 shows it and grows it with the
+## charge; a negative value hides it.
+func set_charge_visual(charge: float) -> void:
+	if charge_glow == null:
+		return
+	if charge < 0.0:
+		charge_glow.visible = false
+		return
+	var tint: Color = character_ui.color if character_ui else Color.WHITE
+	var alpha := lerpf(profile.charge_glow_alpha.x, profile.charge_glow_alpha.y, charge)
+	var pulse := 1.0 + 0.08 * sin(Time.get_ticks_msec() / 60.0)
+	charge_glow.modulate = Color(tint, alpha)
+	charge_glow.scale = Vector2.ONE * lerpf(profile.charge_glow_scale.x, profile.charge_glow_scale.y, charge) * pulse
+	charge_glow.visible = true
 
 # Smash-style fighter collision: bodies do not collide, they only push each
 # other gently apart on the ground plane. Both fighters run this, so the push is
 # symmetric. A fighter running through the opponent is slowed, not stopped.
 func _apply_soft_push(delta: float) -> void:
 	if enemy == null or stocks <= 0 or enemy.get("stocks") == 0:
+		return
+	if ledge_side != 0:
 		return
 	var offset_x := global_position.x - enemy.global_position.x
 	if absf(offset_x) >= PUSH_DISTANCE or absf(global_position.y - enemy.global_position.y) > PUSH_HEIGHT:
@@ -248,6 +354,12 @@ func get_state_snapshot() -> Dictionary:
 		},
 		"jumps_left": jumps_left,
 		"air_dash_available": air_dash_available,
+		"charge_level": charge_level,
+		"recovery_available": recovery_available,
+		"last_attack_direction": last_attack_direction,
+		"fast_falling": fast_falling,
+		"ledge_side": ledge_side,
+		"ledge_grabs": ledge_grabs,
 		"is_invulnerable": is_invulnerable,
 		"controller": controller.kind_name() if controller else "none",
 	}
@@ -272,6 +384,8 @@ func reset_player():
 	clear_held_food()
 	velocity = Vector2.ZERO
 	position = initial_position
+	ledge_side = 0
+	ledge_grabs = 0
 
 func game_over():
 	ai_controller_2d.done = true
@@ -291,6 +405,7 @@ func set_damage_percent(percent: float) -> void:
 ## Sudden death (Smash rule): one stock, 300% damage, back on the start spot and
 ## standing in the air like a respawn, with no hit or invulnerability left over.
 func prepare_sudden_death(damage: float) -> void:
+	ledge_grabs = 0
 	set_stocks(1)
 	set_damage_percent(damage)
 	_stop_invulnerability()
@@ -334,6 +449,7 @@ func _lose_stock() -> void:
 		_respawn()
 
 func _respawn() -> void:
+	ledge_grabs = 0
 	damage_percent = 0.0
 	damage_changed.emit(damage_percent)
 	clear_held_food()

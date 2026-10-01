@@ -86,8 +86,9 @@ func calculate_gravity(delta: float, scale: float = 1.0) -> void:
 	var pull := gravity * scale
 	if velocity_y > 0.0:
 		pull *= profile.fall_gravity_multiplier
-	if velocity_y < profile.max_fall_speed:
-		state_machine.velocity.y = minf(velocity_y + pull * delta, profile.max_fall_speed)
+	var cap := profile.fast_fall_speed if owner.fast_falling else profile.max_fall_speed
+	if velocity_y < cap:
+		state_machine.velocity.y = minf(velocity_y + pull * delta, cap)
 
 func is_on_floor() -> bool: 
 	return owner.is_on_floor()

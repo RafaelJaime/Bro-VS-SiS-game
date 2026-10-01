@@ -11,12 +11,14 @@ func can_enter() -> bool:
 func _enter() -> void:
 	super._enter()
 	_cut_done = false
+	owner.fast_falling = false
 	var kind: Fighter.JumpKind = owner.consume_jump()
 	if kind == Fighter.JumpKind.AIR:
 		state_machine.velocity.y = profile.double_jump_velocity
 		Sfx.play_event(&"double_jump", owner)
 	else:
-		state_machine.velocity.y = profile.jump_velocity
+		state_machine.velocity.y = owner.jump_velocity_override if owner.jump_velocity_override != 0.0 else profile.jump_velocity
+		owner.jump_velocity_override = 0.0
 		Sfx.play_event(&"jump", owner)
 	# Applied right away so the first airborne frame already rises.
 	velocity_updated.emit(state_machine.velocity)

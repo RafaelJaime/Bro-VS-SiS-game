@@ -24,8 +24,10 @@ const EVENTS := {
 	&"block": [PUNCH, 0.62, 0.72],
 	&"throw": [PUNCH, 0.80, 0.90],
 	&"hit": [PUNCH, 0.96, 1.10],
+	&"recovery": [PUNCH, 1.12, 1.20],
 	&"pickup": [PUNCH, 1.22, 1.32],
 	&"jump": [PUNCH, 1.42, 1.55],
+	&"ledge": [PUNCH, 1.58, 1.65],
 	&"double_jump": [PUNCH, 1.68, 1.80],
 	# Explosion: a deep boom for a KO, the normal one for a heavy hit.
 	&"ko": [EXPLOSION, 0.60, 0.72],
