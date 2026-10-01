@@ -20,6 +20,10 @@ signal player_defeated(player_instance: Fighter)
 @export var profile: FighterProfile
 enum PlayerNumber { JUGADOR1, JUGADOR2 }
 @export var control_scheme: PlayerNumber = PlayerNumber.JUGADOR1
+## Where this fighter's intent comes from. AUTO resolves from the scene's
+## AIController2D control mode (see _resolve_auto_controller).
+enum ControllerKind { AUTO, HUMAN, CPU, POLICY }
+@export var controller_kind: ControllerKind = ControllerKind.AUTO
 
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var ai_controller_2d: AIController2D = $AIController2D
@@ -45,6 +49,14 @@ var initial_position: Vector2
 var damage_percent: float = 0.0
 var stocks: int = MAX_STOCKS
 var is_invulnerable: bool = false
+# Controller seam: the controller is sampled exactly once per physics frame and
+# the resulting intent is what every state reads. Locked fighters get a neutral
+# intent (used by the match countdown).
+var controller: FighterController
+var intent: FighterIntent = FighterIntent.new()
+var controls_locked: bool = false
+# +1 when the enemy is to the right, -1 when to the left.
+var facing: int = 1
 # Name of the food currently held above the head, or "" when empty-handed.
 var held_food: String = ""
 
@@ -60,16 +72,49 @@ func _ready():
 	if character_ui:
 		_apply_character_ui_settings()
 
-func _physics_process(_delta: float) -> void:
+	if controller == null:
+		set_controller(_resolve_controller())
+
+func _physics_process(delta: float) -> void:
+	# The only controller sample per frame; parent-first physics order makes
+	# this intent visible to the state machine child in the same frame.
+	intent = FighterIntent.new() if (controls_locked or controller == null) else controller.sample(delta)
+
 	if ai_controller_2d.needs_reset:
 		ai_controller_2d.reset()
 		reset_player()
 		return
 
 	if enemy:
+		facing = 1 if enemy.global_position.x >= global_position.x else -1
 		animated_sprite_2d.flip_h = enemy.global_position.x < global_position.x
 	move_and_slide()
 	_check_blast_zone()
+
+func set_controller(new_controller: FighterController) -> void:
+	controller = new_controller
+	controller.bind(self)
+
+func _resolve_controller() -> FighterController:
+	match controller_kind:
+		ControllerKind.HUMAN:
+			return HumanController.new()
+		ControllerKind.POLICY:
+			return PolicyController.new()
+		ControllerKind.CPU:
+			# TODO(S3): ScriptedController. Human placeholder until then.
+			return HumanController.new()
+	return _resolve_auto_controller()
+
+# AUTO: follow the AIController2D mode set by the scene. TRAINING, ONNX and
+# INHERIT_FROM_SYNC are driven by the RL stack, anything else is the keyboard.
+func _resolve_auto_controller() -> FighterController:
+	var mode := ai_controller_2d.control_mode
+	if mode == AIController2D.ControlModes.TRAINING \
+			or mode == AIController2D.ControlModes.ONNX_INFERENCE \
+			or mode == AIController2D.ControlModes.INHERIT_FROM_SYNC:
+		return PolicyController.new()
+	return HumanController.new()
 
 func set_velocity_from_motion(vel: Vector2) -> void:
 	velocity = vel
@@ -174,6 +219,5 @@ func _apply_character_ui_settings():
 		# Usar directamente los SpriteFrames del recurso (sin acceso al sistema de archivos)
 		if animated_sprite_2d and character_ui.sprite_frames:
 			animated_sprite_2d.sprite_frames = character_ui.sprite_frames
-			print(animated_sprite_2d.animation)
 		elif animated_sprite_2d:
 			push_error("No se encontraron SpriteFrames para el personaje ", character_ui.name)

@@ -20,85 +20,53 @@ func _ready() -> void:
 	velocity_updated.connect(owner.set_velocity_from_motion)
 
 func _enter() -> void:
-	print(name)
 	animation_state_changed.emit(name.to_lower())
 
 func _update(_delta: float) -> void:
-	# Procesar acciones de IA automáticamente
-	if owner.ai_controller_2d and owner.ai_controller_2d.control_mode != AIController2D.ControlModes.HUMAN:
-		process_ai_transitions()
+	return
 
-func process_ai_transitions() -> void:
-	var ai = owner.ai_controller_2d as PlayerAIController
+# Fixed priority; the per-state `available_actions` and `can_enter()` gate it.
+# Relative order jump > punch > protect > shoot matches the old AI order.
+const ACTION_PRIORITY: Array[String] = ["recovery", "dash", "jump", "punch", "protect", "shoot"]
 
-	# Si ya estamos en una acción importante, no permitir nuevas transiciones automáticas
-	if state_machine.current_state.name in ["Jump", "Punch", "Shoot", "Fall", "Protect"]:
-		return
+## Reads owner.intent and emits at most one transition. Returns true when it did.
+func handle_actions() -> bool:
+	var intent: FighterIntent = owner.intent
+	for action in ACTION_PRIORITY:
+		if not available_actions.has(action) or not _is_requested(action, intent):
+			continue
+		var target_name := action.capitalize()
+		var target: State = state_machine.state_map.get(target_name)
+		if target == null or not target.can_enter():
+			continue
+		finished.emit(target_name)
+		return true
+	return false
 
-	# Recorrer las acciones disponibles y ejecutarlas si la IA lo indica
-	for action in available_actions:
-		var action_value = 0.0
-		
-		match action.to_lower():
-			"jump":
-				action_value = ai.jump_action
-			"punch":
-				action_value = ai.attack_action
-			"shoot":
-				action_value = ai.shoot_action
-			"protect":
-				action_value = ai.protect_action
-		
-		if action_value > 0.5:
-			# Verificar condiciones específicas para algunas acciones
-			if action == "Jump" and not is_on_floor():
-				continue  # No saltar si ya estás en el aire
-			
-			finished.emit(action.capitalize())
-			return
+func _is_requested(action: String, intent: FighterIntent) -> bool:
+	match action:
+		"recovery":
+			return intent.special_pressed
+		"dash":
+			return intent.dash_pressed
+		"jump":
+			return intent.jump_pressed
+		"punch":
+			return intent.attack_pressed
+		"protect":
+			return intent.block_pressed
+		"shoot":
+			return intent.throw_pressed
+	return false
 
-	# Movimiento básico
-	if ai.move_left_action > 0.5 or ai.move_right_action > 0.5:
-		if name != "Run":
-			finished.emit("Run")
-	elif name == "Run":
-		finished.emit("Idle")
+func move_axis() -> float:
+	return owner.intent.move_x
 
 func set_direction() -> void:
-	if owner.ai_controller_2d and owner.ai_controller_2d.control_mode != AIController2D.ControlModes.HUMAN:
-		set_ai_direction()
-	else:
-		set_manual_direction()
+	state_machine.direction = Vector2(move_axis(), 0.0).normalized()
 
-func set_ai_direction() -> void:
-	var ai = owner.ai_controller_2d
-	var ai_direction = Vector2.ZERO
-	
-	if ai.move_left_action > 0.5:
-		ai_direction.x -= 1.0
-	if ai.move_right_action > 0.5:
-		ai_direction.x += 1.0
-	
-	state_machine.direction = ai_direction.normalized()
-
-func set_manual_direction() -> void:
-	match owner.control_scheme:
-		0:
-			state_machine.input_dir = Input.get_vector("P1_left", "P1_right", "ui_up", "ui_down")
-		1:
-			state_machine.input_dir = Input.get_vector("P2_left", "P2_right", "ui_up", "ui_down")
-	state_machine.direction = (owner.global_transform.x * Vector2(state_machine.input_dir.x, state_machine.input_dir.y)).normalized()
-
-func _state_input(event: InputEvent) -> void:
-	if owner.ai_controller_2d and owner.ai_controller_2d.control_mode != AIController2D.ControlModes.HUMAN:
-		return
-	
-	var prefix = "P1_" if owner.control_scheme == 0 else "P2_"
-	
-	for action in available_actions:
-		var action_name = prefix + action.to_lower()
-		if event.is_action_pressed(action_name):
-			finished.emit(action.capitalize())
+func exit_to_neutral() -> void:
+	finished.emit("Idle" if is_on_floor() else "Fall")
 
 func calculate_velocity(_speed: float, _direction: Vector2, delta: float) -> void:
 	state_machine.velocity.x = move_toward(state_machine.velocity.x, _direction.x * _speed, profile.acceleration * delta)

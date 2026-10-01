@@ -11,6 +11,9 @@ func _update(delta: float) -> void:
 	calculate_gravity(delta)
 	calculate_velocity(profile.run_speed, state_machine.direction, delta)
 	
+	if handle_actions():
+		return
+
 	if state_machine.velocity.y >= 0:
 		finished.emit("Fall")
 

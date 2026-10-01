@@ -14,20 +14,20 @@ var punch_timer: Timer
 var cooldown_timer: Timer
 var is_punching: bool = false
 
+# Cooldown gate used by Motion.handle_actions() (no re-entrant reject emit).
+func can_enter() -> bool:
+	return cooldown_timer == null or cooldown_timer.is_stopped()
+
 func _enter() -> void:
 	setup_timers()
-	
-	if cooldown_timer.is_stopped() or cooldown_timer.time_left <= 0:
-		super._enter()
-		
-		if owner.enemy.global_position.x > owner.global_position.x:
-			move_punch_offset(_distance())
-		else:
-			move_punch_offset(-_distance())
-		
-		start_punch()
+	super._enter()
+
+	if owner.enemy.global_position.x > owner.global_position.x:
+		move_punch_offset(_distance())
 	else:
-		finished.emit("Idle")
+		move_punch_offset(-_distance())
+
+	start_punch()
 
 func _distance() -> float:
 	return punch_distance if punch_distance >= 0.0 else profile.punch_distance
@@ -94,7 +94,6 @@ func _on_punch_timer_timeout() -> void:
 
 func _on_punch_area_body_entered(body: Node2D) -> void:
 	if owner != null and body != owner and body is Fighter:
-		print("¡Hace daño a ", body.name, "!")
 		Combat.apply_hit(owner, body, _damage(), _knockback())
 
 func _exit() -> void:

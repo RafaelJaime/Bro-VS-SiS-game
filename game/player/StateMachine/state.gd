@@ -10,8 +10,9 @@ func _enter() -> void:
 func _exit() -> void:
 	return
 
-func _state_input(_event: InputEvent) -> void:
-	return
+# Gate checked by Motion.handle_actions() before switching into this state.
+func can_enter() -> bool:
+	return true
 
 func _update(_delta: float) -> void:
 	return

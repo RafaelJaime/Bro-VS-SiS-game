@@ -119,7 +119,7 @@ start_state = NodePath("Idle")
 [node name="Idle" type="Node" parent="StateMachine" unique_id=1129818374 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("6_5ghna")
 state_machine = NodePath("..")
-available_actions = Array[String](["jump", "punch", "protect", "shoot"])
+available_actions = Array[String](["dash", "jump", "punch", "protect", "shoot"])
 
 [node name="Run" type="Node" parent="StateMachine" unique_id=1675715457 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("7_j0mij")

@@ -16,20 +16,20 @@ class_name Shoot
 var action_timer: Timer
 var cooldown_timer: Timer
 
+# Cooldown gate used by Motion.handle_actions() (no re-entrant reject emit).
+func can_enter() -> bool:
+	return cooldown_timer == null or cooldown_timer.is_stopped()
+
 func _enter() -> void:
 	setup_timers()
+	super._enter()
 
-	if cooldown_timer.is_stopped() or cooldown_timer.time_left <= 0:
-		super._enter()
-
-		if owner.is_holding_food():
-			_throw_food()
-		else:
-			_try_pickup()
-
-		start_action()
+	if owner.is_holding_food():
+		_throw_food()
 	else:
-		finished.emit("Idle")
+		_try_pickup()
+
+	start_action()
 
 func setup_timers() -> void:
 	if not action_timer:
