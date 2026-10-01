@@ -146,6 +146,20 @@ Verification for S3 (user authorized running Godot): `tests/smoke/cpu_combat.gd`
 - [x] 3.8 Comments and docs on tunable difficulty fields (doc comments on every `CpuDifficulty` field).
 - [ ] 3.9 Manual playtest S3 [P] (user): Human vs CPU Easy, Normal, Hard with no HF model; CPU approaches, punches, blocks, picks up and throws food, recovers to the stage from an edge; Easy is visibly slower and less accurate than Hard; CPU never idles at spawn; 2P Human vs Human still works (switch P2 to Human; P2 defaults to CPU Normal now).
 
+## Phase S-T: Table stage and framing
+
+User feedback after S3: "Right now they are floating in the air; let's put a table like this" (reference: rectangular table, red/white gingham cloth over the top and hanging over the front and sides, wooden legs below, standing in a room). Only existing assets are used (`assets/images/game/plataformacuadrados.png` for the cloth); legs, floor, shadows are drawn in code. The tabletop front edge is the fight floor, so the `StaticBody2D/Floor` collider is unchanged (top y=480, x 30..830).
+
+Verification: `tests/smoke/table_stage.gd`, `hud_framing.gd` (CPU vs CPU, 30 s, sampled every 0.5 s), updated `stage_floor.gd`, `camera.gd`, `hud.gd`, plus every older script via `tests/smoke/run_all.sh`.
+
+- [x] T.1 Create `game/stage/table_stage.gd` (`TableStage`) and `fighter_shadows.gd`; add `TableStage` to `game/game.tscn` between `Backdrop` and the fighters: room floor and baseboard, contact shadow, shaded underside, 4 wooden legs with dark outline, gingham front drape (wavy darker hem, fold lines), side flaps at both ends, perspective tabletop band using the gingham texture, thick red-brown outline. Ground shadow under each fighter that shrinks with height. Freed when `training`.
+- [x] T.2 Edit `game/game.tscn`, `game/game.gd`: `Backdrop` shifted to x=-158 and dimmed (modulate) so the 800px table is centered on the 1176px art; blast zones retuned (-230..1090); free `TableStage` in training. Spawns and spawner range stay on the table.
+- [x] T.3 Edit `game/camera/match_camera.gd`: world rect `Rect2(-158, 0, 1176, 902)`, bottom `hud_reserve` (130 px) so the tabletop sits above the HUD band at every zoom, wider horizontal margin so the whole table fits at the start.
+- [x] T.4 Edit `game/player/player_ui.gd`: compact panels (about 232x100, lighter background).
+- [x] T.5 Tests: `stage_floor.gd` (shifted backdrop, table spans the floor, feet within 4 px), `camera.gd` (shifted limits), `hud.gd` (compact panel), new `table_stage.gd` and `hud_framing.gd`; register in `run_all.sh`.
+- [x] T.6 Screenshots reviewed (start, zoomed-in fight, zoomed-out, fall off the table end) and tuned.
+- [ ] T.7 Manual playtest S-T [P] (user): the table reads as ground, HUD never hides a fighter, the cloth matches the kitchen art.
+
 ## Phase S4: Match flow, F2/F3/F8, SFX pitch, typo
 
 Specs: match-flow (countdown, sudden death, rematch, pause, instructions), food-fight-items (F2, F3, F8, SFX pitch). Design Decisions 15, 16, 21, 22.
