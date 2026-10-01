@@ -35,7 +35,7 @@ color = Color(0, 0, 0, 0.705882)
 
 [node name="TitleLabel" parent="." instance=ExtResource("2_1hvjx")]
 layout_mode = 1
-text = "Intructions"
+text = "Instructions"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -155,6 +155,27 @@ expand_mode = 5
 [node name="Label5" type="Label" parent="HBoxContainer/ItemList"]
 layout_mode = 2
 text = "K (Pick up / Throw)"
+
+[node name="MoreControls" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -330.0
+offset_top = -190.0
+offset_right = 330.0
+offset_bottom = -110.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 16
+text = "Double jump: press Jump again in the air.
+Dash: double-tap a direction, on the ground or in the air.
+Punch, block and throw also work in the air.
+Esc or Start: pause and resume."
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="BackButton" parent="." instance=ExtResource("3_sf658")]
 layout_mode = 1

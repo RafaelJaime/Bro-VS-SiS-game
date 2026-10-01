@@ -31,7 +31,6 @@ func _ready():
 	
 	for character in characters:
 		_load_character(character)
-	print("Total de personajes:", characters.size())
 
 func _load_character(character: CharacterUI):
 	if character_select_item_scene:
@@ -52,10 +51,7 @@ func _on_character_pressed(item: CharacterSelectItem) -> void:
 
 func select_player1(character: CharacterUI) -> void:
 	player1_selected = character
-	print("Seleccionando Player1: ", character.name)
-	print("Ilustración disponible: ", character.illustration != null)
 	set_ilustration(character, player_1_ilustration)
-	print("Player1 ilustración después asignación: ", player_1_ilustration.texture)
 	animation_player.play("player1_selected")
 	ai_controller.show_ai_ui(true)
 	p_1_point_light_2d.enabled = true
@@ -63,15 +59,12 @@ func select_player1(character: CharacterUI) -> void:
 
 func select_player2(character: CharacterUI) -> void:
 	player2_selected = character
-	print("Seleccionando Player2: ", character.name)
-	print("Ilustración disponible: ", character.illustration != null)
 	
 	# Determinar si es el mismo personaje
 	var is_same = player2_selected.equals(player1_selected)
 	
 	# Asignar la textura
 	set_ilustration(player2_selected, player_2_ilustration)
-	print("Player2 ilustración después asignación: ", player_2_ilustration.texture)
 	
 	# Aplicar color apropiado
 	if is_same:
@@ -101,10 +94,6 @@ func set_ilustration(character: CharacterUI, sprite: Sprite2D):
 	# Intentar asignar la ilustración directamente
 	if character.illustration != null:
 		sprite.texture = character.illustration
-		print("Textura asignada directamente: ", character.illustration.resource_path)
-		print("Sprite visible: ", sprite.visible)
-		print("Sprite modulate: ", sprite.modulate)
-		print("Sprite parent visible: ", sprite.get_parent().visible)
 		return
 	
 	# Si no funciona, intentar cargar manualmente por nombre de personaje
@@ -119,7 +108,6 @@ func set_ilustration(character: CharacterUI, sprite: Sprite2D):
 		var loaded_texture = load(texture_path)
 		if loaded_texture:
 			sprite.texture = loaded_texture
-			print("Textura cargada manualmente: ", texture_path)
 		else:
 			push_error("No se pudo cargar textura: ", texture_path)
 	else:

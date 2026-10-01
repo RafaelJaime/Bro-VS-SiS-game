@@ -48,7 +48,7 @@ flat = true
 script = ExtResource("5_3c04x")
 metadata/_custom_type_script = "uid://bivny4qorquqo"
 
-[node name="IntructionsButton" type="Button" parent="MainMenuButtons"]
+[node name="InstructionsButton" type="Button" parent="MainMenuButtons"]
 offset_left = 328.0
 offset_top = 369.0
 offset_right = 543.0
@@ -88,5 +88,5 @@ script = ExtResource("6_joh67")
 
 [connection signal="pressed" from="MainMenuButtons/PlayButton" to="MainMenuButtons" method="_on_play_button_pressed"]
 [connection signal="pressed" from="MainMenuButtons/CreditsButton" to="MainMenuButtons" method="_on_credits_button_pressed"]
-[connection signal="pressed" from="MainMenuButtons/IntructionsButton" to="MainMenuButtons" method="_on_intructions_button_pressed"]
+[connection signal="pressed" from="MainMenuButtons/InstructionsButton" to="MainMenuButtons" method="_on_instructions_button_pressed"]
 [connection signal="meta_clicked" from="AcceptDialog/RichTextLabel" to="AcceptDialog/RichTextLabel" method="_on_meta_clicked"]

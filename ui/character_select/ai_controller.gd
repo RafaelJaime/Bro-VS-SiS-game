@@ -65,10 +65,9 @@ func _on_models_loaded(player_id: int, models: Array) -> void:
 
 func _on_model_downloaded(player_id: int, success: bool) -> void:
 	if success:
-		print("Model downloaded successfully for player", player_id)
 		check_both_models_ready()
 	else:
-		print("Failed to download model for player", player_id)
+		push_warning("Failed to download model for player %d" % player_id)
 
 func update_menu_button(menu_button: OptionButton, model_ids: Array) -> void:
 	menu_button.clear()
@@ -77,8 +76,8 @@ func update_menu_button(menu_button: OptionButton, model_ids: Array) -> void:
 		popup.add_item(model_id)
 
 func check_both_models_ready() -> void:
-	if ModelManager.model_exists(0) and ModelManager.model_exists(1):
-		print("Both models ready! Starting fight...")
+	# Nothing to do here: the match starts from the play button.
+	pass
 
 # Show initial AI button only
 func initial_menu(is_p2: bool = false) -> void:
