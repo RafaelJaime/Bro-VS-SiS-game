@@ -100,3 +100,15 @@ All T0-T6 tasks complete. See the per-task entries above for every file touched,
 
 ## Next step
 Feature complete. Remaining work is manual playtest/tuning in the editor (see each task's "Deviation" notes for specific numeric values to check) — no further tasks planned.
+
+## Review (RDD)
+- Range 4558c37..946a2d2 assessed medium (slice budget reached). User granted review.
+- 1 CRITICAL fixed in bounded correction `342e205`: blast zone used global_position (broke offset train.tscn rows) → now local `position`.
+- Approved + acknowledged (lineage review-ddb37be4be02cdd8).
+- Advisory follow-ups (not blocking):
+  - [ ] F1 FoodProjectile has no lifetime/bounds → missed light throws fly forever (node leak). `food_projectile.gd:39-41`
+  - [ ] F2 FoodSpawner uses absolute global coords → wrong in offset train rows. `food_spawner.gd:48-49`
+  - [ ] F3 game.gd calls game_over.set_forced_winner() before training check → null deref if training row has no GameOver. `game.gd:34-41`
+  - [ ] F4 Invulnerability tween unbound + overlapping respawns clear invuln early. `player.gd:128-139`
+  - [ ] F5 Overlapping hit-stops race on Engine.time_scale. `combat.gd:55-64`
+  - [ ] F6 No automated tests (no GUT); rules are static-checked only.
