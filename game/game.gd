@@ -4,9 +4,10 @@ extends Node2D
 
 # Ring-out bounds (blast zones), local to this Game so offset rows (train.tscn)
 # work. Smash has a top blast zone as well as the sides and the bottom. The
-# world art is 1176x902; the zones sit just outside the visible stage.
-@export var blast_left: float = -100.0
-@export var blast_right: float = 1276.0
+# table spans x 30..830 and the camera never shows beyond the backdrop
+# (x -158..1018), so the side zones sit just outside what can be seen.
+@export var blast_left: float = -230.0
+@export var blast_right: float = 1090.0
 @export var blast_top: float = -400.0
 @export var blast_bottom: float = 810.0
 
@@ -25,10 +26,12 @@ func _ready() -> void:
 	fighter_1.blast_zone = blast_zone
 	fighter_2.blast_zone = blast_zone
 
-	# The kitchen art is only for human matches: train.tscn runs 25 Game
-	# instances and would just pay for 25 copies of a 1176x902 texture.
-	if training and has_node("Backdrop"):
-		$Backdrop.queue_free()
+	# The kitchen art and the table are only for human matches: train.tscn runs
+	# 25 Game instances and would just pay for 25 copies of a 1176x902 texture.
+	if training:
+		for decor in ["Backdrop", "TableStage"]:
+			if has_node(decor):
+				get_node(decor).queue_free()
 
 	# Skip music during AI training (train.tscn runs many Game instances in
 	# parallel, so playing it there would just be noise).

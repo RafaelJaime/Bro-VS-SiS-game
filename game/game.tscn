@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://yiftnbibw2tl"]
+[gd_scene load_steps=45 format=3 uid="uid://yiftnbibw2tl"]
 
 [ext_resource type="PackedScene" uid="uid://d3qpn1km0xxr0" path="res://game/player/player.tscn" id="1_80nbo"]
 [ext_resource type="Script" uid="uid://c542k2ar2mpjw" path="res://game/game.gd" id="1_dxrkv"]
@@ -33,6 +33,8 @@
 [ext_resource type="PackedScene" path="res://game/food/food_pickup.tscn" id="30_food2"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/fondo_cocina_junto.png" id="31_backdrop"]
 [ext_resource type="Script" path="res://game/camera/match_camera.gd" id="32_camera"]
+[ext_resource type="Script" path="res://game/stage/table_stage.gd" id="33_table"]
+[ext_resource type="Script" path="res://game/stage/fighter_shadows.gd" id="34_shadows"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_feb5d"]
 size = Vector2(800, 60)
@@ -229,9 +231,17 @@ shader_parameter/blink_intensity = 0.0
 script = ExtResource("1_dxrkv")
 
 [node name="Backdrop" type="Sprite2D" parent="."]
+modulate = Color(0.74, 0.68, 0.72, 1)
 texture_filter = 6
+position = Vector2(-158, 0)
 centered = false
 texture = ExtResource("31_backdrop")
+
+[node name="TableStage" type="Node2D" parent="."]
+script = ExtResource("33_table")
+
+[node name="FighterShadows" type="Node2D" parent="TableStage"]
+script = ExtResource("34_shadows")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 
@@ -240,7 +250,7 @@ position = Vector2(430, 510)
 shape = SubResource("RectangleShape2D_feb5d")
 
 [node name="Fighter1" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
-position = Vector2(330, 380)
+position = Vector2(280, 380)
 character_ui = SubResource("Resource_vktc5")
 enemy = NodePath("../Fighter2")
 control_scheme = 0
@@ -249,7 +259,7 @@ control_scheme = 0
 material = SubResource("ShaderMaterial_l8g03")
 
 [node name="Fighter2" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
-position = Vector2(630, 380)
+position = Vector2(580, 380)
 character_ui = SubResource("Resource_kaw54")
 enemy = NodePath("../Fighter1")
 
