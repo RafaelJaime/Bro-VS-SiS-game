@@ -55,8 +55,8 @@ flat = true
 
 [node name="BackButton" parent="." instance=ExtResource("1_8sn3t")]
 layout_mode = 1
-offset_top = -102.0
-offset_bottom = 0.0
+offset_top = -222.0
+offset_bottom = -120.0
 metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="UnpauseButton" to="." method="_on_unpause_button_pressed"]
