@@ -7,11 +7,14 @@ class_name Motion
 signal velocity_updated(vel: Vector2)
 signal animation_state_changed(state: String)
 
-const SPEED = 300.0
-const JUMP_VELOCITY = -600.0
-const ACCELERATION: float = 1000
+# Tuning is read from the owner's FighterProfile; no state hardcodes it.
+var profile: FighterProfile:
+	get:
+		return owner.profile
 
-var gravity: float = 500
+var gravity: float:
+	get:
+		return owner.profile.gravity
 
 func _ready() -> void:
 	velocity_updated.connect(owner.set_velocity_from_motion)
@@ -98,7 +101,7 @@ func _state_input(event: InputEvent) -> void:
 			finished.emit(action.capitalize())
 
 func calculate_velocity(_speed: float, _direction: Vector2, delta: float) -> void:
-	state_machine.velocity.x = move_toward(state_machine.velocity.x, _direction.x * _speed, ACCELERATION * delta)
+	state_machine.velocity.x = move_toward(state_machine.velocity.x, _direction.x * _speed, profile.acceleration * delta)
 	velocity_updated.emit(state_machine.velocity)
 
 func calculate_gravity(delta: float) -> void:

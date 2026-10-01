@@ -15,6 +15,9 @@ signal player_defeated(player_instance: Fighter)
 	get:
 		return character_ui
 @export var enemy: CharacterBody2D
+## Tuning and moveset flags. When unset, a default FighterProfile (baseline
+## values) is created, so no .tres is required.
+@export var profile: FighterProfile
 enum PlayerNumber { JUGADOR1, JUGADOR2 }
 @export var control_scheme: PlayerNumber = PlayerNumber.JUGADOR1
 
@@ -44,6 +47,11 @@ var stocks: int = MAX_STOCKS
 var is_invulnerable: bool = false
 # Name of the food currently held above the head, or "" when empty-handed.
 var held_food: String = ""
+
+# Runs parent-first, before the state machine children use `profile`.
+func _enter_tree() -> void:
+	if profile == null:
+		profile = FighterProfile.new()
 
 func _ready():
 	initial_position = position
@@ -89,7 +97,7 @@ func add_damage(amount: float) -> void:
 # Smash-style knockback scaling: the higher the accumulated damage %,
 # the stronger any knockback applied to this fighter becomes.
 func get_knockback_scale() -> float:
-	return 1.0 + damage_percent / 50.0
+	return profile.knockback_scale * (1.0 + damage_percent / 50.0)
 
 # Ring-out detection: falling off stage or being knocked past the visible
 # play area (in any direction) costs a stock.

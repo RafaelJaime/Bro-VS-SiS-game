@@ -1,11 +1,14 @@
 extends Motion
 
 @export var punch_area: Area2D
-@export var punch_duration: float = 0.3
-@export var punch_cooldown: float = 0.7
-@export var punch_distance: float = 50.0
-@export var punch_damage: float = 8.0
-@export var punch_knockback: Vector2 = Vector2(220, -120)
+# Node-level overrides (train.tscn sets punch_duration/cooldown/distance). An
+# unset value (negative, or ZERO for the knockback) falls back to the owner's
+# FighterProfile, which is the single source of the default numbers.
+@export var punch_duration: float = -1.0
+@export var punch_cooldown: float = -1.0
+@export var punch_distance: float = -1.0
+@export var punch_damage: float = -1.0
+@export var punch_knockback: Vector2 = Vector2.ZERO
 
 var punch_timer: Timer
 var cooldown_timer: Timer
@@ -18,13 +21,28 @@ func _enter() -> void:
 		super._enter()
 		
 		if owner.enemy.global_position.x > owner.global_position.x:
-			move_punch_offset(punch_distance)
+			move_punch_offset(_distance())
 		else:
-			move_punch_offset(-punch_distance)
+			move_punch_offset(-_distance())
 		
 		start_punch()
 	else:
 		finished.emit("Idle")
+
+func _distance() -> float:
+	return punch_distance if punch_distance >= 0.0 else profile.punch_distance
+
+func _duration() -> float:
+	return punch_duration if punch_duration >= 0.0 else profile.punch_duration
+
+func _cooldown() -> float:
+	return punch_cooldown if punch_cooldown >= 0.0 else profile.punch_cooldown
+
+func _damage() -> float:
+	return punch_damage if punch_damage >= 0.0 else profile.punch_damage
+
+func _knockback() -> Vector2:
+	return punch_knockback if punch_knockback != Vector2.ZERO else profile.punch_knockback
 
 func setup_timers() -> void:
 	if not punch_timer:
@@ -43,8 +61,8 @@ func start_punch() -> void:
 	if not punch_timer.is_connected("timeout", _on_punch_timer_timeout):
 		punch_timer.connect("timeout", _on_punch_timer_timeout)
 	
-	punch_timer.start(punch_duration)
-	cooldown_timer.start(punch_cooldown)
+	punch_timer.start(_duration())
+	cooldown_timer.start(_cooldown())
 	
 	if punch_area:
 		if punch_area.is_connected("body_entered", _on_punch_area_body_entered):
@@ -66,9 +84,9 @@ func check_overlapping_bodies() -> void:
 func end_punch() -> void:
 	is_punching = false
 	if owner.enemy.global_position.x > owner.global_position.x:
-		move_punch_offset(-punch_distance)
+		move_punch_offset(-_distance())
 	else:
-		move_punch_offset(punch_distance)
+		move_punch_offset(_distance())
 	finished.emit("Idle")
 
 func _on_punch_timer_timeout() -> void:
@@ -77,7 +95,7 @@ func _on_punch_timer_timeout() -> void:
 func _on_punch_area_body_entered(body: Node2D) -> void:
 	if owner != null and body != owner and body is Fighter:
 		print("¡Hace daño a ", body.name, "!")
-		Combat.apply_hit(owner, body, punch_damage, punch_knockback)
+		Combat.apply_hit(owner, body, _damage(), _knockback())
 
 func _exit() -> void:
 	if punch_area and punch_area.is_connected("body_entered", _on_punch_area_body_entered):

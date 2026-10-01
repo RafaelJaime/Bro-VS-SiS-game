@@ -9,7 +9,7 @@ var last_input_time: float = 0.0
 func _update(delta: float) -> void:
 	super._update(delta)
 	set_direction()
-	calculate_velocity(SPEED, state_machine.direction, delta)
+	calculate_velocity(profile.run_speed, state_machine.direction, delta)
 	
 	if state_machine.direction != Vector2.ZERO:
 		finished.emit("Run")

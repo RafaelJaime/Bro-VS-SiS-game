@@ -1,18 +1,15 @@
 extends Motion
 class_name Dash
 
-const DASH_SPEED = 600.0
-const DASH_DURATION = 0.3
-
 var dash_timer: float = 0.0
 var dash_direction: Vector2 = Vector2.ZERO
 
 func _enter() -> void:
 	# Aplicar la dirección del dash ANTES de super._enter()
 	if dash_direction != Vector2.ZERO:
-		state_machine.velocity.x = dash_direction.x * DASH_SPEED
+		state_machine.velocity.x = dash_direction.x * profile.dash_speed
 	else:
-		state_machine.velocity.x = state_machine.direction.x * DASH_SPEED if state_machine.direction.x != 0 else DASH_SPEED
+		state_machine.velocity.x = state_machine.direction.x * profile.dash_speed if state_machine.direction.x != 0 else profile.dash_speed
 	
 	# Invertir animación si el enemigo está en el lado contrario al dash
 	if owner.enemy:
@@ -39,7 +36,7 @@ func _update(delta: float) -> void:
 	velocity_updated.emit(state_machine.velocity)
 	
 	# Finalizar el dash después de la duración
-	if dash_timer >= DASH_DURATION:
+	if dash_timer >= profile.dash_duration:
 		if is_on_floor():
 			# Si hay dirección de movimiento, ir a Run, sino a Idle
 			if state_machine.direction != Vector2.ZERO:
