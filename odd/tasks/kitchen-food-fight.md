@@ -106,11 +106,12 @@ Feature complete. Remaining work is manual playtest/tuning in the editor (see ea
 - 1 CRITICAL fixed in bounded correction `342e205`: blast zone used global_position (broke offset train.tscn rows) → now local `position`.
 - Approved + acknowledged (lineage review-ddb37be4be02cdd8).
 - Advisory follow-ups (not blocking):
-  - [ ] F1 FoodProjectile has no lifetime/bounds → missed light throws fly forever (node leak). `food_projectile.gd:39-41`
+  - [x] F1 FoodProjectile has no lifetime/bounds → missed light throws fly forever (node leak). `food_projectile.gd:39-41`
   - [ ] F2 FoodSpawner uses absolute global coords → wrong in offset train rows. `food_spawner.gd:48-49`
   - [ ] F3 game.gd calls game_over.set_forced_winner() before training check → null deref if training row has no GameOver. `game.gd:34-41`
   - [ ] F4 Invulnerability tween unbound + overlapping respawns clear invuln early. `player.gd:128-139`
   - [ ] F5 Overlapping hit-stops race on Engine.time_scale. `combat.gd:55-64`
   - [ ] F6 No automated tests (no GUT); rules are static-checked only.
 - Full-branch review (ef6f2ad..b3d4911, lineage review-f31d474e226eab95): user granted; approved with no blocking findings; acknowledged. Same advisories as above plus:
-  - [ ] F7 Thrown food is freed when it touches the one-way platforms (Area2D body_entered ignores one_way_collision). `food_projectile.gd:52-53`
+  - [x] F7 Thrown food is freed when it touches the one-way platforms (Area2D body_entered ignores one_way_collision). `food_projectile.gd:52-53`
+  - F1 + F7 fixed: 3s MAX_LIFETIME; body_shape_entered skips one-way platform shapes; double-hit guard.
