@@ -26,7 +26,11 @@ extends Node2D
 @export var stops: int = 24
 ## Width and opacity of the shadow cast on the fill where the picture ends.
 @export var seam_shadow_width: float = 46.0
-@export_range(0.0, 1.0) var seam_shadow_alpha: float = 0.3
+@export_range(0.0, 1.0) var seam_shadow_alpha: float = 0.0
+## How far (picture pixels) the fill is feathered over the picture's top, left and
+## right edges, so no hard line shows where the art ends.
+@export var feather: float = 110.0
+@export var side_feather: float = 220.0
 ## Height (picture pixels) of the darker skirting at the bottom of the fill.
 @export var skirting_height: float = 44.0
 @export_range(0.0, 1.0) var skirting_strength: float = 0.22
@@ -38,6 +42,8 @@ const WALL_PATCH_HEIGHT := 410
 # Wall colors down the picture's left edge and along its top edge.
 var _side_colors: PackedColorArray = PackedColorArray()
 var _top_colors: PackedColorArray = PackedColorArray()
+# Wall colors down the picture's right edge.
+var _right_colors: PackedColorArray = PackedColorArray()
 
 func _ready() -> void:
 	if texture == null:
@@ -56,6 +62,7 @@ func _ready() -> void:
 func _sample_wall() -> void:
 	_side_colors.clear()
 	_top_colors.clear()
+	_right_colors.clear()
 	if texture == null:
 		return
 	var image := texture.get_image()
@@ -69,9 +76,27 @@ func _sample_wall() -> void:
 	for i in stops:
 		var y0 := int(float(wall_height - band) * i / maxi(stops - 1, 1))
 		_side_colors.append(_average(image, Rect2i(0, y0, depth, band)))
+		var ry0 := int(float(size.y) * i / stops)
+		var ry1 := maxi(ry0 + 1, int(float(size.y) * (i + 1) / stops))
+		_right_colors.append(_average(image, Rect2i(size.x - depth, ry0, depth, ry1 - ry0)))
 		var x0 := int(float(size.x) * i / stops)
 		var x1 := maxi(x0 + 1, int(float(size.x) * (i + 1) / stops))
 		_top_colors.append(_average(image, Rect2i(x0, 0, x1 - x0, mini(sample_depth, size.y))))
+	_right_colors = _smoothed(_right_colors, 4)
+	_top_colors = _smoothed(_top_colors, 2)
+
+# Softens a color ramp (a few neighbor-averaging passes) so a bright or dark
+# object right at the edge does not paint a stripe into the fill.
+func _smoothed(colors: PackedColorArray, passes: int) -> PackedColorArray:
+	var out := colors.duplicate()
+	for pass_index in passes:
+		var next := out.duplicate()
+		for i in out.size():
+			var left := out[maxi(i - 1, 0)]
+			var right := out[mini(i + 1, out.size() - 1)]
+			next[i] = (left + out[i] * 2.0 + right) / 4.0
+		out = next
+	return out
 
 func _average(image: Image, area: Rect2i) -> Color:
 	var sum := Color(0.0, 0.0, 0.0, 0.0)
@@ -97,17 +122,22 @@ func _draw() -> void:
 	for i in stops:
 		var y0 := inner.position.y + size.y * i / stops
 		var y1 := inner.position.y + size.y * (i + 1) / stops
-		if i == 0:
-			y0 = outer.position.y
 		var c0 := _side_colors[i]
 		var c1 := _side_colors[mini(i + 1, stops - 1)]
+		var r0 := _right_colors[i]
+		var r1 := _right_colors[mini(i + 1, stops - 1)]
 		var bottom_dim := _skirting(inner, y1)
 		_strip(Rect2(left_x, y0, inner.position.x - left_x, y1 - y0), c0, c1, true, bottom_dim)
-		_strip(Rect2(inner.end.x, y0, right_x - inner.end.x, y1 - y0), c0, c1, false, bottom_dim)
+		_strip(Rect2(inner.end.x, y0, right_x - inner.end.x, y1 - y0), r0, r1, false, bottom_dim)
 	# Above the picture: the top edge colors, stretched up and dimmed toward the top.
 	for i in stops:
 		var x0 := inner.position.x + size.x * i / stops
 		var x1 := inner.position.x + size.x * (i + 1) / stops
+		# The end columns run on to the outer edge, so the top fill owns the corners.
+		if i == 0:
+			x0 = outer.position.x
+		if i == stops - 1:
+			x1 = outer.end.x
 		var c0 := _top_colors[i]
 		var c1 := _top_colors[mini(i + 1, stops - 1)]
 		var far := PackedColorArray([_shade(c0, vignette), _shade(c1, vignette), c1, c0])
@@ -116,6 +146,14 @@ func _draw() -> void:
 			Vector2(x1, inner.position.y), Vector2(x0, inner.position.y),
 		])
 		draw_polygon(pts, far)
+	# Corners above the picture: the top fill hands over to the side color so the
+	# step at the picture's top line disappears.
+	var rise := inner.position.y - outer.position.y
+	_feather(Vector2(outer.position.x, inner.position.y), Vector2(inner.position.x, inner.position.y), Vector2(0.0, -rise),
+			_shade(_side_colors[0], vignette), _side_colors[0])
+	_feather(Vector2(inner.end.x, inner.position.y), Vector2(outer.end.x, inner.position.y), Vector2(0.0, -rise),
+			_right_colors[0], _shade(_right_colors[0], vignette))
+	_draw_feathers(inner, size)
 	# A soft shadow where the picture (the fridge on the right) meets the fill.
 	var shadow := Color(0.0, 0.0, 0.0, seam_shadow_alpha)
 	var none := Color(0.0, 0.0, 0.0, 0.0)
@@ -131,6 +169,45 @@ func _draw() -> void:
 		Vector2(outer.end.x, inner.position.y), Vector2(outer.position.x, inner.position.y),
 	])
 	draw_polygon(band, PackedColorArray([faded, faded, clear, clear]))
+
+# Fade strips laid over the picture's own edges: the fill color (opaque at the
+# edge) dissolves inward on a smoothstep curve (no visible end line), so the art
+# melts into the fill with no seam.
+func _draw_feathers(inner: Rect2, size: Vector2) -> void:
+	var f := minf(feather, minf(size.x, size.y) * 0.5)
+	var sf := minf(side_feather, size.x * 0.5)
+	for i in stops:
+		var x0 := inner.position.x + size.x * i / stops
+		var x1 := inner.position.x + size.x * (i + 1) / stops
+		var t0 := _top_colors[i]
+		var t1 := _top_colors[mini(i + 1, stops - 1)]
+		_feather(Vector2(x0, inner.position.y), Vector2(x1, inner.position.y), Vector2(0.0, f), t0, t1)
+		var y0 := inner.position.y + size.y * i / stops
+		var y1 := inner.position.y + size.y * (i + 1) / stops
+		var d0 := _skirting(inner, y0)
+		var d1 := _skirting(inner, y1)
+		var s0 := _shade(_side_colors[i], d0)
+		var s1 := _shade(_side_colors[mini(i + 1, stops - 1)], d1)
+		_feather(Vector2(inner.position.x, y0), Vector2(inner.position.x, y1), Vector2(sf, 0.0), s0, s1)
+		var r0 := _shade(_right_colors[i], d0)
+		var r1 := _shade(_right_colors[mini(i + 1, stops - 1)], d1)
+		_feather(Vector2(inner.end.x, y0), Vector2(inner.end.x, y1), Vector2(-sf, 0.0), r0, r1)
+
+# One fade strip: from the edge segment a-b (opaque, colors ca/cb) inward by
+# `inward`, in slices whose alpha follows a smoothstep down to zero.
+func _feather(a: Vector2, b: Vector2, inward: Vector2, ca: Color, cb: Color) -> void:
+	const SLICES := 10
+	for k in SLICES:
+		var u0 := float(k) / SLICES
+		var u1 := float(k + 1) / SLICES
+		var a0 := 1.0 - smoothstep(0.0, 1.0, u0)
+		var a1 := 1.0 - smoothstep(0.0, 1.0, u1)
+		draw_polygon(PackedVector2Array([
+			a + inward * u0, b + inward * u0, b + inward * u1, a + inward * u1,
+		]), PackedColorArray([
+			Color(ca.r, ca.g, ca.b, a0), Color(cb.r, cb.g, cb.b, a0),
+			Color(cb.r, cb.g, cb.b, a1), Color(ca.r, ca.g, ca.b, a1),
+		]))
 
 # Brightness factor of the skirting at world y (1 above it, darker at the bottom).
 func _skirting(inner: Rect2, y: float) -> float:
