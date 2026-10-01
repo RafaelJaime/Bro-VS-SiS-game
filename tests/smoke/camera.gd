@@ -30,7 +30,7 @@ func _run() -> void:
 	var fighter_1: Fighter = game.get_node("Fighter1")
 	var fighter_2: Fighter = game.get_node("Fighter2")
 
-	s.check("limits cover the 1176x902 world", camera.limit_left == 0 and camera.limit_top == 0 and camera.limit_right == 1176 and camera.limit_bottom == 902, "limits=%d,%d,%d,%d" % [camera.limit_left, camera.limit_top, camera.limit_right, camera.limit_bottom])
+	s.check("limits cover the 1176x902 world (backdrop at x=-158)", camera.limit_left == -158 and camera.limit_top == 0 and camera.limit_right == 1018 and camera.limit_bottom == 902, "limits=%d,%d,%d,%d" % [camera.limit_left, camera.limit_top, camera.limit_right, camera.limit_bottom])
 
 	await s.frames(180)
 	var near_zoom := camera.zoom.x

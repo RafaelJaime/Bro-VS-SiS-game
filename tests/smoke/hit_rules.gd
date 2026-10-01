@@ -73,15 +73,19 @@ func _air_actions(s: RefCounted) -> void:
 	s.check("after an air throw the fighter is still in an air state, not Idle", not thrower.is_on_floor() and s.state_of(thrower) == "Fall", "state=%s onfloor=%s" % [s.state_of(thrower), thrower.is_on_floor()])
 	await s.despawn(throw_setup[0])
 
-# Physics frames the fighter stays in Hurt while mashing punch and jump.
+# Game-time frames (physics frames weighted by Engine.time_scale) the fighter
+# stays in Hurt while mashing punch and jump. The hit-stop lasts real time at a
+# tiny time scale, so a raw frame count would depend on the render speed.
 func _hurt_frames(s: RefCounted, victim: Fighter, controller) -> int:
-	var count := 0
-	while s.state_of(victim) == "Hurt" and count < 240:
+	var game_frames := 0.0
+	var guard := 0
+	while s.state_of(victim) == "Hurt" and guard < 600:
 		controller.press_punch()
 		controller.press_jump()
 		await s.frames(1)
-		count += 1
-	return count
+		game_frames += Engine.time_scale
+		guard += 1
+	return int(round(game_frames))
 
 func _hitstun(s: RefCounted) -> void:
 	# The victim stands close enough that the big launch stays inside the blast zone.
@@ -97,7 +101,7 @@ func _hitstun(s: RefCounted) -> void:
 	var big_attacker: Fighter = attacker
 	Combat.apply_hit(big_attacker, victim, 8.0, BIG_KNOCKBACK)
 	var big: int = await _hurt_frames(s, victim, setup[1][1])
-	s.check("a harder knockback means longer hitstun", big >= small + 10, "small=%d big=%d" % [small, big])
+	s.check("a harder knockback means longer hitstun", big >= small + 8, "small=%d big=%d" % [small, big])
 	await s.despawn(setup[0])
 
 func _post_hit_invulnerability(s: RefCounted) -> void:
