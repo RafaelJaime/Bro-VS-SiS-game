@@ -23,8 +23,8 @@ script = ExtResource("1_lomod")
 metadata/_custom_type_script = "uid://88snckwgqte5"
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(1200, 0)
-zoom = Vector2(0.2, 0.2)
+position = Vector2(2100, 0)
+zoom = Vector2(0.11, 0.11)
 
 [node name="Row" type="Node2D" parent="."]
 position = Vector2(0, -300)
@@ -41,7 +41,6 @@ available_actions = Array[String]([])
 [node name="Punch" parent="Row/Game/Fighter1/StateMachine" index="4"]
 punch_duration = 0.3
 punch_cooldown = 0.7
-punch_distance = 50.0
 available_actions = Array[String]([])
 
 [node name="Hurt" parent="Row/Game/Fighter1/StateMachine" index="5"]
@@ -75,7 +74,6 @@ available_actions = Array[String]([])
 [node name="Punch" parent="Row/Game/Fighter2/StateMachine" index="4"]
 punch_duration = 0.3
 punch_cooldown = 0.7
-punch_distance = 50.0
 available_actions = Array[String]([])
 
 [node name="Hurt" parent="Row/Game/Fighter2/StateMachine" index="5"]
@@ -101,7 +99,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game2" parent="Row" instance=ExtResource("1_bju55")]
-position = Vector2(800, 0)
+position = Vector2(1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row/Game2/Fighter1" index="1"]
@@ -117,7 +115,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game3" parent="Row" instance=ExtResource("1_bju55")]
-position = Vector2(-800, 0)
+position = Vector2(-1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row/Game3/Fighter1" index="1"]
@@ -133,7 +131,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game4" parent="Row" instance=ExtResource("1_bju55")]
-position = Vector2(1600, 0)
+position = Vector2(2800, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row/Game4/Fighter1" index="1"]
@@ -149,7 +147,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game5" parent="Row" instance=ExtResource("1_bju55")]
-position = Vector2(2400, 0)
+position = Vector2(4200, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row/Game5/Fighter1" index="1"]
@@ -183,7 +181,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game2" parent="Row2" instance=ExtResource("1_bju55")]
-position = Vector2(800, 0)
+position = Vector2(1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row2/Game2/Fighter1" index="1"]
@@ -199,7 +197,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game3" parent="Row2" instance=ExtResource("1_bju55")]
-position = Vector2(-800, 0)
+position = Vector2(-1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row2/Game3/Fighter1" index="1"]
@@ -215,7 +213,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game4" parent="Row2" instance=ExtResource("1_bju55")]
-position = Vector2(1600, 0)
+position = Vector2(2800, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row2/Game4/Fighter1" index="1"]
@@ -231,7 +229,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game5" parent="Row2" instance=ExtResource("1_bju55")]
-position = Vector2(2400, 0)
+position = Vector2(4200, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row2/Game5/Fighter1" index="1"]
@@ -265,7 +263,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game2" parent="Row3" instance=ExtResource("1_bju55")]
-position = Vector2(800, 0)
+position = Vector2(1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row3/Game2/Fighter1" index="1"]
@@ -281,7 +279,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game3" parent="Row3" instance=ExtResource("1_bju55")]
-position = Vector2(-800, 0)
+position = Vector2(-1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row3/Game3/Fighter1" index="1"]
@@ -297,7 +295,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game4" parent="Row3" instance=ExtResource("1_bju55")]
-position = Vector2(1600, 0)
+position = Vector2(2800, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row3/Game4/Fighter1" index="1"]
@@ -313,7 +311,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game5" parent="Row3" instance=ExtResource("1_bju55")]
-position = Vector2(2400, 0)
+position = Vector2(4200, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row3/Game5/Fighter1" index="1"]
@@ -347,7 +345,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game2" parent="Row4" instance=ExtResource("1_bju55")]
-position = Vector2(800, 0)
+position = Vector2(1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row4/Game2/Fighter1" index="1"]
@@ -363,7 +361,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game3" parent="Row4" instance=ExtResource("1_bju55")]
-position = Vector2(-800, 0)
+position = Vector2(-1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row4/Game3/Fighter1" index="1"]
@@ -379,7 +377,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game4" parent="Row4" instance=ExtResource("1_bju55")]
-position = Vector2(1600, 0)
+position = Vector2(2800, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row4/Game4/Fighter1" index="1"]
@@ -395,7 +393,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game5" parent="Row4" instance=ExtResource("1_bju55")]
-position = Vector2(2400, 0)
+position = Vector2(4200, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row4/Game5/Fighter1" index="1"]
@@ -429,7 +427,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game2" parent="Row5" instance=ExtResource("1_bju55")]
-position = Vector2(800, 0)
+position = Vector2(1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row5/Game2/Fighter1" index="1"]
@@ -445,7 +443,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game3" parent="Row5" instance=ExtResource("1_bju55")]
-position = Vector2(-800, 0)
+position = Vector2(-1400, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row5/Game3/Fighter1" index="1"]
@@ -461,7 +459,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game4" parent="Row5" instance=ExtResource("1_bju55")]
-position = Vector2(1600, 0)
+position = Vector2(2800, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row5/Game4/Fighter1" index="1"]
@@ -477,7 +475,7 @@ material = SubResource("ShaderMaterial_3bh8j")
 control_mode = 2
 
 [node name="Game5" parent="Row5" instance=ExtResource("1_bju55")]
-position = Vector2(2400, 0)
+position = Vector2(4200, 0)
 training = true
 
 [node name="AnimatedSprite2D" parent="Row5/Game5/Fighter1" index="1"]
