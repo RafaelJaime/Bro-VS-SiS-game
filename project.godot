@@ -51,6 +51,12 @@ folder_colors={
 "res://ui/": "green"
 }
 
+[importer_defaults]
+
+texture={
+"mipmaps/generate": true
+}
+
 [input]
 
 P1_left={

@@ -50,6 +50,12 @@ colors = PackedColorArray(1, 0, 0, 1, 1, 1, 1, 0)
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_epc1c"]
 gradient = SubResource("Gradient_088ty")
 
+[sub_resource type="Gradient" id="Gradient_hudr"]
+colors = PackedColorArray(1, 0, 0, 0, 1, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_hudr"]
+gradient = SubResource("Gradient_hudr")
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_epc1c"]
 bg_color = Color(1, 0, 0, 0.0784314)
 border_width_top = 1
@@ -174,6 +180,7 @@ state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1671102877]
+texture_filter = 6
 material = SubResource("ShaderMaterial_cgi3i")
 scale = Vector2(0.1, 0.1)
 sprite_frames = ExtResource("14_2mv0n")
@@ -216,6 +223,7 @@ collision_mask = 4
 shape = SubResource("CircleShape2D_food1")
 
 [node name="HeldFoodSprite" type="Sprite2D" parent="." unique_id=547939449]
+texture_filter = 6
 position = Vector2(0, -110)
 scale = Vector2(0.35, 0.35)
 visible = false
@@ -244,13 +252,13 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="LeftTextureRect" type="TextureRect" parent="PlayerUI/LeftHealth" unique_id=39413499]
-custom_minimum_size = Vector2(0, 90)
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 90.0
-grow_horizontal = 2
+modulate = Color(1, 1, 1, 0.6)
+custom_minimum_size = Vector2(340, 140)
+layout_mode = 0
+offset_right = 340.0
+offset_bottom = 140.0
 texture = SubResource("GradientTexture1D_epc1c")
+expand_mode = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="PlayerUI/LeftHealth" unique_id=1566541100]
 layout_mode = 0
@@ -309,13 +317,17 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="RightTextureRect" type="TextureRect" parent="PlayerUI/RightHealth" unique_id=403735367]
-custom_minimum_size = Vector2(0, 90)
+modulate = Color(1, 1, 1, 0.6)
+custom_minimum_size = Vector2(340, 140)
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 1
+anchor_left = 1.0
 anchor_right = 1.0
-offset_bottom = 1.0
-grow_horizontal = 2
-texture = SubResource("GradientTexture1D_epc1c")
+offset_left = -340.0
+offset_bottom = 140.0
+grow_horizontal = 0
+texture = SubResource("GradientTexture1D_hudr")
+expand_mode = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="PlayerUI/RightHealth" unique_id=1031942093]
 layout_mode = 1
