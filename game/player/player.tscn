@@ -10,7 +10,7 @@
 [ext_resource type="Script" uid="uid://dbs738wwvch7q" path="res://game/player/StateMachine/PlayerStateMachine/States/fall.gd" id="9_uv2nh"]
 [ext_resource type="Script" uid="uid://cgoog0bvcfg7w" path="res://game/player/StateMachine/PlayerStateMachine/States/punch.gd" id="10_j0mij"]
 [ext_resource type="Script" uid="uid://bxl6rrxrrob6g" path="res://game/player/StateMachine/PlayerStateMachine/States/shoot.gd" id="11_brh81"]
-[ext_resource type="PackedScene" uid="uid://c2xwqs6es1qb5" path="res://game/projectile/projectile.tscn" id="12_ib3u0"]
+[ext_resource type="PackedScene" path="res://game/food/food_projectile.tscn" id="12_food1"]
 [ext_resource type="Shader" uid="uid://dc7yljgygkfm8" path="res://game/player/blink.gdshader" id="13_bp242"]
 [ext_resource type="SpriteFrames" uid="uid://c5ndk0ecjvter" path="res://assets/images/game/characters/matilde/matilde.tres" id="14_2mv0n"]
 [ext_resource type="Script" uid="uid://dv4mrvy6oll8l" path="res://game/player/StateMachine/PlayerStateMachine/States/hurt.gd" id="16_2mv0n"]
@@ -37,6 +37,9 @@ size = Vector2(73, 154)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8soms"]
 size = Vector2(89, 33)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_food1"]
+radius = 70.0
 
 [sub_resource type="Gradient" id="Gradient_088ty"]
 colors = PackedColorArray(1, 0, 0, 1, 1, 1, 1, 0)
@@ -153,10 +156,12 @@ script = ExtResource("22_kjljb")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="Shoot" type="Node" parent="StateMachine" unique_id=456247888 node_paths=PackedStringArray("state_machine")]
+[node name="Shoot" type="Node" parent="StateMachine" unique_id=456247888 node_paths=PackedStringArray("state_machine", "right_mark", "left_mark")]
 script = ExtResource("11_brh81")
-projectile_scene = ExtResource("12_ib3u0")
+food_projectile_scene = ExtResource("12_food1")
 state_machine = NodePath("..")
+right_mark = NodePath("../../RightMark")
+left_mark = NodePath("../../LeftMark")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
 [node name="Dash" type="Node" parent="StateMachine" unique_id=894368515 node_paths=PackedStringArray("state_machine")]
@@ -190,6 +195,16 @@ shape = SubResource("RectangleShape2D_8soms")
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="PunchArea" unique_id=740472790]
 position = Vector2(-55, -10)
 shape = SubResource("RectangleShape2D_8soms")
+
+[node name="PickupArea" type="Area2D" parent="." unique_id=547939448]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea" unique_id=2100493298]
+shape = SubResource("CircleShape2D_food1")
+
+[node name="HeldFoodSprite" type="Sprite2D" parent="." unique_id=547939449]
+position = Vector2(0, -110)
+scale = Vector2(0.35, 0.35)
+visible = false
 
 [node name="PlayerUI" type="CanvasLayer" parent="." unique_id=821320165 node_paths=PackedStringArray("leftHealth", "rightHealth", "leftTextureRect", "rightTextureRect", "leftNameLabel", "rightNameLabel", "leftProgressBar", "rightProgressBar")]
 script = ExtResource("20_eeltd")

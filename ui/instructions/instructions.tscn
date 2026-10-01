@@ -100,7 +100,7 @@ expand_mode = 5
 
 [node name="Label5" type="Label" parent="HBoxContainer/ItemList2"]
 layout_mode = 2
-text = "G (Shoot)"
+text = "G (Pick up / Throw)"
 
 [node name="ItemList" type="GridContainer" parent="HBoxContainer"]
 layout_mode = 2
@@ -154,7 +154,7 @@ expand_mode = 5
 
 [node name="Label5" type="Label" parent="HBoxContainer/ItemList"]
 layout_mode = 2
-text = "K (Shoot)"
+text = "K (Pick up / Throw)"
 
 [node name="BackButton" parent="." instance=ExtResource("3_sf658")]
 layout_mode = 1

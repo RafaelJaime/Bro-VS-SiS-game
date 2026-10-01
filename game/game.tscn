@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://yiftnbibw2tl"]
+[gd_scene load_steps=43 format=3 uid="uid://yiftnbibw2tl"]
 
 [ext_resource type="PackedScene" uid="uid://d3qpn1km0xxr0" path="res://game/player/player.tscn" id="1_80nbo"]
 [ext_resource type="Script" uid="uid://c542k2ar2mpjw" path="res://game/game.gd" id="1_dxrkv"]
@@ -31,6 +31,8 @@
 [ext_resource type="Texture2D" uid="uid://bqao6p4ia5nl7" path="res://assets/images/game/characters/matilde/run/m_008.png" id="26_4jymc"]
 [ext_resource type="Texture2D" uid="uid://476u3ytihp24" path="res://assets/images/game/characters/matilde/run/m_009.png" id="27_0lgry"]
 [ext_resource type="Texture2D" uid="uid://c11mdhjsjq7gi" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="28_h7iu2"]
+[ext_resource type="Script" path="res://game/food/food_spawner.gd" id="29_food1"]
+[ext_resource type="PackedScene" path="res://game/food/food_pickup.tscn" id="30_food2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_feb5d"]
 size = Vector2(500, 66)
@@ -292,6 +294,10 @@ enemy = NodePath("../Fighter1")
 
 [node name="AnimatedSprite2D" parent="Fighter2" index="1"]
 material = SubResource("ShaderMaterial_j8tme")
+
+[node name="FoodSpawner" type="Node2D" parent="."]
+script = ExtResource("29_food1")
+food_pickup_scene = ExtResource("30_food2")
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 99.0

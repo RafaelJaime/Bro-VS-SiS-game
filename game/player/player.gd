@@ -21,6 +21,8 @@ enum PlayerNumber { JUGADOR1, JUGADOR2 }
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var ai_controller_2d: AIController2D = $AIController2D
 @onready var punch_area: Area2D = $PunchArea
+@onready var pickup_area: Area2D = $PickupArea
+@onready var held_food_sprite: Sprite2D = $HeldFoodSprite
 @onready var state_machine: Node = $StateMachine
 
 # Ring-out stage bounds (blast zone). Falling or being knocked past these
@@ -39,6 +41,8 @@ var initial_position: Vector2
 var damage_percent: float = 0.0
 var stocks: int = MAX_STOCKS
 var is_invulnerable: bool = false
+# Name of the food currently held above the head, or "" when empty-handed.
+var held_food: String = ""
 
 func _ready():
 	initial_position = position
@@ -67,6 +71,7 @@ func reset_player():
 	stocks = MAX_STOCKS
 	is_invulnerable = false
 	animated_sprite_2d.visible = true
+	clear_held_food()
 	velocity = Vector2.ZERO
 	position = initial_position
 
@@ -106,6 +111,7 @@ func _lose_stock() -> void:
 func _respawn() -> void:
 	damage_percent = 0.0
 	damage_changed.emit(damage_percent)
+	clear_held_food()
 	velocity = Vector2.ZERO
 	position = initial_position + Vector2(0, RESPAWN_HEIGHT_OFFSET)
 	if state_machine:
@@ -124,6 +130,27 @@ func _start_invulnerability() -> void:
 	await get_tree().create_timer(RESPAWN_INVULNERABILITY).timeout
 	animated_sprite_2d.visible = true
 	is_invulnerable = false
+
+func is_holding_food() -> bool:
+	return held_food != ""
+
+## Picks up a FoodPickup from the stage: disables it, shows its sprite
+## above the fighter's head, and frees the ground pickup node.
+func pick_up_food(pickup: FoodPickup) -> void:
+	if is_holding_food() or pickup == null:
+		return
+	pickup.mark_picked_up()
+	pickup.visible = false
+	pickup.set_physics_process(false)
+	held_food = pickup.food_name
+	held_food_sprite.texture = FoodCatalog.get_texture(held_food)
+	held_food_sprite.visible = true
+	pickup.queue_free()
+
+func clear_held_food() -> void:
+	held_food = ""
+	held_food_sprite.visible = false
+	held_food_sprite.texture = null
 
 # Método simplificado que solo usa los recursos
 func _apply_character_ui_settings():
