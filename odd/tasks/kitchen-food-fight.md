@@ -37,7 +37,7 @@ depth must come from physics, items, and stage — not animation-heavy combos.
 - [x] T3 Food items: catalog resource, spawner, pickup/hold/throw (replaces shoot)
 - [x] T4 HUD: % display + stock icons; game-over by stocks/timer
 - [x] T5 Juice: hit-stop, SFX, music
-- [ ] T6 AI controller compat + protect action bug fix
+- [x] T6 AI controller compat + protect action bug fix
 
 ## Delivery
 Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-risk (ask chain strategy before PR).
@@ -83,7 +83,7 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
   - Deviation: stock icons are plain colored squares, not character art — no suitable small icon/portrait asset exists yet (`CharacterUI.face_texture` is unpopulated for both playable characters). Flagged for a future art pass; functionally correct and visually legible in the meantime.
   - Deviation: percent label format is a plain `"NN%"` integer (rounded); no color-ramping by percent (e.g. Smash's white→red) — not in the design doc's explicit scope, left for a later juice pass if wanted.
 
-- T5 done; commit `<T5_COMMIT_HASH>`.
+- T5 done; commit `d737739`.
   - `game/audio/sfx.gd` (new, `class_name Sfx`): one-shot SFX playback with no persistent node required (spawns a temporary `AudioStreamPlayer` under the tree root, frees itself on `finished`). Streams loaded via `load()` at runtime only (freesound assets have no `.import` files yet, same caveat as T0/T3).
   - `game/combat/combat.gd`: `apply_hit` now triggers hit-stop (`Engine.time_scale` dipped to 0.05 for 0.08s on an unblocked hit, 0.3 for 0.04s on a blocked one, restored via an `ignore_time_scale` `SceneTreeTimer` so the restore timer itself isn't affected by the freeze it created) and picks punch vs explosion SFX by a damage threshold (`>= 16.0`, i.e. heavy food only) — so punches and light/medium food play `cartoonpunch.wav`, heavy food plays `fireball-explosion.wav`. Both are skipped during AI training (new `_is_training()` check via the Fighter's parent `Game.training` flag) because `Engine.time_scale` is a single global property and `train.tscn` runs dozens of `Game` rows in parallel — one row's hit would otherwise stutter every other row.
   - `game/player/player.gd`: `_lose_stock()` plays the explosion SFX on every stock loss (same training guard).
@@ -91,5 +91,12 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
   - Deviation: no distinct "food throw" SFX exists as an asset (only punch + explosion), so light/medium food impacts reuse the punch sound and heavy food uses the explosion sound; this was already the plan going into T5, not a new deviation discovered mid-task.
   - Deviation: hit-stop/SFX duration and scale values (0.04-0.08s, 0.05-0.3 scale) are first-pass defaults, same playtest-tuning caveat as T2/T3's numeric defaults.
 
+- T6 done; commit `<T6_COMMIT_HASH>`.
+  - `scripts/AIController/player_ai_controller.gd:100`: fixed the protect→shoot mixup — `set_action()`'s last line wrote `shoot_action = clamp(action["protect_action"][0], ...)` (overwriting the just-set `shoot_action` with the protect output, and leaving `protect_action` permanently 0). Changed to `protect_action = clamp(action["protect_action"][0], ...)`. Before this fix an AI-controlled fighter could never block (`protect_action` was always 0, and whatever the model decided for "shoot" was discarded).
+  - AI obs/action-space compat: verified `get_obs()` (13 floats: own pos/vel/on-floor, opponent pos/vel/on-floor, relative pos, distance) and `get_action_space()` never referenced `health` in the first place — confirmed by a repo-wide grep before and after T1-T5, zero hits outside the fix above. So no observation-vector changes were needed to keep existing ONNX models loadable/inferable; "adapt to percent/stocks" from the design doc turned out to already be satisfied (position/velocity obs are valid under the new mechanics as-is). Retraining/reward retuning for the new food/stock mechanics stays explicitly out of scope per the design doc.
+  - Final repo-wide verification: no remaining references anywhere to the removed `health`/`max_health`/`update_health`/`knockback_force`/`stock_lost`/`_on_hurt_player_defeated`/`game/projectile` APIs outside the two already-documented harmless `train.tscn` orphaned `knockback_force` overrides.
+
+All T0-T6 tasks complete. See the per-task entries above for every file touched, every deviation, and every value flagged for playtest tuning.
+
 ## Next step
-T6: AI controller compat + protect/shoot action bug fix.
+Feature complete. Remaining work is manual playtest/tuning in the editor (see each task's "Deviation" notes for specific numeric values to check) — no further tasks planned.

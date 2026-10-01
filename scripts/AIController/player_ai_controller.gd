@@ -97,4 +97,4 @@ func set_action(action) -> void:
 	jump_action = clamp(action["jump_action"][0], 0.0, 1.0)
 	attack_action = clamp(action["attack_action"][0], 0.0, 1.0)
 	shoot_action = clamp(action["shoot_action"][0], 0.0, 1.0)
-	shoot_action = clamp(action["protect_action"][0], 0.0, 1.0)
+	protect_action = clamp(action["protect_action"][0], 0.0, 1.0)
