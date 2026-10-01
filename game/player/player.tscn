@@ -143,8 +143,9 @@ particles = NodePath("../../HurtParticles")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
-[node name="Defeated" type="Node" parent="StateMachine" unique_id=1062683954]
+[node name="Defeated" type="Node" parent="StateMachine" unique_id=1062683954 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("17_gh012")
+state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
 [node name="Protect" type="Node" parent="StateMachine" unique_id=1375268043 node_paths=PackedStringArray("state_machine")]

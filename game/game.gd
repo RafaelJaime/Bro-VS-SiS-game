@@ -7,10 +7,13 @@ extends Node2D
 @onready var fighter_2: Fighter = $Fighter2
 @onready var timer: Timer = $Timer
 
-func _on_hurt_player_defeated(_player_instance: Fighter) -> void:
+func _on_player_defeated(player_instance: Fighter) -> void:
+	if player_instance and player_instance.enemy is Fighter:
+		game_over.set_forced_winner(player_instance.enemy)
 	_game_over()
 
 func _on_timer_timeout() -> void:
+	game_over.set_forced_winner(null)
 	_game_over()
 
 func _game_over() -> void:

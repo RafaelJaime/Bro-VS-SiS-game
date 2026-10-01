@@ -1,8 +1,6 @@
 extends Motion
 class_name Hurt
 
-signal player_defeated(player_instance: Fighter)
-
 @export var hurt_duration: float = 0.5
 @export var particles: GPUParticles2D
 
@@ -68,8 +66,8 @@ func _exit() -> void:
 		timer.disconnect("timeout", _on_hurt_finished)
 
 func _on_hurt_finished() -> void:
-	# No death by damage %: ring-out (stock loss) is handled separately by
-	# blast-zone detection (see T2), not here.
+	# No death by damage %: ring-out (stock loss) is handled by Fighter's
+	# blast-zone detection, not here.
 	if owner.is_on_floor():
 		finished.emit("Idle")
 	else:

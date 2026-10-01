@@ -12,6 +12,8 @@ class_name Combat
 static func apply_hit(attacker: Fighter, target: Fighter, damage: float, knockback_base: Vector2) -> void:
 	if target == null or target.state_machine == null:
 		return
+	if target.is_invulnerable:
+		return
 
 	var target_sm = target.state_machine
 	if target_sm.current_state and target_sm.current_state.name == "Protect":

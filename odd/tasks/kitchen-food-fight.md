@@ -33,7 +33,7 @@ depth must come from physics, items, and stage — not animation-heavy combos.
 ## Tasks
 - [x] T0 Slice food sheet into 20 transparent 96px PNGs (`assets/images/game/food/`) — route: inline (scripted, mechanical)
 - [x] T1 Damage % + scaled knockback + block fix (replace HP)
-- [ ] T2 Ring-out stage: remove walls, platforms, blast zone, stocks, respawn + invulnerability
+- [x] T2 Ring-out stage: remove walls, platforms, blast zone, stocks, respawn + invulnerability
 - [ ] T3 Food items: catalog resource, spawner, pickup/hold/throw (replaces shoot)
 - [ ] T4 HUD: % display + stock icons; game-over by stocks/timer
 - [ ] T5 Juice: hit-stop, SFX, music
@@ -45,7 +45,7 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
 ## Progress / Evidence
 - Branch `feat/kitchen-food-fight` created.
 - T0 done; contact sheet visually verified.
-- T1 done; commit `<T1_COMMIT_HASH>`.
+- T1 done; commit `2983964`.
   - `game/player/player.gd`: replaced `health`/`max_health` with `damage_percent` (float, starts 0, no cap), added `add_damage()`, `get_knockback_scale()` (`1 + percent/50`), `damage_changed` signal.
   - `game/combat/combat.gd` (new): `Combat.apply_hit(attacker, target, damage, knockback_base)` centralizes block/no-block resolution so punch and future thrown food share one path.
   - `game/player/StateMachine/PlayerStateMachine/States/hurt.gd`: reads `pending_damage`/`pending_knockback` set by the attacker, calls `owner.add_damage()`, scales knockback by `get_knockback_scale()`, no longer ends the match on 0 HP (no death by damage — ring-out/stocks come in T2). Blink-flash intensity now ramps with `damage_percent` (capped visually at 150%) instead of inverse health.
@@ -55,6 +55,15 @@ Forecast ~700–1000 authored lines → exceeds ~400 budget. Strategy: ask-on-ri
   - `game/ui/game_over/game_over.gd`: timeout winner is interim "lower damage % wins" (final stocks-first rule lands with T2/T4).
   - Deviation: `train.tscn` (RL training rig, out of scope per design doc) still has two `Hurt` node overrides for the now-removed `knockback_force` export; Godot silently ignores orphaned property overrides on load (non-fatal), left untouched to avoid risking the generated multi-row training scene without being able to run the editor.
   - Deviation: `Hurt.player_defeated` signal kept declared-but-unemitted in T1 (game.tscn's existing connection stays structurally valid); T2 wires real elimination via blast-zone detection.
+- T2 done; commit `<T2_COMMIT_HASH>`.
+  - `game/player/player.gd`: added `stocks` (3), `is_invulnerable`, blast-zone constants (`BLAST_LEFT=-150`, `BLAST_RIGHT=950`, `BLAST_BOTTOM=750`, world-space, tunable), `_check_blast_zone()` called after `move_and_slide()` each physics frame. `_lose_stock()`: decrements stocks, `stock_lost` signal; at 0 stocks transitions to `Defeated` and emits `player_defeated` (moved here from Hurt, since elimination is now blast-zone driven, not damage-driven); otherwise `_respawn()` resets `damage_percent` to 0, teleports to `initial_position + (0,-250)`, forces `Fall` state, and starts a 1.5s `_start_invulnerability()` (looped `Tween` toggling `animated_sprite_2d.visible` every 0.15s + a parallel timer as the source of truth for `is_invulnerable`).
+  - `game/combat/combat.gd`: `apply_hit` now no-ops when `target.is_invulnerable` (so Hurt/Protect are both correctly skipped during the respawn window).
+  - `game/game.tscn`: removed `WallLeft`/`WallRight` (collision + their plain white `ColorRect` visuals — the only "wall art" that existed) and their now-orphaned `RectangleShape2D_80nbo` sub_resource. Narrowed `Floor`'s collision+visual from 912px to 500px (centered, same position), moved the two existing `Plataformacuadrados` decorative sprites to the new edges. Added `PlatformLeft`/`PlatformRight` (`CollisionShape2D`, `one_way_collision=true`, 150×20, floating at y=430, i.e. ~137px above the floor) reusing the `plataformacuadrados` texture for visual consistency with the floor decorations. Repositioned `Fighter1` (142→230) and `Fighter2` (601→570) so both start safely inside the narrower floor span (world x [147,647]) instead of near/past its new edge. `load_steps` updated 40→41 (31 ext + 9 sub + 1).
+  - `game/game.gd`, `game/player/StateMachine/PlayerStateMachine/States/hurt.gd`: removed the now-dead `Hurt.player_defeated` signal; `player_defeated` connection in `game.tscn` moved from `FighterN/StateMachine/Hurt` to `FighterN` directly (`Fighter.player_defeated`). Renamed handler `_on_hurt_player_defeated` → `_on_player_defeated` for accuracy.
+  - Bug fix found during static review (not pre-existing-documented, discovered while wiring `Defeated`): the `Defeated` state node in `game/player/player.tscn` never had `state_machine` wired via `node_paths`/`NodePath("..")` like every sibling state — any AI-controlled fighter entering `Defeated` would have null-deref'd in `Motion._update() → process_ai_transitions()`. Fixed by adding the same `node_paths=PackedStringArray("state_machine")` + `state_machine = NodePath("..")` pattern used by all other states. This was latent before (Defeated was barely reachable) and became load-bearing once T2 made elimination routine.
+  - `game/ui/game_over/game_over.gd`, `game/game.gd`: added `GameOver.forced_winner` / `set_forced_winner()`. `_on_player_defeated` now sets the forced winner to the defeated player's enemy before showing game-over (fixes a real bug T2 would otherwise introduce: the old "lower % wins" interim rule from T1 is actively wrong on an elimination, since the eliminated player can have *lower* % than the survivor). Timeout still clears the forced winner and falls back to the T1 interim "lower % wins" rule; full stocks-first win rule is still T4's job.
+  - Deviation: respawn invulnerability duration/blink cadence, blast-zone margins, platform size/height, and the narrowed-floor/platform coordinates are first-pass numeric defaults (documented above) chosen from static geometry math only (no CLI/editor render available) — flagged for playtest tuning.
+  - `train.tscn` needed no changes (no per-instance overrides of the removed Wall nodes, Floor shape, Fighter positions, or the renamed connection/method — verified by grep).
 
 ## Next step
-T2: ring-out stage (remove walls, add platforms, blast-zone detection, stocks, respawn + invulnerability), then T3–T6.
+T3: food items (catalog resource, spawner, pickup/hold/throw — replaces free shoot), then T4–T6.
