@@ -29,10 +29,11 @@ The single-pr strategy requires `size:exception` approval before apply, or the u
 | Slice | Content | Est. lines | Over 400? |
 |-------|---------|-----------|-----------|
 | S1 | Controller seam, `FighterProfile` seam, snapshot accessor, print cleanup, ONNX fix | ~330 | No (tight) |
-| S2 | Movement feel, punch fix, hit rules (F4, F5) | ~300 | No |
+| S-A | Stage, camera, hitboxes, visuals (inserted after the S1 playtest, runs before S2) | ~700 incl. smoke harness | Yes (`size:exception`) |
+| S2 | Movement feel, hit rules (F4, F5); punch fix moved to S-A | ~200 | No |
 | S3 | Scripted CPU, difficulty presets, controller select UI | ~300 | No |
 | S4 | Match flow, F2/F3/F8, SFX pitch, typo | ~250 | No |
-| S5a | Match camera, snapshot camera field, shake offset reset | ~120 | No |
+| S5a | Moved to S-A (match camera, snapshot camera field, shake offset reset) | 0 | No |
 | S5b | Charge, directional punches, recovery, inputs, bot extension, instructions | ~280 | No |
 | Total | | ~1,580 | 4x budget |
 
@@ -48,7 +49,7 @@ PR base boundaries below apply to `feature-branch-chain` (PR 1 base = tracker br
 | S2 | Snappy movement, air actions, punch fix, hitstun, F4, F5 | PR 2 (base PR 1) | N/A. Static: `rg` audits in 2.13 | Editor: playtest checklist S2 (user) | S2 edits to `player.gd`, `fighter_profile.gd` additions, States, `combat.gd`, `player.tscn`. Reverting restores old feel on top of the seam |
 | S3 | Playable single player vs CPU with difficulty select | PR 3 (base PR 2) | N/A. Static: `rg` audits in 3.9 | Editor: Human vs CPU Easy/Normal/Hard, no model (user) | `cpu_difficulty.gd`, `scripted_controller.gd`, character select edits, `scene_manager.gd` `play_game` change |
 | S4 | Countdown, sudden death, rematch, pause toggle, F2/F3/F8, SFX bands | PR 4 (base PR 3) | N/A. Static: `rg` audits in 4.13 | Editor: playtest checklist S4 (user) | `game.gd`/`game.tscn` phase machine, `food_spawner.gd`, layer edits, `sfx.gd`, pause and game-over UI, `project.godot` layer names |
-| S5a | Follow camera with dynamic zoom | PR 5 (base PR 4) | N/A. Static: clamp math walk-through in 5a.4 | Editor: camera checklist (user) | `game/camera/match_camera.gd`, `Camera2D` script attach in `game.tscn`, Game snapshot `camera` key, `hurt.gd` offset reset |
+| S5a | Moved to S-A | PR 5 (base PR 4) | N/A. Static: clamp math walk-through in 5a.4 | Editor: camera checklist (user) | `game/camera/match_camera.gd`, `Camera2D` script attach in `game.tscn`, Game snapshot `camera` key, `hurt.gd` offset reset |
 | S5b | Charge, directional punches, up-recovery, up/down inputs, bot extension | PR 6 (base PR 5) | N/A. Static: `rg` audits in 5b.14 | Editor: smash moves checklist (user) | `attack_profile.gd`, `recovery.gd`, `punch.gd` charge phases, `human_controller.gd` aim mapping, `project.godot` 4 input actions, `ChargeGlow`, bot S5 fields, instructions text |
 
 Dependencies: S1 first. S2 depends on S1. S3 depends on S1 (controllers) and S2 (air actions for recovery behaviour). S4 depends on S1 (rematch needs `ControllerConfig`) and S3 (`play_game` signature). S5a depends on S4 (`Game` bounds and phase). S5b depends on S1 (intent fields) and S2 (punch rework). S5a and S5b are independent of each other once S4 lands, so they can be built in parallel in separate worktrees if chained PRs are used; otherwise sequentially.
@@ -78,16 +79,37 @@ Specs: fighter-control (all), gameplay-state-snapshot (Fighter, Game, unversione
 - [x] 1.15 Slice audit [S]: `rg -n "print\(" game/player/player.gd game/player/StateMachine scripts/AIController/player_ai_controller.gd` returns nothing; `rg "Input\." game/player/StateMachine` returns nothing; `git diff -- train.tscn` empty; no files added under `assets/`.
 - [ ] 1.16 Manual playtest S1 [P] (user, Godot 4.6): 2P keys unchanged and fully working; dash from Idle works; with a stale `user://Agent0.onnx` present and Human selected the fighter obeys input (no ghost AI); `train.tscn` opens with agents in `AGENT` and `control_mode` TRAINING, no script errors; both fighters feel identical to before (profile defaults equal baseline).
 
-## Phase S2: Movement feel, punch fix, hit rules (F4, F5)
+## Phase S-A: Stage, camera, hitboxes, visuals
 
-Specs: fighter-movement (all), combat-hits (hitbox, hitstun, F4, F5). Design Decisions 5-12.
+Inserted after the S1 playtest ("looks terrible, all hitboxes buggy; one map, moving camera, no two heights, a table"). It runs BEFORE S2. Source of truth for the numbers: engram `sdd/fun-gameplay-overhaul/explore-stage-hitbox`. Ambiguities are resolved the way Super Smash Bros does. Specs: match-camera (revised for the 1176x902 world), combat-hits (hitbox), gameplay-state-snapshot (camera key). Design Decisions 20 and 21 are superseded by this phase (see deviations in apply-progress).
+
+Verification model for this phase differs from the rest: the user authorized running Godot, so every task is proven by the smoke harness in `tests/smoke/` (`tests/smoke/run_all.sh`), plus screenshots reviewed by the apply agent.
+
+- [x] A.1 Edit `game/game.tscn`: game-own `Backdrop` Sprite2D (`fondo_cocina_junto.png`, native scale 1, `centered = false`, mipmap filter); remove the shared `background` instance, `ColorRect`, tablecloth sprites, both platforms and their sprites. Single `StaticBody2D/Floor` (800x60 at (430,510), top y=480, x 30..830) so the node path survives; no walls (ring-out on both sides). Fighters spawn at (330,380) and (630,380).
+- [x] A.2 Edit `game/game.gd`, `game/player/player.gd`, `game/food/food_spawner.gd`: blast zones become `Game` exports (L -100, R 1276, B 810, T -400) pushed into each fighter as `blast_zone`; the hardcoded `Fighter` constants are removed; `Backdrop` is freed when `training`; spawner uses local coordinates (`food.position`, range x 100..760 over the counter), which also resolves F2.
+- [x] A.3 Create `game/camera/match_camera.gd` and attach it to `Camera2D`: midpoint follow of fighters with `stocks > 0`, distance-based zoom clamped to 0.75..1.15, exponential smoothing, y soft clamp 300..420, Camera2D limits 0..1176 x 0..902, view clamped inside the world, writes `position`/`zoom` only; no-op when the parent is `training`. (Moved from S5a 5a.1, 5a.2.)
+- [x] A.4 Edit `game/game.gd`: snapshot `platforms` is `[]`, new `camera: {center, zoom}` key. (Moved from S5a 5a.2.)
+- [x] A.5 Edit `hurt.gd`: reset the shake `offset` to ZERO at the end of the shake tween. (Moved from S5a 5a.3.)
+- [x] A.6 Edit `game/player/player.tscn`: movement body shrinks to 56x150 at (0,19) (bottom y=94, feet on the floor); new `Hurtbox` Area2D 120x171 at (0,8) matching the art, and `Combat.apply_hit` resolves through it.
+- [x] A.7 Edit `punch.gd`, `fighter_profile.gd`, `player.tscn`: single `PunchArea` shape (center `(75*facing, -10)`, 110x40) mirrored by the locked facing, monitoring only during the active window, hit-once set per swing, NO owner teleport (`move_punch_offset` removed, second shape and `punch_distance` removed, `train.tscn` overrides dropped). (Supersedes S2 2.6.)
+- [x] A.8 Dedicated physics layers: world 1, fighter body 2 (mask world only), food pickups 3, hurtboxes 4. Fighters pass through each other with a soft horizontal push-apart (`Fighter._apply_soft_push`); no standing on heads; food is not solid to fighters; projectiles and punches detect hurtboxes. Layer names in `project.godot`. (Supersedes S4 4.5.)
+- [x] A.9 Smash facing: `Fighter.facing` follows the move input (initially toward the enemy) and is locked during Punch, Shoot, Hurt, Protect, Defeated; sprite flip follows `facing`; throws go in the facing direction; the dash no longer re-flips the sprite. This is what makes "enemy behind" a real situation for the mirrored hitbox.
+- [x] A.10 Visuals: mipmaps via `[importer_defaults]` in `project.godot` (new imports on a clean clone) plus `texture_filter = LINEAR_WITH_MIPMAPS_ANISOTROPIC` on fighter sprites, held food and backdrop; HUD gradient mirrored for the right side and labels inside their panels.
+- [x] A.11 Edit `train.tscn`: respace `Game` instances to x spacing 1400 (columns -1400, 0, 1400, 2800, 4200, y spacing unchanged), retune the root `Camera2D`; drop the dead `punch_distance` overrides. Backdrop is freed when training. `train.tscn` must load without script errors.
+- [x] A.12 Create `tests/smoke/` (`smoke_util.gd`, `stage_floor.gd`, `combat.gd`, `movement.gd`, `camera.gd`, `train_loads.gd`, `screenshots.gd`, `run_all.sh`): windowed SceneTree scripts that instantiate `game/game.tscn`, drive fighters through the controller intent seam, assert with PASS/FAIL and a non-zero exit, and save screenshots to `$SHOT_DIR` (not committed).
+- [x] A.13 Run `tests/smoke/run_all.sh` and `--headless --check-only` on every changed script; all green.
+- [ ] A.14 Manual playtest S-A [P] (user): one fixed-height counter, camera follows and zooms, punches hit what the art shows, fighters pass through each other, food never blocks, sprites are smooth, HUD readable.
+
+## Phase S2: Movement feel, hit rules (F4, F5)
+
+Specs: fighter-movement (all), combat-hits (hitstun, F4, F5; the hitbox requirement moved to S-A). Design Decisions 5-12.
 
 - [ ] 2.1 Edit `game/player/fighter_profile.gd`: add movement and hit tuning from the design Tuning Defaults table (ground/air accel, gravity 1800, fall multiplier 1.2, max fall 1000, jump -850, double jump -750, jump_cut 0.45, coyote 0.10, buffer 0.10, max_air_jumps 1, dash ground/air durations, hitstun clamp params, hurt_gravity_scale 0.6, post_hit_invulnerability 0.5, respawn invulnerability 1.5, hit-stop). Changing profile defaults is the single place the new feel is tuned; keep both characters identical.
 - [ ] 2.2 Edit `game/player/player.gd`: add `jumps_left`, `air_dash_available`, `coyote_timer`, `jump_buffer_timer`, `_coyote_blocked`, `_tick_movement(delta)` (resets on landing, blocks triple jump), `resolve_jump() -> JumpKind` (Decision 6). Verify [S]: truth table for ground, coyote, air, buffer, coyote-expired matches the fighter-movement spec scenarios.
 - [ ] 2.3 Edit `player.gd`: `grant_invulnerability(duration, blink := true)` using a one-shot `_invuln_timer` child and a node-bound looping `_blink_tween` (F4); timeout clears the flag, kills the tween, restores sprite visibility; `reset_player()` stops both; `_respawn()` calls it with the respawn duration using `max(remaining, duration)`. Verify [S]: no `get_tree().create_tween()` or `await ...create_timer` left for invulnerability.
 - [ ] 2.4 Edit `motion.gd`: gravity from profile (fall multiplier, max fall speed), ground and air acceleration. Edit `jump.gd`: GROUND and AIR kinds, velocity by kind, short hop (`velocity.y *= jump_cut_multiplier` once when `!jump_held and velocity.y < 0`), air actions. Edit `fall.gd`, `idle.gd`, `run.gd`: `resolve_jump()`, landing to Idle, air actions.
 - [ ] 2.5 Edit `dash.gd`: dash from Idle, Run and air; air dash consumes `air_dash_available`, suspends gravity, shorter duration; `can_enter()` is `on_floor or air_dash_available`.
-- [ ] 2.6 Edit `punch.gd`: single mirrored hitbox from locked `facing` and `profile` offset, active-window polling of `punch_area.get_overlapping_bodies()` with a `_hit_targets` set, air punch applies gravity, delete `move_punch_offset` and `body_entered` connect churn. Edit `player.tscn`: delete `PunchArea/CollisionShape2D2`. Verify [S]: `rg move_punch_offset` returns nothing; owner `position` is never written in `punch.gd`.
+- [x] 2.6 **Moved to S-A (A.7).** Edit `punch.gd`: single mirrored hitbox from locked `facing` and `profile` offset, active-window polling of `punch_area.get_overlapping_bodies()` with a `_hit_targets` set, air punch applies gravity, delete `move_punch_offset` and `body_entered` connect churn. Edit `player.tscn`: delete `PunchArea/CollisionShape2D2`. Verify [S]: `rg move_punch_offset` returns nothing; owner `position` is never written in `punch.gd`.
 - [ ] 2.7 Edit `shoot.gd`, `protect.gd`: air variants, hold-to-block bounded by `block_duration`, gravity in air, `exit_to_neutral()`.
 - [ ] 2.8 Edit `hurt.gd`: hitstun scaled by knockback (`clamp(base + |kb| * per_kb, min, max)`), `hurt_gravity_scale`, keep x momentum, call `owner.grant_invulnerability(post_hit_invulnerability)` only in `_on_hurt_finished()`, connect the timer once. Verify [S]: Hurt-to-Hurt re-entry grants no invulnerability.
 - [ ] 2.9 Edit `game/combat/combat.gd`: `static var _hit_stop_token`, token-guarded restore of `Engine.time_scale`, `static func cancel_hit_stop()` (F5). Edit `game/game.gd`: `_exit_tree()` calls `Combat.cancel_hit_stop()` when not training. Verify [S]: training path never touches `time_scale`.
@@ -117,8 +139,8 @@ Specs: match-flow (countdown, sudden death, rematch, pause, instructions), food-
 - [ ] 4.1 Edit `game/player/player.gd`: `set_stocks(n)` emits `stocks_changed`.
 - [ ] 4.2 Edit `game/game.gd` and `game/game.tscn`: `Phase` enum (COUNTDOWN, PLAYING, SUDDEN_DEATH, OVER); `Timer.autostart = false`; `UI/CountdownLabel` (centered, font size 96); countdown "3-2-1-GO" with pausable timers (`create_timer(step, false)`); lock and unlock fighters; training path starts immediately as today. Update the Game snapshot `phase`, `sudden_death`, `timer_running`.
 - [ ] 4.3 Edit `game/game.gd`: timeout logic (unequal stocks, equal stocks to sudden death with both at 1 stock, timer off, `TimerLabel` hidden, "SUDDEN DEATH" shown 1 s), `phase != OVER` guard in `_on_player_defeated`, null-guard `game_over` in training rows (F3). Edit `ui/global/timer_label.gd`: show `wait_time` while stopped.
-- [ ] 4.4 Edit `game/food/food_spawner.gd`: `start()` instead of self-start, use `food.position` not `global_position` (F2).
-- [ ] 4.5 Edit `game/food/food_pickup.tscn`, `food_projectile.tscn`, `game/player/player.tscn`, `project.godot`: layers per Decision 21 (fighters on layer 2, food on layer 3, masks per table) and `[layer_names]`. Verify [S]: table in design matches every node's `collision_layer`/`collision_mask`; `train.tscn` inherits without edits.
+- [ ] 4.4 Edit `game/food/food_spawner.gd`: `start()` instead of self-start. (The F2 part, `food.position` instead of `global_position`, is done in S-A A.2.)
+- [x] 4.5 **Moved to S-A (A.8).** Superseded layer plan: world 1, fighter body 2 (mask world), food 3, hurtbox 4. Original text: Edit `game/food/food_pickup.tscn`, `food_projectile.tscn`, `game/player/player.tscn`, `project.godot`: layers per Decision 21 (fighters on layer 2, food on layer 3, masks per table) and `[layer_names]`. Verify [S]: table in design matches every node's `collision_layer`/`collision_mask`; `train.tscn` inherits without edits.
 - [ ] 4.6 Edit `game/audio/sfx.gd`: `EVENTS` table with the design bands, `play_event()`, `is_training()` (moved from `Combat`), keep `play()`. Edit `game/combat/combat.gd`, `shoot.gd`, `jump.gd`, `player.gd`: call `play_event` for hit, heavy_hit, block, pickup, throw, jump, double_jump, ko. Verify [S]: bands do not overlap per source sound.
 - [ ] 4.7 Edit `game/ui/pause/pause.gd`: Esc toggles pause and unpause, `set_input_as_handled()`, ignored while game over is visible.
 - [ ] 4.8 Edit `scripts/SceneManager/scene_manager.gd`: `rematch()` replays `last_match`. Edit `game/ui/game_over/game_over.gd` and `game_over.tscn`: Replay calls `SceneManager.rematch()`, new "Characters" button opens character select; both unpause first.
@@ -128,15 +150,15 @@ Specs: match-flow (countdown, sudden death, rematch, pause, instructions), food-
 - [ ] 4.12 Static audit: no `print(` in per-frame paths; no new files under `assets/`.
 - [ ] 4.13 Manual playtest S4 [P] (user): every match starts 3-2-1-GO with fighters locked; pause during countdown freezes digits; timeout tie goes to sudden death; double KO ends once; rematch keeps characters and controllers; "Characters" returns to select; Esc opens and closes pause; food passes through fighters and does not ride heads; pitch bands audibly different per event; food spawns in the correct place inside a train row (F2).
 
-## Phase S5a: Match camera
+## Phase S5a: Match camera (moved to S-A)
 
-Specs: match-camera (all), gameplay-state-snapshot (S5 camera). Design Decision 20.
+Specs: match-camera (all), gameplay-state-snapshot (S5 camera). Design Decision 20 (superseded: Camera2D limits plus a script clamp, world 1176x902, zoom 0.75..1.15). Every item below is done in S-A A.3-A.5, with the camera checks covered by `tests/smoke/camera.gd`.
 
-- [ ] 5a.1 Create `game/camera/match_camera.gd`: follow midpoint of fighters with `stocks > 0`, distance-based zoom clamped to `[1.0, 1.4]`, exponential smoothing, manual clamp to `Rect2(0,0,800,600)` bounds with `half = viewport / (2 * zoom)`, writes `position` and `zoom` only; no-ops when parent `training`.
-- [ ] 5a.2 Edit `game/game.tscn`: attach `match_camera.gd` to the existing `Camera2D`. Switch to drag-center only at runtime outside training. Edit `game/game.gd`: Game snapshot `camera: {center, zoom}`.
-- [ ] 5a.3 Edit `game/player/StateMachine/PlayerStateMachine/States/hurt.gd`: reset shake `offset = Vector2.ZERO` at the end of the shake tween. Shake keeps using `offset`.
-- [ ] 5a.4 Static review [S]: clamp math at zoom 1.0 (view equals today's framing) and 1.4 near all four corners; `train.tscn` root `Camera2D` has no script; HUD is on a `CanvasLayer`.
-- [ ] 5a.5 Manual playtest camera [P] (user): follows both fighters; zooms out as they separate and never beyond 1.0; never shows past the background; HUD fixed and readable at 800x600; hurt shake still visible and leaves no residual offset; `train.tscn` cameras unchanged.
+- [x] 5a.1 (S-A A.3) Create `game/camera/match_camera.gd`: follow midpoint of fighters with `stocks > 0`, distance-based zoom clamped to `[1.0, 1.4]`, exponential smoothing, manual clamp to `Rect2(0,0,800,600)` bounds with `half = viewport / (2 * zoom)`, writes `position` and `zoom` only; no-ops when parent `training`.
+- [x] 5a.2 (S-A A.3, A.4) Edit `game/game.tscn`: attach `match_camera.gd` to the existing `Camera2D`. Switch to drag-center only at runtime outside training. Edit `game/game.gd`: Game snapshot `camera: {center, zoom}`.
+- [x] 5a.3 (S-A A.5) Edit `game/player/StateMachine/PlayerStateMachine/States/hurt.gd`: reset shake `offset = Vector2.ZERO` at the end of the shake tween. Shake keeps using `offset`.
+- [x] 5a.4 (smoke `camera.gd`) Static review [S]: clamp math at zoom 1.0 (view equals today's framing) and 1.4 near all four corners; `train.tscn` root `Camera2D` has no script; HUD is on a `CanvasLayer`.
+- [ ] 5a.5 (folded into A.14) Manual playtest camera [P] (user): follows both fighters; zooms out as they separate and never beyond 1.0; never shows past the background; HUD fixed and readable at 800x600; hurt shake still visible and leaves no residual offset; `train.tscn` cameras unchanged.
 
 ## Phase S5b: Smash moves and bot extension
 
