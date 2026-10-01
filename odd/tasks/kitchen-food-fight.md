@@ -112,3 +112,5 @@ Feature complete. Remaining work is manual playtest/tuning in the editor (see ea
   - [ ] F4 Invulnerability tween unbound + overlapping respawns clear invuln early. `player.gd:128-139`
   - [ ] F5 Overlapping hit-stops race on Engine.time_scale. `combat.gd:55-64`
   - [ ] F6 No automated tests (no GUT); rules are static-checked only.
+- Full-branch review (ef6f2ad..b3d4911, lineage review-f31d474e226eab95): user granted; approved with no blocking findings; acknowledged. Same advisories as above plus:
+  - [ ] F7 Thrown food is freed when it touches the one-way platforms (Area2D body_entered ignores one_way_collision). `food_projectile.gd:52-53`
