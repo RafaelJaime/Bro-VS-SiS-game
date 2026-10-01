@@ -24,9 +24,17 @@ extends Resource
 @export_group("Punch")
 @export var punch_damage: float = 8.0
 @export var punch_knockback: Vector2 = Vector2(220, -120)
-@export var punch_distance: float = 50.0
 @export var punch_duration: float = 0.3
 @export var punch_cooldown: float = 0.7
+## Hitbox center, in front of the fighter (mirrored by facing), and its size.
+## The fighter is never moved by a punch.
+@export var punch_reach: float = 75.0
+@export var punch_hitbox_size: Vector2 = Vector2(110.0, 40.0)
+@export var punch_hitbox_y: float = -10.0
+## The hitbox is live only between these two times, as fractions of
+## punch_duration: startup before it, recovery after it (Smash-style frames).
+@export_range(0.0, 1.0) var punch_active_start: float = 0.2
+@export_range(0.0, 1.0) var punch_active_end: float = 0.7
 
 @export_group("Moveset")
 @export var can_double_jump: bool = true

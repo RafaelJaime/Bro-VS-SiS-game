@@ -4,7 +4,8 @@ class_name FoodProjectile
 ## Thrown food. Same attacker/target resolution as a punch (Combat.apply_hit),
 ## so it correctly respects blocking and respawn invulnerability. Direction-
 ## based movement + Area2D hit detection follows the same pattern the old
-## game/projectile/projectile.gd used for free-shoot (now removed).
+## game/projectile/projectile.gd used for free-shoot (now removed). It hits
+## fighters through their hurtbox and is destroyed by the counter.
 
 @export var food_name: String = ""
 @export var direction: int = 1
@@ -24,7 +25,8 @@ var knockback_base: Vector2 = Vector2.ZERO
 var lifetime: float = 0.0
 
 func _ready() -> void:
-	body_shape_entered.connect(_on_body_shape_entered)
+	body_entered.connect(_on_body_entered)
+	area_entered.connect(_on_area_entered)
 	if food_name != "":
 		sprite.texture = FoodCatalog.get_texture(food_name)
 		var stats = FoodCatalog.get_stats(food_name)
@@ -49,18 +51,18 @@ func _physics_process(delta: float) -> void:
 func set_shooter(fighter: Fighter) -> void:
 	shooter = fighter
 
-func _on_body_shape_entered(_body_rid: RID, body: Node, body_shape_index: int, _local_shape_index: int) -> void:
-	# Fires once per shape, so a multi-shape body must not be hit twice.
-	if is_queued_for_deletion() or body == shooter or body == self:
+# Fighters are hit through their hurtbox Area2D (the movement body is not on the
+# projectile's mask). The hurtbox's parent is the Fighter.
+func _on_area_entered(area: Area2D) -> void:
+	var target := area.get_parent() as Fighter
+	if is_queued_for_deletion() or target == null or target == shooter:
 		return
-	if body is Fighter:
-		Combat.apply_hit(shooter, body, damage, knockback_base)
-		queue_free()
-	elif body is StaticBody2D and not _is_one_way_shape(body, body_shape_index):
-		queue_free()
+	Combat.apply_hit(shooter, target, damage, knockback_base)
+	queue_free()
 
-# Area2D overlaps ignore one_way_collision, so thrown food would otherwise be
-# destroyed when flying under or through the floating platforms.
-func _is_one_way_shape(body: CollisionObject2D, body_shape_index: int) -> bool:
-	var shape_owner = body.shape_owner_get_owner(body.shape_find_owner(body_shape_index))
-	return shape_owner is CollisionShape2D and shape_owner.one_way_collision
+# The only solid thing a throw can hit is the counter.
+func _on_body_entered(body: Node2D) -> void:
+	if is_queued_for_deletion() or body == shooter:
+		return
+	if body is StaticBody2D:
+		queue_free()

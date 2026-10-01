@@ -33,10 +33,13 @@ shader_parameter/blink_color = Color(1, 1, 1, 1)
 shader_parameter/blink_intensity = 0.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_e2o6t"]
-size = Vector2(73, 154)
+size = Vector2(56, 150)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
+size = Vector2(120, 171)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8soms"]
-size = Vector2(89, 33)
+size = Vector2(110, 40)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_food1"]
 radius = 70.0
@@ -106,6 +109,7 @@ scale_max = 5.0
 color_ramp = SubResource("GradientTexture1D_0e4oy")
 
 [node name="Player" type="CharacterBody2D" unique_id=1005135867]
+collision_layer = 2
 script = ExtResource("1_0e4oy")
 character_ui = SubResource("Resource_usp30")
 control_scheme = 1
@@ -177,8 +181,17 @@ animation = &"Dash"
 autoplay = "Idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=489426174]
-position = Vector2(-2.5, 16)
+position = Vector2(0, 19)
 shape = SubResource("RectangleShape2D_e2o6t")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, 8)
+shape = SubResource("RectangleShape2D_hurtbox")
 
 [node name="AIController2D" type="Node2D" parent="." unique_id=2141755335]
 script = ExtResource("3_8soms")
@@ -187,16 +200,17 @@ reset_after = 999999
 metadata/_custom_type_script = "uid://b5wn6xerup5fr"
 
 [node name="PunchArea" type="Area2D" parent="." unique_id=547939447]
+collision_layer = 0
+collision_mask = 8
+monitoring = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PunchArea" unique_id=2100493297]
-position = Vector2(45.5, -10)
-shape = SubResource("RectangleShape2D_8soms")
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="PunchArea" unique_id=740472790]
-position = Vector2(-55, -10)
+position = Vector2(75, -10)
 shape = SubResource("RectangleShape2D_8soms")
 
 [node name="PickupArea" type="Area2D" parent="." unique_id=547939448]
+collision_layer = 0
+collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea" unique_id=2100493298]
 shape = SubResource("CircleShape2D_food1")

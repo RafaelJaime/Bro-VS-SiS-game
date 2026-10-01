@@ -114,6 +114,13 @@ P2_shoot={
 ]
 }
 
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="fighters"
+2d_physics/layer_3="food"
+2d_physics/layer_4="hurtboxes"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

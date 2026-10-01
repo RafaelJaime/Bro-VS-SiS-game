@@ -64,20 +64,16 @@ func _throw_food() -> void:
 		push_warning("No food_projectile_scene assigned to Shoot state.")
 		return
 
-	if not owner or not owner.enemy:
-		push_warning("Owner or enemy not found.")
+	if not owner:
+		push_warning("Owner not found.")
 		return
 
 	var food_name = owner.held_food
 	owner.clear_held_food()
 
-	# Determinar dirección basada en la posición del enemigo
-	var direction = 1
-	var spawn_marker = right_mark
-
-	if owner.enemy.global_position.x < owner.global_position.x:
-		direction = -1
-		spawn_marker = left_mark
+	# Smash: items are thrown the way the fighter faces.
+	var direction: int = owner.facing
+	var spawn_marker = right_mark if direction > 0 else left_mark
 
 	var food_projectile = food_projectile_scene.instantiate()
 	food_projectile.food_name = food_name

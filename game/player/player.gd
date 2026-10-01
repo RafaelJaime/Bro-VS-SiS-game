@@ -27,6 +27,7 @@ enum ControllerKind { AUTO, HUMAN, CPU, POLICY }
 
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var ai_controller_2d: AIController2D = $AIController2D
+@onready var hurtbox: Area2D = $Hurtbox
 @onready var punch_area: Area2D = $PunchArea
 @onready var pickup_area: Area2D = $PickupArea
 @onready var held_food_sprite: Sprite2D = $HeldFoodSprite
@@ -34,10 +35,25 @@ enum ControllerKind { AUTO, HUMAN, CPU, POLICY }
 
 const MAX_STOCKS: int = 3
 const RESPAWN_HEIGHT_OFFSET: float = -250.0
+# Fighters pass through each other (Smash). While their centers are closer than
+# PUSH_DISTANCE and at similar height they are nudged apart. PUSH_SPEED is each
+# fighter's push at full overlap; it must stay below half the run speed so a
+# runner can still cross an opponent.
+const PUSH_DISTANCE: float = 60.0
+const PUSH_HEIGHT: float = 120.0
+const PUSH_SPEED: float = 90.0
+# Smash: you face the way you move. No turning while an action owns the body.
+const TURN_DEADZONE: float = 0.1
+const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated"]
 const RESPAWN_INVULNERABILITY: float = 1.5
 const INVULNERABILITY_BLINK_INTERVAL: float = 0.15
 
 var initial_position: Vector2
+# Ring-out bounds (blast zone). Falling or being knocked past any side costs a
+# stock, whether it happened by walking off or by knockback. Local to the
+# owning Game (which overwrites this default from its exports) so offset Game
+# rows (train.tscn) work.
+var blast_zone: Rect2 = Rect2(-100.0, -400.0, 1376.0, 1210.0)
 # Damage % (Smash-style ring-out combat). Starts at 0 and has no upper cap;
 # it never kills by itself, it only scales knockback (see get_knockback_scale).
 var damage_percent: float = 0.0
@@ -49,12 +65,8 @@ var is_invulnerable: bool = false
 var controller: FighterController
 var intent: FighterIntent = FighterIntent.new()
 var controls_locked: bool = false
-# Ring-out bounds (blast zone). Falling or being knocked past any side costs a
-# stock, whether it happened by walking off or by knockback. Local to the
-# owning Game (which overwrites this default from its exports) so offset Game
-# rows (train.tscn) work.
-var blast_zone: Rect2 = Rect2(-100.0, -400.0, 1376.0, 1210.0)
-# +1 when the enemy is to the right, -1 when to the left.
+# +1 facing right, -1 facing left. Starts toward the enemy, then follows the
+# move input (see _update_facing), so the enemy can be behind.
 var facing: int = 1
 # Name of the food currently held above the head, or "" when empty-handed.
 var held_food: String = ""
@@ -74,6 +86,10 @@ func _ready():
 	if controller == null:
 		set_controller(_resolve_controller())
 
+	if enemy:
+		facing = 1 if enemy.global_position.x >= global_position.x else -1
+	animated_sprite_2d.flip_h = facing < 0
+
 func _physics_process(delta: float) -> void:
 	# The only controller sample per frame; parent-first physics order makes
 	# this intent visible to the state machine child in the same frame.
@@ -84,11 +100,35 @@ func _physics_process(delta: float) -> void:
 		reset_player()
 		return
 
-	if enemy:
-		facing = 1 if enemy.global_position.x >= global_position.x else -1
-		animated_sprite_2d.flip_h = enemy.global_position.x < global_position.x
+	_update_facing()
 	move_and_slide()
+	_apply_soft_push(delta)
 	_check_blast_zone()
+
+func _update_facing() -> void:
+	if absf(intent.move_x) > TURN_DEADZONE and not _is_turn_locked():
+		facing = 1 if intent.move_x > 0.0 else -1
+	animated_sprite_2d.flip_h = facing < 0
+
+func _is_turn_locked() -> bool:
+	if state_machine == null or state_machine.current_state == null:
+		return false
+	return TURN_LOCKED_STATES.has(state_machine.current_state.name)
+
+# Smash-style fighter collision: bodies do not collide, they only push each
+# other gently apart on the ground plane. Both fighters run this, so the push is
+# symmetric. A fighter running through the opponent is slowed, not stopped.
+func _apply_soft_push(delta: float) -> void:
+	if enemy == null or stocks <= 0 or enemy.get("stocks") == 0:
+		return
+	var offset_x := global_position.x - enemy.global_position.x
+	if absf(offset_x) >= PUSH_DISTANCE or absf(global_position.y - enemy.global_position.y) > PUSH_HEIGHT:
+		return
+	var away := signf(offset_x)
+	if is_zero_approx(away):
+		away = -1.0 if control_scheme == PlayerNumber.JUGADOR1 else 1.0
+	var overlap := 1.0 - absf(offset_x) / PUSH_DISTANCE
+	move_and_collide(Vector2(away * PUSH_SPEED * overlap * delta, 0.0))
 
 func set_controller(new_controller: FighterController) -> void:
 	controller = new_controller

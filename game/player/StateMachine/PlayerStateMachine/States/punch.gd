@@ -1,18 +1,22 @@
 extends Motion
 
 @export var punch_area: Area2D
-# Node-level overrides (train.tscn sets punch_duration/cooldown/distance). An
-# unset value (negative, or ZERO for the knockback) falls back to the owner's
+# Node-level overrides (train.tscn sets punch_duration/cooldown). An unset value
+# (negative, or ZERO for the knockback) falls back to the owner's
 # FighterProfile, which is the single source of the default numbers.
 @export var punch_duration: float = -1.0
 @export var punch_cooldown: float = -1.0
-@export var punch_distance: float = -1.0
 @export var punch_damage: float = -1.0
 @export var punch_knockback: Vector2 = Vector2.ZERO
 
 var punch_timer: Timer
 var cooldown_timer: Timer
 var is_punching: bool = false
+
+# One swing = one hit per target, however long the hitbox overlaps.
+var _hit_targets: Array[Fighter] = []
+var _elapsed: float = 0.0
+var _swing_facing: int = 1
 
 # Cooldown gate used by Motion.handle_actions() (no re-entrant reject emit).
 func can_enter() -> bool:
@@ -22,15 +26,29 @@ func _enter() -> void:
 	setup_timers()
 	super._enter()
 
-	if owner.enemy.global_position.x > owner.global_position.x:
-		move_punch_offset(_distance())
-	else:
-		move_punch_offset(-_distance())
-
+	# Facing is locked for the whole swing (the Fighter does not turn during
+	# Punch), so the hitbox is placed once and mirrored by it. The owner is not
+	# moved: reach comes from the hitbox, never from teleporting the fighter.
+	_swing_facing = owner.facing
+	_hit_targets.clear()
+	_elapsed = 0.0
+	_place_hitbox()
+	_set_hitbox_active(false)
 	start_punch()
 
-func _distance() -> float:
-	return punch_distance if punch_distance >= 0.0 else profile.punch_distance
+func _update(delta: float) -> void:
+	super._update(delta)
+	# Grounded punches stop where the fighter stands; air punches keep falling.
+	calculate_gravity(delta)
+	calculate_velocity(0.0, Vector2.ZERO, delta)
+
+	_elapsed += delta
+	var duration := _duration()
+	var active := _elapsed >= duration * profile.punch_active_start \
+			and _elapsed < duration * profile.punch_active_end
+	_set_hitbox_active(active)
+	if active:
+		_hit_overlapping_hurtboxes()
 
 func _duration() -> float:
 	return punch_duration if punch_duration >= 0.0 else profile.punch_duration
@@ -63,39 +81,40 @@ func start_punch() -> void:
 	
 	punch_timer.start(_duration())
 	cooldown_timer.start(_cooldown())
-	
-	if punch_area:
-		if punch_area.is_connected("body_entered", _on_punch_area_body_entered):
-			punch_area.body_entered.disconnect(_on_punch_area_body_entered)
-		punch_area.body_entered.connect(_on_punch_area_body_entered)
-		check_overlapping_bodies()
 
-func move_punch_offset(distance: float) -> void:
-	if owner and owner is Node2D:
-		var direction = 1 if owner.scale.x > 0 else -1
-		owner.position.x += distance * direction
+# Single hitbox shape, mirrored by the swing's facing.
+func _place_hitbox() -> void:
+	if punch_area == null:
+		return
+	var shape_node: CollisionShape2D = punch_area.get_node("CollisionShape2D")
+	shape_node.position = Vector2(profile.punch_reach * _swing_facing, profile.punch_hitbox_y)
+	(shape_node.shape as RectangleShape2D).size = profile.punch_hitbox_size
 
-func check_overlapping_bodies() -> void:
-	if punch_area:
-		var bodies = punch_area.get_overlapping_bodies()
-		for body in bodies:
-			_on_punch_area_body_entered(body)
+func _set_hitbox_active(active: bool) -> void:
+	if punch_area and punch_area.monitoring != active:
+		punch_area.set_deferred("monitoring", active)
+
+# The hitbox overlaps hurtboxes (Area2D on the hurtbox layer); the Fighter is
+# the hurtbox's parent.
+func _hit_overlapping_hurtboxes() -> void:
+	if punch_area == null:
+		return
+	for area in punch_area.get_overlapping_areas():
+		var target := area.get_parent() as Fighter
+		if target == null or target == owner or _hit_targets.has(target):
+			continue
+		_hit_targets.append(target)
+		Combat.apply_hit(owner, target, _damage(), _knockback())
 
 func end_punch() -> void:
 	is_punching = false
-	if owner.enemy.global_position.x > owner.global_position.x:
-		move_punch_offset(-_distance())
-	else:
-		move_punch_offset(_distance())
-	finished.emit("Idle")
+	finished.emit("Idle" if is_on_floor() else "Fall")
 
 func _on_punch_timer_timeout() -> void:
 	end_punch()
 
-func _on_punch_area_body_entered(body: Node2D) -> void:
-	if owner != null and body != owner and body is Fighter:
-		Combat.apply_hit(owner, body, _damage(), _knockback())
-
 func _exit() -> void:
-	if punch_area and punch_area.is_connected("body_entered", _on_punch_area_body_entered):
-		punch_area.body_entered.disconnect(_on_punch_area_body_entered)
+	is_punching = false
+	if punch_timer and not punch_timer.is_stopped():
+		punch_timer.stop()
+	_set_hitbox_active(false)
