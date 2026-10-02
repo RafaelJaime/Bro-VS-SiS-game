@@ -25,6 +25,7 @@ func _run() -> void:
 	_check_encodings(s)
 	_check_mlp(s)
 	_check_sidecar_and_schema(s)
+	_check_external_golden(s)
 	s.finish()
 
 # ------------------------------------------------------------------ helpers
@@ -258,3 +259,48 @@ func _check_sidecar_and_schema(s: Smoke) -> void:
 	s.check("sidecar: onnx.output selects the output and label is kept", named.model != null and named.model.output_name() == "state_outs" and named.model.label == "named")
 	var missing := OnnxPolicyModel.load_bytes(_bytes("extra_state_input_and_output"), {"onnx": {"output": "nope"}})
 	s.check("sidecar: an unknown output name is rejected", missing.model == null and str(missing.error).contains("nope"), str(missing.error))
+
+# ------------------------------------------------------------------ exported-model golden (optional)
+
+## BVS_GOLDEN_JSON=<golden.json> (written by training/bvs_training/golden.py) checks a
+## real exported model: sha256 of the file, parity within the file's tolerance on every
+## case and the exact argmax per branch. Unset, it does nothing; the committed default
+## model case arrives with the trained default model.
+func _check_external_golden(s: Smoke) -> void:
+	var path := OS.get_environment("BVS_GOLDEN_JSON")
+	if path == "":
+		return
+	var golden: Variant = _json(path)
+	s.check("golden file parses", golden is Dictionary, path)
+	if not (golden is Dictionary):
+		return
+	var model_path := String(golden["model"])
+	if model_path.is_relative_path():
+		model_path = ProjectSettings.globalize_path("res://").path_join(model_path)
+	s.check("golden: model sha256 matches the golden file", FileAccess.get_sha256(model_path) == String(golden["sha256"]), model_path)
+	var loaded := OnnxPolicyModel.load_bytes(FileAccess.get_file_as_bytes(model_path))
+	s.check("golden: exported model loads", loaded.model != null, str(loaded.error))
+	if loaded.model == null:
+		return
+	var model: OnnxPolicyModel = loaded.model
+	s.check("golden: exported model validates against bvs-schema-2", model.validate(BvsSchemaV2) == "", model.validate(BvsSchemaV2))
+	var tolerance := float(golden["tolerance"])
+	var worst := 0.0
+	var argmax_misses := 0
+	for case_spec in golden["cases"]:
+		var logits := model.infer(_floats(case_spec["input"]))
+		var expected := _floats(case_spec["expected"])
+		if logits.size() != expected.size():
+			argmax_misses += 1
+			continue
+		for i in expected.size():
+			worst = maxf(worst, absf(logits[i] - expected[i]))
+		var got_argmax := BvsSchemaV2.argmax_branches(logits)
+		var want_argmax: Array = case_spec["argmax"]
+		for b in want_argmax.size():
+			if got_argmax[b] != int(want_argmax[b]):
+				argmax_misses += 1
+				break
+	s.check("golden: parity within %s on %d cases" % [str(tolerance), golden["cases"].size()], worst <= tolerance, "max error %s" % str(worst))
+	s.check("golden: argmax per branch is exact on every case", argmax_misses == 0, "misses %d" % argmax_misses)
+	print("INFO exported-model golden max abs error %s" % str(worst))
