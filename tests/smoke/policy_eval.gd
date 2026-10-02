@@ -31,7 +31,10 @@ class EvalPolicyController extends PolicyController:
 	var frames := 0
 	var idle_frames := 0
 	var attack_presses := 0
+	var special_presses := 0
 	var observations: Array = []
+	## Per branch, how many decisions chose each index (the action distribution).
+	var histogram: Array = []
 	var _sampled_decisions := 0
 
 	func sample(delta: float) -> FighterIntent:
@@ -40,14 +43,27 @@ class EvalPolicyController extends PolicyController:
 			return intent
 		if decisions != _sampled_decisions:
 			_sampled_decisions = decisions
+			_count_action()
 			if (decisions - 1) % OBS_SAMPLE_EVERY == 0 and observations.size() < OBS_SAMPLE_CAP:
 				observations.append(Array(last_obs))
 		frames += 1
 		if intent.attack_pressed or intent.special_pressed:
 			attack_presses += 1
+		if intent.special_pressed:
+			special_presses += 1
 		if _is_neutral(intent):
 			idle_frames += 1
 		return intent
+
+	func _count_action() -> void:
+		if histogram.is_empty():
+			for branch in BvsSchemaV2.BRANCHES:
+				var counts: Array = []
+				counts.resize(int(branch["size"]))
+				counts.fill(0)
+				histogram.append(counts)
+		for branch in mini(last_action.size(), histogram.size()):
+			histogram[branch][last_action[branch]] += 1
 
 	static func _is_neutral(intent: FighterIntent) -> bool:
 		return (
@@ -89,7 +105,15 @@ func _run() -> void:
 		"wins": 0, "losses": 0, "draws": 0, "stocks_taken": 0, "stocks_lost": 0, "self_kos": 0,
 		"damage_dealt": 0.0, "attack_presses": 0, "approach_frames": 0, "frames": 0,
 		"idle_frames": 0, "recoveries": 0, "match_seconds": 0.0,
+		"ko_wins": 0, "timeout_wins": 0, "ko_losses": 0, "timeout_losses": 0,
+		"off_stage_events": 0, "special_presses": 0, "distance_sum": 0.0,
 	}
+	var histogram: Array = []
+	for branch in BvsSchemaV2.BRANCHES:
+		var counts: Array = []
+		counts.resize(int(branch["size"]))
+		counts.fill(0)
+		histogram.append(counts)
 	var observations: Array = []
 	var per_match: Array = []
 	for i in matches:
@@ -101,6 +125,9 @@ func _run() -> void:
 		for key in totals.keys():
 			totals[key] += record["totals"][key]
 		observations.append_array(record["observations"])
+		for branch in histogram.size():
+			for index in histogram[branch].size():
+				histogram[branch][index] += record["histogram"][branch][index]
 	var played := float(matches)
 	var report := {
 		"model": model_path,
@@ -120,6 +147,15 @@ func _run() -> void:
 		"recoveries": totals["recoveries"],
 		"idle_ratio": float(totals["idle_frames"]) / maxf(float(totals["frames"]), 1.0),
 		"mean_match_seconds": totals["match_seconds"] / played,
+		"ko_wins": totals["ko_wins"],
+		"timeout_wins": totals["timeout_wins"],
+		"ko_losses": totals["ko_losses"],
+		"timeout_losses": totals["timeout_losses"],
+		"off_stage_events": totals["off_stage_events"],
+		"recovery_success_rate": float(totals["recoveries"]) / maxf(float(totals["off_stage_events"]), 1.0),
+		"special_presses": totals["special_presses"],
+		"mean_distance": totals["distance_sum"] / maxf(float(totals["frames"]), 1.0),
+		"action_distribution": _distribution(histogram),
 		"per_match": per_match,
 	}
 	var json := JSON.stringify(report)
@@ -185,14 +221,19 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 	var frames := 0
 	var recoveries := 0
 	var was_off := false
+	var off_events := 0
+	var distance_sum := 0.0
 	var stocks_when_off := me.stocks
 	while not done["over"] and mlog.now() < MATCH_LIMIT_SECONDS and controller.error == "":
 		await s.frames(1)
 		frames += 1
-		if me.position.distance_to(foe.position) <= APPROACH_DISTANCE:
+		var gap := me.position.distance_to(foe.position)
+		distance_sum += gap
+		if gap <= APPROACH_DISTANCE:
 			approach_frames += 1
 		var off := _is_off_stage(me, stage)
 		if off and not was_off:
+			off_events += 1
 			stocks_when_off = me.stocks
 		elif was_off and not off and me.stocks == stocks_when_off:
 			recoveries += 1
@@ -203,6 +244,8 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 	elif done["winner"] == foe:
 		outcome = "loss"
 	var seconds: float = mlog.now()
+	# A win by elimination leaves the loser at zero stocks; otherwise the clock decided it.
+	var by_ko: bool = fighters[0].stocks <= 0 or fighters[1].stocks <= 0
 	var observations := controller.observations
 	var error := controller.error
 	paused = false
@@ -223,13 +266,39 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 		"idle_frames": controller.idle_frames,
 		"recoveries": recoveries,
 		"match_seconds": seconds,
+		"ko_wins": 1 if outcome == "win" and by_ko else 0,
+		"timeout_wins": 1 if outcome == "win" and not by_ko else 0,
+		"ko_losses": 1 if outcome == "loss" and by_ko else 0,
+		"timeout_losses": 1 if outcome == "loss" and not by_ko else 0,
+		"off_stage_events": off_events,
+		"special_presses": controller.special_presses,
+		"distance_sum": distance_sum,
 	}
 	return {
 		"summary": {"match": index, "side": agent_side + 1, "outcome": outcome, "seconds": seconds,
 			"stocks_taken": totals["stocks_taken"], "stocks_lost": totals["stocks_lost"]},
 		"totals": totals,
 		"observations": observations,
+		"histogram": controller.histogram,
 	}
+
+## Per branch: the share of each index and the Shannon entropy in bits (0 = always the same choice).
+func _distribution(histogram: Array) -> Array:
+	var result: Array = []
+	for branch in histogram.size():
+		var counts: Array = histogram[branch]
+		var total := 0.0
+		for count: int in counts:
+			total += count
+		var shares: Array = []
+		var entropy := 0.0
+		for count: int in counts:
+			var share := float(count) / maxf(total, 1.0)
+			shares.append(share)
+			if share > 0.0:
+				entropy -= share * log(share) / log(2.0)
+		result.append({"name": BvsSchemaV2.BRANCHES[branch]["name"], "shares": shares, "entropy_bits": entropy})
+	return result
 
 ## Airborne and outside the table top (same test as ScriptedController._is_off_stage).
 func _is_off_stage(fighter: Fighter, stage: Dictionary) -> bool:

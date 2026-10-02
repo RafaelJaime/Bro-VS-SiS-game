@@ -71,6 +71,20 @@ def render_markdown(name: str, reports: dict[str, dict], gate: dict) -> str:
             f"| {level} | {r['approach_ratio']:.2f} | {r['attack_presses']} | {r['recoveries']} | "
             f"{r['self_ko_share']:.2f} | {r['idle_ratio']:.2f} | {r['mean_match_seconds']:.1f} |"
         )
+    lines += ["", "## Play quality", "",
+              "| Level | KO wins | Timeout wins | KO losses | Timeout losses | Off-stage events | Recovery success | Specials | Mean gap (px) |",
+              "|-------|---------|--------------|-----------|----------------|------------------|------------------|----------|---------------|"]
+    for level, r in reports.items():
+        lines.append(
+            f"| {level} | {r.get('ko_wins', 0)} | {r.get('timeout_wins', 0)} | {r.get('ko_losses', 0)} | {r.get('timeout_losses', 0)} | "
+            f"{r.get('off_stage_events', 0)} | {r.get('recovery_success_rate', 0.0):.2f} | {r.get('special_presses', 0)} | {r.get('mean_distance', 0.0):.0f} |"
+        )
+    for level, r in reports.items():
+        lines += ["", f"## Action distribution vs {level} (share of decisions per branch index, entropy in bits)", "",
+                  "| Branch | Shares | Entropy |", "|--------|--------|---------|"]
+        for branch in r.get("action_distribution", []):
+            shares = ", ".join(f"{share:.2f}" for share in branch["shares"])
+            lines.append(f"| {branch['name']} | {shares} | {branch['entropy_bits']:.2f} |")
     verdict = "PASS" if gate["passed"] else "FAIL"
     lines += ["", f"Gate: win rate versus CPU {gate['level'].title()} at least {gate['min_win_rate']:.2f} over at least "
               f"{MIN_REPORT_MATCHES} matches: **{verdict}** ({gate['win_rate']:.2f} over {gate['matches']}).", ""]

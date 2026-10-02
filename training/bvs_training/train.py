@@ -197,7 +197,9 @@ def main(argv: list[str] | None = None) -> int:
     deadline = started + float(run["time_box_hours"]) * 3600
     set_random_seed(seed)  # python, numpy and torch; Godot gets --env_seed from make_env
 
-    snapshots: list[Path] = []
+    # Frozen snapshots already exported by an earlier run of this out dir seed the P3 pool.
+    snapshots: list[Path] = sorted((out_dir / "snapshots").glob("step_*.onnx")) if args.resume else []
+    snapshots = [path.resolve() for path in snapshots]
     model: PPO | None = None
     last_checkpoint: Path | None = None
     for phase in phases:
@@ -211,8 +213,14 @@ def main(argv: list[str] | None = None) -> int:
         try:
             if model is None:
                 model = PPO.load(str(args.resume), env=env, device="cpu") if args.resume else make_model(env, ppo, seed)
-            else:
+            elif env.num_envs == model.n_envs:
                 model.set_env(env)
+            else:
+                # Self-play rows add agents (both sides learn), so a phase can have more
+                # envs than the last one; set_env refuses that, a reload accepts it.
+                carry = out_dir / "phase_carry.zip"
+                model.save(str(carry))
+                model = PPO.load(str(carry), env=env, device="cpu")
             callback = BvsCallback(out_dir, every, deadline, stop_file, snapshots)
             phase_started = time.time()
             before = model.num_timesteps
