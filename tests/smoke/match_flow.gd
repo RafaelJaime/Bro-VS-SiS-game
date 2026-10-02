@@ -250,7 +250,7 @@ func _winner_by_stocks() -> void:
 	s.check("timeout with unequal stocks: more stocks wins", game.winner == fighter_2, "winner=%s" % [game.winner])
 	s.check("timeout with unequal stocks: stocks and damage untouched", fighter_1.stocks == 2 and fighter_2.stocks == 3 and is_equal_approx(fighter_2.damage_percent, 80.0))
 	await _wait_results(game)
-	s.check("timeout with unequal stocks: the results name the winner", game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel").text == fighter_2.character_ui.name.to_upper())
+	s.check("timeout with unequal stocks: the results name the winner", game.game_over.get_node("%WinnerNameLabel").text == fighter_2.character_ui.name.to_upper())
 	await _leave(game)
 
 func _double_ko() -> void:
@@ -288,14 +288,16 @@ func _game_and_results() -> void:
 	s.check("GAME! gives way to the results screen", reached and paused)
 	s.check("time scale is back to 1.0 on the results", is_equal_approx(Engine.time_scale, 1.0), "%.2f" % Engine.time_scale)
 	s.check("the match is decided exactly once", overs[0] == 1, "count=%d" % overs[0])
-	var portrait: TextureRect = game.game_over.get_node("CenterContainer/VBoxContainer/WinnerPortrait")
+	var portrait: ResultsPanel = game.game_over.get_node("%WinnerPanel")
 	s.check("the results show the winner's art", portrait.texture != null)
-	s.check("the results name the winner", game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel").text == fighter_1.character_ui.name.to_upper())
-	var result_name: Label = game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerNameLabel")
-	var result_wins: Label = game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer/WinnerLabel")
-	s.check("the results read '<NAME> WINS!' in big letters", (result_name.text + result_wins.text).strip_edges() == fighter_1.character_ui.name.to_upper() + " WINS!" and result_name.get_theme_font_size("font_size") >= 56, "text=%s size=%d" % [result_name.text + result_wins.text, result_name.get_theme_font_size("font_size")])
-	var buttons: HBoxContainer = game.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer2")
-	s.check("the results have clear text buttons: Rematch, Characters, Main Menu", [buttons.get_child(0).text, buttons.get_child(1).text, buttons.get_child(2).text] == ["Rematch", "Characters", "Main Menu"])
+	s.check("the results name the winner", game.game_over.get_node("%WinnerNameLabel").text == fighter_1.character_ui.name.to_upper())
+	var result_name: Label = game.game_over.get_node("%WinnerNameLabel")
+	var result_wins: Label = game.game_over.get_node("%WinnerLabel")
+	s.check("the results read '<NAME> WINS!' in big letters", (result_name.text + " " + result_wins.text).strip_edges() == fighter_1.character_ui.name.to_upper() + " WINS!" and result_name.get_theme_font_size("font_size") >= 56, "text=%s size=%d" % [result_name.text + " " + result_wins.text, result_name.get_theme_font_size("font_size")])
+	var captions: Array[String] = []
+	for button_name in ["%ReplayButton", "%CharactersButton", "%MainMenuButton"]:
+		captions.append((game.game_over.get_node(button_name).get_node("Caption") as Label).text)
+	s.check("the results buttons are captioned Rematch, Characters, Main Menu", captions == ["Rematch", "Characters", "Main Menu"], str(captions))
 	var timer_hidden: bool = not game.timer_label.visible
 	var huds_hidden := true
 	for fighter in [fighter_1, fighter_2]:
@@ -323,11 +325,11 @@ func _rematch() -> void:
 	await s.frames(4)
 	s.check("rematch: the first match ends", first.phase == Game.Phase.OVER)
 	var reached := await _wait_results(first)
-	s.check("rematch: the results offer the three buttons", reached and first.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer2/ReplayButton") != null and first.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer2/CharactersButton") != null and first.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer2/MainMenuButton") != null)
-	var winner_art: Texture2D = first.game_over.get_node("CenterContainer/VBoxContainer/WinnerPortrait").texture
+	s.check("rematch: the results offer the three buttons", reached and first.game_over.get_node("%ReplayButton") != null and first.game_over.get_node("%CharactersButton") != null and first.game_over.get_node("%MainMenuButton") != null)
+	var winner_art: Texture2D = first.game_over.get_node("%WinnerPanel").texture
 	s.check("rematch: a real character's illustration is shown", winner_art != null and winner_art == characters[0].illustration)
 
-	first.game_over.get_node("CenterContainer/VBoxContainer/HBoxContainer2/ReplayButton").pressed.emit()
+	first.game_over.get_node("%ReplayButton").pressed.emit()
 	await s.frames(4)
 	var second: Game = scene_manager.current_scene
 	s.check("rematch: a new Game replaces the old one", second != first and is_instance_valid(second))
@@ -340,7 +342,7 @@ func _rematch() -> void:
 	s.check("rematch: fresh state (3 stocks, 0%)", f1.stocks == 3 and f2.stocks == 3 and f1.damage_percent == 0.0)
 	await s.real_wait(0.1)
 
-	second.get_node("UI/GameOver/CenterContainer/VBoxContainer/HBoxContainer2/CharactersButton").pressed.emit()
+	second.get_node("UI/GameOver/%CharactersButton").pressed.emit()
 	await s.frames(4)
 	s.check("back to select: the Characters button opens character select", scene_manager.current_scene_path == SELECT_SCENE and not paused)
 	scene_manager.current_scene.queue_free()

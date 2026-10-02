@@ -81,7 +81,7 @@ fi
 # class_names resolve when the scripts run outside the editor.
 "$GODOT" --headless --path . --import >/dev/null 2>&1
 
-SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots cpu_combat cpu_recovery cpu_match cpu_select cpu_shots table_stage hud_framing match_flow match_e2e smash_moves ledge cpu_smash match_reel keyboard_playtest backdrop navigation)
+SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots cpu_combat cpu_recovery cpu_match cpu_select cpu_shots table_stage hud_framing match_flow match_e2e smash_moves ledge cpu_smash match_reel keyboard_playtest backdrop navigation results_screen)
 # ONLY="hud navigation" tests/smoke/run_all.sh runs just those scripts.
 if [ -n "${ONLY:-}" ]; then
 	read -r -a SCRIPTS <<<"$ONLY"

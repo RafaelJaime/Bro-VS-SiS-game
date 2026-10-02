@@ -8,7 +8,7 @@ const Smoke := preload("res://tests/smoke/smoke_util.gd")
 const MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
 const SELECT_SCENE := "res://ui/character_select/character_select.tscn"
 const GAME_SCENE := "res://game/game.tscn"
-const RESULTS_BUTTONS := "CenterContainer/VBoxContainer/HBoxContainer2/"
+const RESULTS_BUTTONS := "%"
 const Level := CpuDifficulty.Level
 
 var s: RefCounted

@@ -1,14 +1,21 @@
-[gd_scene load_steps=15 format=3 uid="uid://r47fsncbeolm"]
+[gd_scene load_steps=22 format=3 uid="uid://r47fsncbeolm"]
 
 [ext_resource type="Script" uid="uid://bya4rtk1lnt74" path="res://game/ui/game_over/game_over.gd" id="1_3gwt4"]
 [ext_resource type="Texture2D" uid="uid://br35025wl14bc" path="res://assets/textures/Confetti/413409734-86c17908-9984-45a3-947d-e2d0175b7119.png" id="4_88cxy"]
 [ext_resource type="Texture2D" uid="uid://48ti3w6o4e6v" path="res://game/ui/game_over/confetti.tres" id="5_4u8sn"]
+[ext_resource type="Script" path="res://game/ui/game_over/results_panel.gd" id="6_panel"]
+[ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="7_sounds"]
+[ext_resource type="Texture2D" uid="uid://di6pnsgn7qql5" path="res://assets/images/ui/buttons/button5.png" id="8_rematch"]
+[ext_resource type="Texture2D" uid="uid://b1mhp7cvo12d5" path="res://assets/images/ui/buttons/button1.png" id="9_characters"]
+[ext_resource type="Texture2D" uid="uid://c0dbviubmdfpo" path="res://assets/images/ui/buttons/button4.png" id="10_menu"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_88cxy"]
 particles_animation = true
 particles_anim_h_frames = 2
 particles_anim_v_frames = 1
 particles_anim_loop = true
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
 
 [sub_resource type="Curve" id="Curve_4u8sn"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.745819, 1), 0.0, 0.0, 0, 0, Vector2(0.993311, 0.505435), -6.97879, 0.0, 0, 0]
@@ -90,7 +97,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.784314)
+color = Color(0, 0, 0, 0.88)
 
 [node name="CenterGPUParticles2D" type="GPUParticles2D" parent="."]
 visible = false
@@ -142,97 +149,227 @@ lifetime = 4.0
 explosiveness = 0.1
 process_material = SubResource("ParticleProcessMaterial_ygcgq")
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="GameOverLabel" type="Label" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+[node name="GameOverLabel" type="Label" parent="."]
+layout_mode = 0
+offset_top = 14.0
+offset_right = 800.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_y = 5
-theme_override_constants/outline_size = 5
-theme_override_constants/shadow_outline_size = 5
+theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 30
 text = "GAME SET"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="WinnerPortrait" type="TextureRect" parent="CenterContainer/VBoxContainer"]
-texture_filter = 6
-custom_minimum_size = Vector2(0, 230)
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
+[node name="WinnerPanel" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 40.0
+offset_top = 64.0
+offset_right = 380.0
+offset_bottom = 394.0
+script = ExtResource("6_panel")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-alignment = 1
+[node name="Info" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 400.0
+offset_top = 70.0
+offset_right = 780.0
+offset_bottom = 400.0
+mouse_filter = 2
 
-[node name="Label2" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 1, 1)
-theme_override_colors/font_outline_color = Color(1, 1, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 32
-text = "Rafael"
-horizontal_alignment = 1
-
-[node name="WinnerNameLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
+[node name="WinnerNameLabel" type="Label" parent="Info"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0
+offset_top = 10
+offset_right = 380
+offset_bottom = 86
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 0
-theme_override_constants/shadow_offset_y = 5
+theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 14
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 60
 text = "MATILDE"
-horizontal_alignment = 1
+horizontal_alignment = 0
+vertical_alignment = 1
 
-[node name="WinnerLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
+[node name="WinnerLabel" type="Label" parent="Info"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0
+offset_top = 84
+offset_right = 380
+offset_bottom = 144
 theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 0
-theme_override_constants/shadow_offset_y = 5
+theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 14
-theme_override_font_sizes/font_size = 64
-text = " WINS!"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 52
+text = "WINS!"
+horizontal_alignment = 0
+vertical_alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 16
+[node name="StatsLabel" type="Label" parent="Info"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 4
+offset_top = 148
+offset_right = 374
+offset_bottom = 226
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 20
+text = "KOs 3\nStocks left 3\nDamage taken 0%"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="LoserPanel" type="Control" parent="Info"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+offset_left = 4.0
+offset_top = 242.0
+offset_right = 134.0
+offset_bottom = 322.0
+script = ExtResource("6_panel")
+slant = 14.0
+crop = 1.0
+greyed = true
+
+[node name="LoserLabel" type="Label" parent="Info"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 146
+offset_top = 252
+offset_right = 376
+offset_bottom = 312
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 20
+text = ""
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_top = 436.0
+offset_right = 800.0
+offset_bottom = 576.0
+theme_override_constants/separation = 30
 alignment = 1
 
-[node name="ReplayButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
-custom_minimum_size = Vector2(190, 56)
+[node name="ReplayButton" type="Button" parent="Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 104)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+focus_neighbor_top = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+size_flags_vertical = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+icon = ExtResource("8_rematch")
+flat = true
+expand_icon = true
+script = ExtResource("7_sounds")
+
+[node name="Caption" type="Label" parent="Buttons/ReplayButton"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -95.0
+offset_top = 2.0
+offset_right = 95.0
+offset_bottom = 32.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 20
 text = "Rematch"
+horizontal_alignment = 1
+mouse_filter = 2
 
-[node name="CharactersButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
-custom_minimum_size = Vector2(190, 56)
+[node name="CharactersButton" type="Button" parent="Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 104)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+focus_neighbor_top = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+size_flags_vertical = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+icon = ExtResource("9_characters")
+flat = true
+expand_icon = true
+script = ExtResource("7_sounds")
+
+[node name="Caption" type="Label" parent="Buttons/CharactersButton"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -95.0
+offset_top = 2.0
+offset_right = 95.0
+offset_bottom = 32.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 20
 text = "Characters"
+horizontal_alignment = 1
+mouse_filter = 2
 
-[node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer2"]
-custom_minimum_size = Vector2(190, 56)
+[node name="MainMenuButton" type="Button" parent="Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 104)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Main Menu"
+focus_neighbor_top = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+size_flags_vertical = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+icon = ExtResource("10_menu")
+flat = true
+expand_icon = true
+script = ExtResource("7_sounds")
 
-[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer2/ReplayButton" to="." method="_on_replay_button_pressed"]
-[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer2/CharactersButton" to="." method="_on_characters_button_pressed"]
-[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer2/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
+[node name="Caption" type="Label" parent="Buttons/MainMenuButton"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -95.0
+offset_top = 2.0
+offset_right = 95.0
+offset_bottom = 32.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 20
+text = "Main Menu"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[connection signal="pressed" from="Buttons/ReplayButton" to="." method="_on_replay_button_pressed"]
+[connection signal="pressed" from="Buttons/CharactersButton" to="." method="_on_characters_button_pressed"]
+[connection signal="pressed" from="Buttons/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
