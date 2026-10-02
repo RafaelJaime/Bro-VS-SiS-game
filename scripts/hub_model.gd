@@ -18,7 +18,11 @@ const SCHEMA_TAG_PREFIX := "bvs-schema-"
 ## Models discovered by tag, most downloaded first (no username needed).
 const DISCOVERY_URL := "https://huggingface.co/api/models?filter=%s&sort=downloads&limit=50" % TAG
 
-enum Compat { COMPATIBLE, OLDER, NEWER }
+## A user's other reinforcement-learning models (no BVS tag), shown disabled when
+## the user has no BVS model at all.
+const RL_TAG := "reinforcement-learning"
+
+enum Compat { COMPATIBLE, OLDER, NEWER, NOT_BVS }
 ## Why a listing could not be loaded.
 enum Failure { OFFLINE, SERVER, BAD_DATA }
 
@@ -28,8 +32,21 @@ var downloads: int = 0
 var tags: PackedStringArray = PackedStringArray()
 ## The N of the `bvs-schema-N` tag, or -1 when the model has none.
 var schema: int = -1
+## False for a model listed only as "related" (no BVS tag): never usable.
+var is_bvs: bool = true
+
+## Request for every BVS model of one Hub user, most downloaded first. The
+## username is URL-encoded.
+static func author_url(username: String) -> String:
+	return "https://huggingface.co/api/models?author=%s&filter=%s&sort=downloads&limit=100" % [username.strip_edges().uri_encode(), TAG]
+
+## Request for a user's other reinforcement-learning models (the zero-BVS fallback).
+static func author_rl_url(username: String) -> String:
+	return "https://huggingface.co/api/models?author=%s&filter=%s&sort=downloads&limit=100" % [username.strip_edges().uri_encode(), RL_TAG]
 
 func compat() -> Compat:
+	if not is_bvs:
+		return Compat.NOT_BVS
 	if schema == BVS_SCHEMA_VERSION:
 		return Compat.COMPATIBLE
 	if schema > BVS_SCHEMA_VERSION:
@@ -45,6 +62,8 @@ func badge_text() -> String:
 			return "Compatible"
 		Compat.NEWER:
 			return "Needs a newer game"
+		Compat.NOT_BVS:
+			return "Not a BVS model"
 	return "Trained for an older version"
 
 ## The highest `bvs-schema-N` among the tags, -1 when there is none.
@@ -71,6 +90,7 @@ static func from_entry(entry: Variant) -> HubModel:
 	for tag in entry.get("tags", []):
 		model.tags.append(String(tag))
 	model.schema = schema_of(model.tags)
+	model.is_bvs = TAG in model.tags
 	return model
 
 ## The models of a Hub list response, in the Hub's order; null when the text is
@@ -86,16 +106,20 @@ static func parse_list(text: String) -> Variant:
 			models.append(model)
 	return models
 
-## The models whose author contains `text` (case-insensitive); all when empty.
-static func filter_by_author(models: Array, text: String) -> Array:
-	var needle := text.strip_edges().to_lower()
-	if needle.is_empty():
-		return models.duplicate()
-	var kept := []
-	for model: HubModel in models:
-		if model.author.to_lower().contains(needle):
-			kept.append(model)
-	return kept
+## The models of an "other models" response: every entry, none usable (they are
+## listed without the BVS tag, so the game cannot know their schema); null when
+## the text is not a JSON array.
+static func parse_related_list(text: String) -> Variant:
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_ARRAY:
+		return null
+	var models: Array[HubModel] = []
+	for entry in parsed:
+		var model := from_entry(entry)
+		if model != null:
+			model.is_bvs = false
+			models.append(model)
+	return models
 
 static func format_downloads(count: int) -> String:
 	if count >= 1000000:

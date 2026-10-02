@@ -1,9 +1,12 @@
 extends Control
-## The AI model picker, in the spirit of the Hugging Face Space Huggy: it lists the
-## Hub models carrying the BVS tag (no username to type), each with its repo id,
-## author, downloads and a compatibility badge. Models trained for another schema
+## The AI model picker, in the spirit of the Hugging Face Space Huggy. The username
+## field at the top is the main input: typing a Hugging Face username (Search or
+## Enter) lists that user's BVS models. When the user has none, their other
+## reinforcement-learning models are listed too, disabled, with a hint. An empty
+## field lists every model carrying the BVS tag. Each row shows the repo id,
+## author, downloads and a compatibility badge; models trained for another schema
 ## are listed but disabled. It has loading, empty, error and offline states, each
-## with a retry; an optional author text filters the list.
+## with a retry. The last username is remembered.
 
 ## The player picked a compatible model.
 signal model_chosen(model: HubModel)
@@ -19,13 +22,15 @@ const COLOR_DIM := Color(0.75, 0.75, 0.75)
 var state: PickerState = PickerState.LOADING
 var models: Array = []
 
-var filter_edit: LineEdit
-var refresh_button: Button
+var author_edit: LineEdit
+var search_button: Button
 var status_label: Label
 var retry_button: Button
 var cancel_button: Button
 var list: VBoxContainer
 var _failure_message := ""
+## The username the current list (or the request in flight) is for; "" is the tag list.
+var _query := ""
 
 func _ready() -> void:
 	visible = false
@@ -61,24 +66,26 @@ func _build() -> void:
 	title.text = "Choose an AI model"
 	title.add_theme_font_size_override("font_size", 26)
 	column.add_child(title)
-	var subtitle := Label.new()
-	subtitle.text = "Models on the Hugging Face Hub tagged %s" % HubModel.TAG
-	subtitle.add_theme_font_size_override("font_size", 14)
-	subtitle.add_theme_color_override("font_color", COLOR_DIM)
-	column.add_child(subtitle)
 
 	var bar := HBoxContainer.new()
 	column.add_child(bar)
-	filter_edit = LineEdit.new()
-	filter_edit.placeholder_text = "Filter by author"
-	filter_edit.clear_button_enabled = true
-	filter_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	filter_edit.text_changed.connect(_on_filter_changed)
-	bar.add_child(filter_edit)
-	refresh_button = Button.new()
-	refresh_button.text = "Refresh"
-	refresh_button.pressed.connect(reload)
-	bar.add_child(refresh_button)
+	author_edit = LineEdit.new()
+	author_edit.placeholder_text = "Hugging Face username"
+	author_edit.clear_button_enabled = true
+	author_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	author_edit.text_submitted.connect(func(_text: String) -> void: search())
+	bar.add_child(author_edit)
+	search_button = Button.new()
+	search_button.text = "Search"
+	search_button.pressed.connect(search)
+	bar.add_child(search_button)
+
+	var subtitle := Label.new()
+	subtitle.text = "Type a username to list their %s models, or leave it empty for every model tagged %s." % [HubModel.TAG, HubModel.TAG]
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	subtitle.add_theme_font_size_override("font_size", 14)
+	subtitle.add_theme_color_override("font_color", COLOR_DIM)
+	column.add_child(subtitle)
 
 	status_label = Label.new()
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -103,9 +110,10 @@ func _build() -> void:
 	cancel_button.pressed.connect(cancel)
 	column.add_child(cancel_button)
 
-## Shows the picker and loads the list.
+## Shows the picker and loads the list, for the username used last time (if any).
 func open() -> void:
 	visible = true
+	author_edit.text = ModelManager.load_last_author()
 	reload()
 
 func close() -> void:
@@ -115,11 +123,25 @@ func cancel() -> void:
 	close()
 	cancelled.emit()
 
-## Asks the Hub for the list again (the Refresh and Retry buttons).
+## The Search button and Enter in the username field: remembers the username and
+## loads its models (every BVS model when the field is empty).
+func search() -> void:
+	if state == PickerState.LOADING:
+		return
+	ModelManager.save_last_author(author_edit.text)
+	reload()
+
+## Asks the Hub for the list again, for the username in the field (Retry, Search).
 func reload() -> void:
+	_query = author_edit.text.strip_edges()
 	state = PickerState.LOADING
 	_render()
-	ModelManager.fetch_hub_models()
+	ModelManager.fetch_hub_models(_query)
+
+## True when the list holds only the user's other, unusable models (they have no
+## BVS model of their own).
+func is_related_fallback() -> bool:
+	return not models.is_empty() and models.all(func(model: HubModel) -> bool: return not model.is_bvs)
 
 func _on_models_loaded(loaded: Array) -> void:
 	if not visible or state != PickerState.LOADING:
@@ -136,10 +158,6 @@ func _on_models_failed(failure: HubModel.Failure, message: String) -> void:
 	state = PickerState.OFFLINE if failure == HubModel.Failure.OFFLINE else PickerState.ERROR
 	_render()
 
-func _on_filter_changed(_text: String) -> void:
-	if state == PickerState.READY:
-		_render()
-
 ## The model rows currently listed, in order.
 func rows() -> Array[Button]:
 	var found: Array[Button] = []
@@ -153,26 +171,30 @@ func _status_text(shown: int) -> String:
 		PickerState.LOADING:
 			return "Loading models from Hugging Face..."
 		PickerState.EMPTY:
+			if not _query.is_empty():
+				return "%s has no models on the Hub that the game can use." % _query
 			return "No BVS models were found on the Hub yet."
 		PickerState.ERROR:
 			return "Something went wrong: %s." % _failure_message
 		PickerState.OFFLINE:
 			return "You seem to be offline. %s." % _failure_message
-	if shown == 0:
-		return "No model matches that author."
+	if is_related_fallback():
+		return "%s has no %s models yet. Their other reinforcement-learning models are listed below, but this game cannot use them." % [_query, HubModel.TAG]
+	if not _query.is_empty():
+		return "%d model%s by %s. Pick one that is compatible with this version of the game." % [shown, "" if shown == 1 else "s", _query]
 	return "%d model%s. Pick one that is compatible with this version of the game." % [shown, "" if shown == 1 else "s"]
 
 func _render() -> void:
 	for child in list.get_children():
 		list.remove_child(child)
 		child.queue_free()
-	var shown := HubModel.filter_by_author(models, filter_edit.text) if state == PickerState.READY else []
+	var shown: Array = models if state == PickerState.READY else []
 	for model: HubModel in shown:
 		list.add_child(_make_row(model))
 	status_label.text = _status_text(shown.size())
 	retry_button.visible = state == PickerState.ERROR or state == PickerState.OFFLINE or state == PickerState.EMPTY
-	refresh_button.disabled = state == PickerState.LOADING
-	filter_edit.editable = state == PickerState.READY
+	search_button.disabled = state == PickerState.LOADING
+	author_edit.editable = state != PickerState.LOADING
 	_focus_first()
 
 func _focus_first() -> void:
@@ -209,7 +231,7 @@ func _make_row(model: HubModel) -> Button:
 	names.add_child(_label(model.id, 18, Color.WHITE))
 	names.add_child(_label("by %s" % model.author, 13, COLOR_DIM))
 	box.add_child(_label("%s downloads" % HubModel.format_downloads(model.downloads), 14, COLOR_DIM))
-	var badge := _label(model.badge_text(), 14, COLOR_OK if model.is_compatible() else COLOR_OLD)
+	var badge := _label(model.badge_text(), 14, COLOR_OK if model.is_compatible() else (COLOR_OLD if model.is_bvs else COLOR_DIM))
 	badge.name = "Badge"
 	badge.custom_minimum_size = Vector2(170, 0)
 	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

@@ -145,6 +145,8 @@ func _init(scene_tree: SceneTree, watchdog_seconds: float = WATCHDOG_SECONDS) ->
 	# Scripts that open the main menu must never write the player's real
 	# user://intro_seen.cfg.
 	MainMenu.flag_path = "user://smoke_intro_seen.cfg"
+	# Same for the picker's remembered username.
+	tree.root.get_node("ModelManager").prefs_path = "user://smoke_hub_picker.cfg"
 	# Keep the music and SFX quiet; the checks do not need audio.
 	AudioServer.set_bus_mute(0, true)
 	tree.create_timer(_watchdog_seconds, true, false, true).timeout.connect(_on_watchdog)
