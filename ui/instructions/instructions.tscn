@@ -1,6 +1,5 @@
 [gd_scene load_steps=14 format=3 uid="uid://btpro83jgkb8h"]
 
-[ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_kvb2a"]
 [ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="2_1hvjx"]
 [ext_resource type="PackedScene" uid="uid://cgec1mb47wk6v" path="res://ui/global/back_button/back_button.tscn" id="3_sf658"]
 [ext_resource type="Texture2D" uid="uid://mfu78j02lj3i" path="res://assets/images/game/characters/matilde/jump/m_010.png" id="4_c22lu"]
@@ -21,8 +20,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="background" parent="." instance=ExtResource("1_kvb2a")]
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1

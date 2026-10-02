@@ -5,6 +5,13 @@ var current_scene_path: String = ""
 var current_scene: Node
 var scene_container: Node
 
+const MENU_BACKGROUND_SCENE := "res://ui/global/background/background.tscn"
+
+## The single menu backdrop shared by every menu screen. It lives in the scene
+## container below the current scene, so the cloud scroll continues across screen
+## changes. Null until the first menu screen is shown.
+var menu_background: MenuBackground
+
 func change_scene(scene_path: String):
 	if current_scene:
 		history.append(current_scene_path)
@@ -13,7 +20,26 @@ func change_scene(scene_path: String):
 	current_scene_path = scene_path
 	current_scene = load(scene_path).instantiate()
 	assert(scene_container, "Scene container doesn't exist, so I can't change scene")
+	_show_menu_background()
 	scene_container.add_child(current_scene)
+
+## Creates the shared backdrop on first use, keeps it as the first child of the
+## scene container (so it draws below every screen) and turns it on.
+func _show_menu_background() -> void:
+	if not is_instance_valid(menu_background):
+		menu_background = load(MENU_BACKGROUND_SCENE).instantiate()
+	var parent := menu_background.get_parent()
+	if parent != scene_container:
+		if parent != null:
+			parent.remove_child(menu_background)
+		scene_container.add_child(menu_background)
+	scene_container.move_child(menu_background, 0)
+	menu_background.set_active(true)
+
+## The match has its own backdrop: hide the menu one and pause its clouds.
+func _hide_menu_background() -> void:
+	if is_instance_valid(menu_background):
+		menu_background.set_active(false)
 
 ## What the last match was started with (characters and controller configs), so a
 ## rematch can replay it. Empty until the first match starts.
@@ -36,6 +62,7 @@ func play_game(character1: CharacterUI, character2: CharacterUI, cfg1: Controlle
 	current_scene = load("res://game/game.tscn").instantiate()
 
 	assert(scene_container, "Scene container doesn't exist, so I can't change scene")
+	_hide_menu_background()
 	scene_container.add_child(current_scene)
 
 	var fighters = []

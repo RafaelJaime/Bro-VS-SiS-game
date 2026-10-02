@@ -1,6 +1,5 @@
 [gd_scene load_steps=8 format=3 uid="uid://bb5yiqlmlv2kn"]
 
-[ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_i5wg5"]
 [ext_resource type="Texture2D" uid="uid://nqearmljsu7i" path="res://assets/logos/imagen_titulo.png" id="4_3c04x"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="5_3c04x"]
 [ext_resource type="Texture2D" uid="uid://bvji0sjdngrew" path="res://assets/images/ui/buttons/Ilustracion_3Botones original.png" id="5_joh67"]
@@ -12,8 +11,6 @@
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("7_menu")
-
-[node name="background" parent="." instance=ExtResource("1_i5wg5")]
 
 [node name="Logo" type="Sprite2D" parent="."]
 position = Vector2(400, 160)
