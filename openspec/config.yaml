@@ -1,6 +1,6 @@
 schema: spec-driven
 context: |
-  Project: BVS / BroVSis (bro-vs-sis-game). 2D fighting game in Godot 4.6 (GL Compatibility), GDScript.
+  Project: BVS / BroVSis (bro-vs-sis-game). 2D fighting game in Godot 4.7.2 (GL Compatibility), GDScript.
   Built for RL training (godot_rl_agents addon, ONNX inference). Autoloads: ModelManager, SceneManager.
   Layout: game/ (combat, food, player, audio, ui), scripts/ (AIController, SceneManager), ui/, addons/.
   CI: .github/workflows/deploy-pages.yml (web export deploy only; no tests).
@@ -8,7 +8,7 @@ context: |
 strict_tdd: false   # no test runner or workspace-level test command exists
 projects:
   - path: .
-    stack: Godot 4.6 / GDScript
+    stack: Godot 4.7.2 / GDScript
     test_command: null
     framework: null
 testing:
