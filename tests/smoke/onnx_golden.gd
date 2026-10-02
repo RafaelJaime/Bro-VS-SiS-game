@@ -9,6 +9,8 @@ const OPS_DIR := "res://tests/fixtures/onnx/ops/"
 ## Time budget per inference (headless desktop); the design target is 1 ms.
 const MAX_INFERENCE_USEC := 2000.0
 const PERF_RUNS := 200
+## Golden vectors of the bundled default model (training/bvs_training/golden.py).
+const DEFAULT_GOLDEN := "res://tests/fixtures/onnx/bvs_default_golden.json"
 
 var _max_error: float = 0.0
 
@@ -25,6 +27,7 @@ func _run() -> void:
 	_check_encodings(s)
 	_check_mlp(s)
 	_check_sidecar_and_schema(s)
+	_check_default_golden(s)
 	_check_external_golden(s)
 	s.finish()
 
@@ -264,12 +267,49 @@ func _check_sidecar_and_schema(s: Smoke) -> void:
 
 ## BVS_GOLDEN_JSON=<golden.json> (written by training/bvs_training/golden.py) checks a
 ## real exported model: sha256 of the file, parity within the file's tolerance on every
-## case and the exact argmax per branch. Unset, it does nothing; the committed default
-## model case arrives with the trained default model.
+## case and the exact argmax per branch. Unset, it does nothing.
 func _check_external_golden(s: Smoke) -> void:
 	var path := OS.get_environment("BVS_GOLDEN_JSON")
 	if path == "":
 		return
+	_check_golden(s, path)
+
+## The bundled default model against its committed golden fixture: the fixture must
+## exist, name the bundled file, carry its sha256 and include recorded observations.
+func _check_default_golden(s: Smoke) -> void:
+	s.check("default golden: the fixture is committed", FileAccess.file_exists(DEFAULT_GOLDEN), DEFAULT_GOLDEN)
+	if not FileAccess.file_exists(DEFAULT_GOLDEN):
+		return
+	var golden: Variant = _json(DEFAULT_GOLDEN)
+	if golden is Dictionary:
+		s.check("default golden: it describes the bundled model", String(golden["model"]) == "game/ai/models/bvs_default/model.onnx", String(golden["model"]))
+		var recorded := 0
+		for case_spec in golden["cases"]:
+			if String(case_spec["source"]) == "recorded":
+				recorded += 1
+		s.check("default golden: it holds recorded in-match observations", recorded > 0, "%d recorded cases" % recorded)
+	_check_golden(s, DEFAULT_GOLDEN)
+	_check_default_cost(s)
+
+## Inference cost of the real bundled model (budget: MAX_INFERENCE_USEC headless).
+func _check_default_cost(s: Smoke) -> void:
+	var model_path := "res://game/ai/models/bvs_default/model.onnx"
+	var loaded := OnnxPolicyModel.load_bytes(FileAccess.get_file_as_bytes(model_path))
+	if loaded.model == null:
+		return
+	var model: OnnxPolicyModel = loaded.model
+	var obs := PackedFloat32Array()
+	obs.resize(model.input_dim())
+	for warm in 20:
+		model.infer(obs)
+	var start := Time.get_ticks_usec()
+	for i in PERF_RUNS:
+		model.infer(obs)
+	var per_run := float(Time.get_ticks_usec() - start) / float(PERF_RUNS)
+	print("INFO bundled default model inference cost: %.1f us per inference (%d runs, headless)" % [per_run, PERF_RUNS])
+	s.check("default cost: the bundled model infers under %d us" % int(MAX_INFERENCE_USEC), per_run <= MAX_INFERENCE_USEC, "%.1f us" % per_run)
+
+func _check_golden(s: Smoke, path: String) -> void:
 	var golden: Variant = _json(path)
 	s.check("golden file parses", golden is Dictionary, path)
 	if not (golden is Dictionary):

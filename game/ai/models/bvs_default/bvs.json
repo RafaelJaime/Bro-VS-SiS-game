@@ -43,7 +43,21 @@
     "output": "logits",
     "opset": 17
   },
-  "trained_on_commit": "ca08a243c91a3efd64c469b83486cffa5d5c539a",
+  "trained_on_commit": "2c84ef0ae4336e69506c89e0b643e73303b81595",
   "label": "BVS default",
-  "difficulty_hint": "easy"
+  "difficulty_hint": "hard",
+  "eval": {
+    "vs_cpu_easy": {
+      "matches": 40,
+      "win_rate": 1.0
+    },
+    "vs_cpu_normal": {
+      "matches": 40,
+      "win_rate": 1.0
+    },
+    "vs_cpu_hard": {
+      "matches": 40,
+      "win_rate": 1.0
+    }
+  }
 }
