@@ -14,7 +14,7 @@ export SHOT_DIR="${SHOT_DIR:-${TMPDIR:-/tmp}/bvs-smoke-shots}"
 # class_names resolve when the scripts run outside the editor.
 "$GODOT" --headless --path . --import >/dev/null 2>&1
 
-SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots cpu_combat cpu_recovery cpu_match cpu_select cpu_shots table_stage hud_framing match_flow match_e2e smash_moves ledge cpu_smash match_reel keyboard_playtest)
+SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots cpu_combat cpu_recovery cpu_match cpu_select cpu_shots table_stage hud_framing match_flow match_e2e smash_moves ledge cpu_smash match_reel keyboard_playtest backdrop navigation)
 # Scripts that simulate minutes of game time and take no screenshots: headless
 # runs are not paced to the display, so they finish in seconds.
 HEADLESS=" cpu_combat cpu_recovery cpu_match cpu_select hud_framing  match_e2e cpu_smash "

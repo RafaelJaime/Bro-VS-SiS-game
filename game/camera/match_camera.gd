@@ -3,8 +3,8 @@ extends Camera2D
 
 ## Smash-style match camera: follows the midpoint of the fighters that are still
 ## in play and zooms out as they separate. The world is the 1176x902 kitchen
-## backdrop (placed so the 800px table sits in its middle) plus a band of matching
-## wall around it (`BackdropExtension`); the Camera2D limits keep the view inside
+## backdrop (placed so the 800px table sits in its middle) plus a band of the same
+## wall texture around it (`BackdropExtension`); the Camera2D limits keep the view inside
 ## that world.
 ##
 ## Both fighters stay in view: when one is launched or recovers far above the
