@@ -68,9 +68,15 @@ func _run() -> void:
 	ai.option_button_p2.selected = -1
 	s.check("clearing the model returns to the CPU option", ai.get_controller_config(true).kind == ControllerConfig.Kind.CPU)
 
-	# Backing out of the AI menu hides the option while searching and restores it.
-	ai.search_user_menu(true)
-	s.check("the HF search menu hides the CPU option", not option_p2.visible)
+	# Opening the model picker hides the option; backing out restores it. The Hub
+	# is faked (an offline answer), a smoke script never touches the network.
+	model_manager.hub_transport = func(_url: String, done: Callable) -> void:
+		done.call(HTTPRequest.RESULT_CANT_CONNECT, 0, PackedByteArray())
+	ai.open_model_picker(true)
+	s.check("the model picker hides the CPU option", not option_p2.visible)
+	ai.model_picker.cancel()
+	model_manager.hub_transport = Callable()
+	s.check("cancelling the picker restores the CPU option", option_p2.visible)
 	ai.initial_menu(true)
 	s.check("the initial menu shows the CPU option again", option_p2.visible)
 

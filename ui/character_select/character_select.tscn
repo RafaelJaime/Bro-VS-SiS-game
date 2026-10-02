@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://d2j51ffmniw35" path="res://ui/character_select/ai_controller.gd" id="8_yov7p"]
 [ext_resource type="Texture2D" uid="uid://dmybar0g2nd2a" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glow_1.PNG" id="12_ijk02"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="15_pumci"]
+[ext_resource type="Script" path="res://ui/character_select/model_picker/model_picker.gd" id="17_picker"]
 [ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="16_altl8"]
 
 [sub_resource type="Resource" id="Resource_kj5ae"]
@@ -255,22 +256,6 @@ offset_right = 200.0
 offset_bottom = 40.0
 text = "Use AI"
 
-[node name="TextEdit" type="TextEdit" parent="AIController/ControlP1" unique_id=1546823233]
-visible = false
-layout_mode = 0
-offset_top = -50.0
-offset_right = 200.0
-offset_bottom = -10.0
-placeholder_text = "Usarname"
-
-[node name="SearchButton" type="Button" parent="AIController/ControlP1" unique_id=1231124039]
-visible = false
-layout_mode = 0
-offset_left = 37.0
-offset_right = 200.0
-offset_bottom = 40.0
-text = "Search Username"
-
 [node name="OptionButton" type="OptionButton" parent="AIController/ControlP1" unique_id=1039738010]
 visible = false
 layout_mode = 0
@@ -316,22 +301,6 @@ offset_right = 200.0
 offset_bottom = 40.0
 text = "Use AI"
 
-[node name="TextEdit" type="TextEdit" parent="AIController/ControlP2" unique_id=1956587827]
-visible = false
-layout_mode = 0
-offset_top = -50.0
-offset_right = 200.0
-offset_bottom = -10.0
-placeholder_text = "Usarname"
-
-[node name="SearchButton" type="Button" parent="AIController/ControlP2" unique_id=1377185249]
-visible = false
-layout_mode = 0
-offset_left = 37.0
-offset_right = 200.0
-offset_bottom = 40.0
-text = "Search Username"
-
 [node name="OptionButton" type="OptionButton" parent="AIController/ControlP2" unique_id=320010741]
 visible = false
 layout_mode = 0
@@ -363,10 +332,18 @@ popup/item_2/id = 2
 popup/item_3/text = "CPU Hard"
 popup/item_3/id = 3
 
+[node name="ModelPicker" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("17_picker")
+
 [connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="AIController/ControlP1/AIButton" to="AIController" method="_on_ai_button_pressed" binds= [false]]
-[connection signal="pressed" from="AIController/ControlP1/SearchButton" to="AIController" method="_on_search_button_pressed" binds= [false]]
 [connection signal="pressed" from="AIController/ControlP1/BackButton" to="AIController" method="_on_back_button_pressed" binds= [false]]
 [connection signal="pressed" from="AIController/ControlP2/AIButton" to="AIController" method="_on_ai_button_pressed" binds= [true]]
-[connection signal="pressed" from="AIController/ControlP2/SearchButton" to="AIController" method="_on_search_button_pressed" binds= [true]]
 [connection signal="pressed" from="AIController/ControlP2/BackButton" to="AIController" method="_on_back_button_pressed" binds= [true]]
