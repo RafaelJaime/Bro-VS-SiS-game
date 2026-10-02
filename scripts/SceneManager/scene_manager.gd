@@ -72,9 +72,9 @@ func change_scene_splash(scene_path: String):
 	current_scene = load(scene_path).instantiate()
 	get_tree().root.add_child_deferred(current_scene)
 
-func go_back():
-	if history.size() > 0:
-		var previous_scene_path = history.pop_back()
-		change_scene(previous_scene_path)
-	else:
-		change_scene("res://ui/main_menu/main_menu.tscn")
+## Every Back button (credits, instructions, character select, the pause menu)
+## leads to the main menu. The history is not replayed: after the results ->
+## Characters, popping it returned to the previous match.
+func go_back() -> void:
+	change_scene("res://ui/main_menu/main_menu.tscn")
+	history.clear()

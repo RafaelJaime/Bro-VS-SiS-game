@@ -139,6 +139,12 @@ func _init(scene_tree: SceneTree, watchdog_seconds: float = WATCHDOG_SECONDS) ->
 	_watchdog_seconds = watchdog_seconds
 	tree = scene_tree
 	GameRng.seed_all(GAME_SEED)
+	# A windowed script must not steal the keyboard focus from whoever is working
+	# (everything it does is injected in-process); a no-op under --headless.
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
+	# Scripts that open the main menu must never write the player's real
+	# user://intro_seen.cfg.
+	MainMenu.flag_path = "user://smoke_intro_seen.cfg"
 	# Keep the music and SFX quiet; the checks do not need audio.
 	AudioServer.set_bus_mute(0, true)
 	tree.create_timer(_watchdog_seconds, true, false, true).timeout.connect(_on_watchdog)
