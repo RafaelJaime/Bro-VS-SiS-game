@@ -51,7 +51,7 @@ uv run python -m bvs_training.golden --model out/bvs_default/model.onnx --obs-du
 - **Time box and stop file:** `run.time_box_hours` (default 8) is checked at phase boundaries and after every rollout. `touch training/out/STOP` ends the run cleanly after the current rollout; a model is still written (`out/final.zip`, `out/checkpoints/step_*.zip`, `out/snapshots/step_*.onnx`).
 - Checkpoints are written every `checkpoint_every` agent steps and at the end of each phase.
 - `--resume <zip>` continues from a checkpoint; `--n-parallel` and `--speedup` override the config.
-- `snapshot_opponents` stays `false` until the in-game `PolicyController` can run frozen models in training rows; until then the snapshot share of P3 is given to `cpu_normal` with a printed warning.
+- `snapshot_opponents = true` lets `TrainArena` run frozen snapshot ONNX files (`out/snapshots/step_*.onnx`) as P3 opponents through the in-game `PolicyController`. While no snapshot has been exported yet, or when the flag is `false`, the snapshot share is given to `cpu_normal` with a printed warning. A snapshot that is missing or does not fit schema 2 is an error naming its row, never a silent substitute.
 
 Throughput on a 10-core Apple M-series (8 rows per Godot process, speedup 8, `action_repeat` 4): 1 process 1.2k agent steps per second, 2 processes 2.3k, 4 processes 4.6k, 8 processes 8.4k (`n_parallel` in the config; default 4).
 

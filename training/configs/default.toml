@@ -8,9 +8,10 @@ speedup = 8               # physics speedup passed to Godot
 checkpoint_every = 250_000
 time_box_hours = 8.0      # checked at phase boundaries and every rollout
 rows = 8                  # Game rows per Godot process
-# Snapshot opponents need the S4 PolicyController inference path in TrainArena.
-# While false, the snapshot share of a phase is given to cpu_normal (a warning is printed).
-snapshot_opponents = false
+# Snapshot opponents: TrainArena runs a frozen snapshot ONNX (exported at checkpoints) as the
+# opponent through the in-game PolicyController. While no snapshot exists yet, or when false,
+# the snapshot share of a phase is given to cpu_normal (a warning is printed).
+snapshot_opponents = true
 
 [ppo]
 n_steps = 512

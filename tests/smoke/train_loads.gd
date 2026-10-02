@@ -18,6 +18,12 @@ func _agent_of(game: Game) -> Fighter:
 			return fighter
 	return null
 
+## The PolicyController of the snapshot opponent of a row (the non-agent fighter).
+func _policy_of(game: Game) -> PolicyController:
+	var agent := _agent_of(game)
+	var foe: Fighter = game.fighter_2 if agent == game.fighter_1 else game.fighter_1
+	return foe.controller as PolicyController
+
 func _agent_count(game: Game) -> int:
 	var count := 0
 	for fighter_name in ["Fighter1", "Fighter2"]:
@@ -247,12 +253,35 @@ func _run() -> void:
 	var broken := TrainArena.new()
 	broken.name = "BrokenTrain"
 	broken.position = Vector2(0.0, 60000.0)
-	broken.config = {"rows": [{"opponent": "cpu_easy"}, {"opponent": "cpu_impossible"}, {"opponent": "snapshot:/nowhere.onnx"}]}
+	broken.config = {"rows": [{"opponent": "cpu_easy"}, {"opponent": "cpu_impossible"}, {"opponent": "snapshot:/nowhere.onnx"}, {"opponent": "snapshot"}, {"opponent": "snapshot", "model": "res://tests/fixtures/onnx/ops/gemm_no_c.onnx"}]}
 	root.add_child(broken)
 	await s.frames(3)
 	s.check("an unknown opponent kind names its row and kind", broken.errors.size() >= 1 and broken.errors[0].contains("row 1") and broken.errors[0].contains("cpu_impossible"), str(broken.errors))
-	s.check("the snapshot kind reports that it is not available yet, naming its row", broken.errors.size() == 2 and broken.errors[1].contains("row 2") and broken.errors[1].contains("snapshot"), str(broken.errors))
+	s.check("a snapshot whose file is missing names its row and path", broken.errors.size() >= 2 and broken.errors[1].contains("row 2") and broken.errors[1].contains("/nowhere.onnx"), str(broken.errors))
+	s.check("a snapshot row without a model path says so", broken.errors.size() >= 3 and broken.errors[2].contains("row 3") and broken.errors[2].contains("model path"), str(broken.errors))
+	s.check("a snapshot that does not fit schema 2 is rejected, naming its row", broken.errors.size() == 4 and broken.errors[3].contains("row 4") and broken.errors[3].contains("schema 2"), str(broken.errors))
 	s.check("the invalid rows are not built, so no CPU Easy was substituted", broken.games.size() == 1)
 	broken.queue_free()
+	await s.frames(2)
+
+	# A snapshot row: the opponent is a PolicyController running the frozen model.
+	var snapshot_path := "res://tests/fixtures/onnx/random_policy.onnx"
+	var snapshot_arena := TrainArena.new()
+	snapshot_arena.name = "SnapshotTrain"
+	snapshot_arena.position = Vector2(0.0, 80000.0)
+	snapshot_arena.config = {"rows": [{"opponent": "snapshot", "model": snapshot_path}, {"opponent": "snapshot:" + snapshot_path}, {"opponent": "cpu_easy"}]}
+	root.add_child(snapshot_arena)
+	await s.frames(30)
+	s.check("snapshot rows are built from `model` and from `snapshot:<path>` with no errors", snapshot_arena.games.size() == 3 and snapshot_arena.errors.is_empty(), str(snapshot_arena.errors))
+	for row_index in 2:
+		var row_game: Game = snapshot_arena.games[row_index]
+		var row_agent := _agent_of(row_game)
+		var foe: Fighter = row_game.fighter_2 if row_agent == row_game.fighter_1 else row_game.fighter_1
+		var foe_policy := foe.controller as PolicyController
+		s.check("snapshot row %d: the opponent is a PolicyController with the frozen model" % row_index, foe_policy != null and foe_policy.model != null and foe_policy.model.validate(BvsSchemaV2) == "" and foe.ai_controller_2d.control_mode == AIController2D.ControlModes.HUMAN, str(foe.controller))
+		s.check("snapshot row %d: the model decides every 4 frames and does not fail" % row_index, foe_policy != null and foe_policy.decisions >= 5 and foe_policy.error == "", "decisions=%d" % (foe_policy.decisions if foe_policy != null else -1))
+		s.check("snapshot row %d: the other fighter is the training agent" % row_index, row_agent != null and row_agent.ai_controller_2d.control_mode == AIController2D.ControlModes.TRAINING)
+	s.check("two rows naming the same snapshot share one loaded model", _policy_of(snapshot_arena.games[0]).model == _policy_of(snapshot_arena.games[1]).model)
+	snapshot_arena.queue_free()
 	await s.frames(2)
 	s.finish()

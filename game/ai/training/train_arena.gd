@@ -15,7 +15,12 @@ extends Node2D
 ##   cpu_easy|normal|hard     one training agent against a scripted CPU of that level
 ##                            (a HUMAN-mode AI controller, so Sync treats it as a
 ##                            heuristic, plus a seeded ScriptedController)
-##   snapshot:<path>          a frozen model as the opponent: not available yet
+##   snapshot                 a frozen model as the opponent: a PolicyController runs
+##                            the ONNX file `model` of the row spec (path) through the
+##                            GDScript interpreter, like in a normal match. The path may
+##                            also be given inline as `snapshot:<path>`. A missing,
+##                            unreadable or schema-incompatible file is an error naming
+##                            the row; the model is loaded once per path.
 ## An unknown kind is reported in `errors`, naming the row, and the row is not
 ## built: the scripted CPU Easy is never used as a silent default.
 ##
@@ -44,6 +49,8 @@ var games: Array[Game] = []
 var rows: Array[Dictionary] = []
 ## One message per row that was rejected.
 var errors: PackedStringArray = PackedStringArray()
+## Loaded snapshot models by path (a snapshot is shared by every row that names it).
+var _snapshot_models := {}
 
 func _ready() -> void:
 	if config.is_empty():
@@ -55,7 +62,7 @@ func _ready() -> void:
 	for index in row_specs.size():
 		var spec: Dictionary = row_specs[index]
 		var opponent := String(spec.get("opponent", ""))
-		var problem := _check_opponent(opponent)
+		var problem := _check_opponent(opponent, spec)
 		if problem != "":
 			var message := "TrainArena: row %d: %s" % [index, problem]
 			errors.append(message)
@@ -88,12 +95,41 @@ func _default_config() -> Dictionary:
 	return {"rows": row_specs}
 
 ## "" for a supported opponent kind, otherwise why the row cannot be built.
-func _check_opponent(opponent: String) -> String:
+func _check_opponent(opponent: String, spec: Dictionary) -> String:
 	if opponent == "self" or CPU_LEVELS.has(opponent):
 		return ""
 	if opponent == "snapshot" or opponent.begins_with("snapshot:"):
-		return "the '%s' opponent (a frozen model) is not available yet" % opponent
-	return "unknown opponent kind '%s' (use self, cpu_easy, cpu_normal, cpu_hard)" % opponent
+		return _prepare_snapshot(_snapshot_path(opponent, spec))
+	return "unknown opponent kind '%s' (use self, cpu_easy, cpu_normal, cpu_hard, snapshot)" % opponent
+
+## The model path of a snapshot row: `snapshot:<path>` or the spec's `model`.
+static func _snapshot_path(opponent: String, spec: Dictionary) -> String:
+	if opponent.begins_with("snapshot:"):
+		return opponent.trim_prefix("snapshot:")
+	return String(spec.get("model", ""))
+
+## Loads (once) the frozen model at `path`; "" when it is usable, else why not.
+func _prepare_snapshot(path: String) -> String:
+	if path == "":
+		return "the 'snapshot' opponent needs a model path (spec key 'model')"
+	if _snapshot_models.has(path):
+		return ""
+	if not FileAccess.file_exists(path):
+		return "the snapshot model '%s' does not exist" % path
+	var sidecar_data: Dictionary = {}
+	var sidecar_path := path.get_basename() + ".bvs.json"
+	if FileAccess.file_exists(sidecar_path):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(sidecar_path))
+		if parsed is Dictionary:
+			sidecar_data = parsed
+	var loaded := OnnxPolicyModel.load_bytes(FileAccess.get_file_as_bytes(path), sidecar_data)
+	if loaded.model == null:
+		return "the snapshot model '%s' was rejected: %s" % [path, loaded.error]
+	var mismatch := (loaded.model as OnnxPolicyModel).validate(BvsSchemaV2)
+	if mismatch != "":
+		return "the snapshot model '%s' does not fit schema 2: %s" % [path, mismatch]
+	_snapshot_models[path] = loaded.model
+	return ""
 
 func _build_row(index: int, spec: Dictionary, opponent: String, offset: Vector2, reward_config: RewardConfig) -> void:
 	var game := (load(GAME_SCENE_PATH) as PackedScene).instantiate() as Game
@@ -115,9 +151,13 @@ func _build_row(index: int, spec: Dictionary, opponent: String, offset: Vector2,
 	add_child(game)
 	if opponent != "self":
 		var foe := fighters[2 - agent_side]
-		var level: int = CPU_LEVELS[opponent]
-		var bot_seed := int(spec.get("seed", BASE_SEED + index))
-		foe.set_controller(ScriptedController.new(CpuDifficulty.preset(level as CpuDifficulty.Level), bot_seed))
+		if CPU_LEVELS.has(opponent):
+			var level: int = CPU_LEVELS[opponent]
+			var bot_seed := int(spec.get("seed", BASE_SEED + index))
+			foe.set_controller(ScriptedController.new(CpuDifficulty.preset(level as CpuDifficulty.Level), bot_seed))
+		else:
+			# A frozen model, run by the same PolicyController as in a normal match.
+			foe.set_controller(PolicyController.new(_snapshot_models[_snapshot_path(opponent, spec)]))
 	games.append(game)
 	rows.append({"index": index, "opponent": opponent, "agent_side": 0 if opponent == "self" else agent_side, "game": game})
 

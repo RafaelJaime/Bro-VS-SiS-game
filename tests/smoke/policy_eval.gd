@@ -24,42 +24,24 @@ const OBS_SAMPLE_EVERY := 25
 const OBS_SAMPLE_CAP := 256
 const MIN_MATCHES := 20
 
-## Runs the model with the same loop as the in-game adapter: one inference per
-## decision window (every ACTION_REPEAT frames), argmax per branch, then the
-## stateful decoder every frame. Counts what the report needs.
-class EvalPolicyController extends FighterController:
-	var model: OnnxPolicyModel
-	var my_index: int
-	var decoder := BvsActionDecoderV2.new()
-	var ticks := 0
+## The shipped PolicyController (same loop as in a match: one inference per decision
+## window, argmax per branch, the stateful decoder every frame), plus the counters the
+## report needs. It only observes: the intents are the controller's own.
+class EvalPolicyController extends PolicyController:
 	var frames := 0
 	var idle_frames := 0
 	var attack_presses := 0
-	var decisions := 0
-	var error := ""
 	var observations: Array = []
+	var _sampled_decisions := 0
 
-	func _init(policy_model: OnnxPolicyModel, index: int) -> void:
-		model = policy_model
-		my_index = index
-
-	func sample(_delta: float) -> FighterIntent:
-		if fighter == null or error != "":
-			return FighterIntent.new()
-		if ticks % BvsSchemaV2.ACTION_REPEAT == 0:
-			var game := fighter.get_parent()
-			var obs := BvsSchemaV2.build_obs(game.get_state_snapshot(), my_index)
-			var result := model.infer_checked(obs)
-			if result.error != "":
-				error = String(result.error)
-				push_error("policy_eval: inference failed: %s" % error)
-				return FighterIntent.new()
-			decoder.begin_window(BvsSchemaV2.argmax_branches(result.logits))
-			if decisions % OBS_SAMPLE_EVERY == 0 and observations.size() < OBS_SAMPLE_CAP:
-				observations.append(Array(obs))
-			decisions += 1
-		ticks += 1
-		var intent := decoder.frame(fighter)
+	func sample(delta: float) -> FighterIntent:
+		var intent := super.sample(delta)
+		if error != "":
+			return intent
+		if decisions != _sampled_decisions:
+			_sampled_decisions = decisions
+			if (decisions - 1) % OBS_SAMPLE_EVERY == 0 and observations.size() < OBS_SAMPLE_CAP:
+				observations.append(Array(last_obs))
 		frames += 1
 		if intent.attack_pressed or intent.special_pressed:
 			attack_presses += 1
@@ -73,9 +55,6 @@ class EvalPolicyController extends FighterController:
 			and not intent.throw_pressed and not intent.block_held and not intent.dash_pressed
 			and not intent.special_pressed and intent.aim == FighterIntent.Aim.NEUTRAL
 		)
-
-	func kind_name() -> String:
-		return "policy"
 
 func _initialize() -> void:
 	_run()
@@ -192,7 +171,7 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 	var fighters: Array[Fighter] = [game.get_node("Fighter1"), game.get_node("Fighter2")]
 	var me := fighters[agent_side]
 	var foe := fighters[1 - agent_side]
-	var controller := EvalPolicyController.new(model, agent_side)
+	var controller := EvalPolicyController.new(model)
 	me.set_controller(controller)
 	s.set_cpu(foe, level, 1000 + index)
 	var mlog = Smoke.MatchLog.new(game, false)
