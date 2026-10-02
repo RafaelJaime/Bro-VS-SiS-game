@@ -15,7 +15,7 @@
 [ext_resource type="SpriteFrames" uid="uid://c5ndk0ecjvter" path="res://assets/images/game/characters/matilde/matilde.tres" id="14_2mv0n"]
 [ext_resource type="Script" uid="uid://dv4mrvy6oll8l" path="res://game/player/StateMachine/PlayerStateMachine/States/hurt.gd" id="16_2mv0n"]
 [ext_resource type="Script" uid="uid://o00jff2rmlo" path="res://game/player/StateMachine/PlayerStateMachine/States/motion.gd" id="17_gh012"]
-[ext_resource type="Texture2D" uid="uid://5sutcfh0we8o" path="res://assets/textures/2D Fire  - Tutorial/T_1_pixel.jpg" id="18_usp30"]
+[ext_resource type="Texture2D" uid="uid://dcbxm8yyffcai" path="res://assets/textures/2D Fire  - Tutorial/T_1_pixel.jpg" id="18_usp30"]
 [ext_resource type="Script" uid="uid://j8wq8i71hcyh" path="res://game/player/player_ui.gd" id="20_eeltd"]
 [ext_resource type="Script" uid="uid://yegmrxo0ersi" path="res://game/player/StateMachine/PlayerStateMachine/States/protect.gd" id="22_kjljb"]
 [ext_resource type="Script" uid="uid://c0usp1ggkrg1" path="res://game/player/StateMachine/PlayerStateMachine/States/dash.gd" id="23_bnxl9"]

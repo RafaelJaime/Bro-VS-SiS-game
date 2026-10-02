@@ -1,7 +1,7 @@
 [gd_scene load_steps=22 format=3 uid="uid://r47fsncbeolm"]
 
 [ext_resource type="Script" uid="uid://bya4rtk1lnt74" path="res://game/ui/game_over/game_over.gd" id="1_3gwt4"]
-[ext_resource type="Texture2D" uid="uid://br35025wl14bc" path="res://assets/textures/Confetti/413409734-86c17908-9984-45a3-947d-e2d0175b7119.png" id="4_88cxy"]
+[ext_resource type="Texture2D" uid="uid://c7ootiqwl64nu" path="res://assets/textures/Confetti/413409734-86c17908-9984-45a3-947d-e2d0175b7119.png" id="4_88cxy"]
 [ext_resource type="Texture2D" uid="uid://48ti3w6o4e6v" path="res://game/ui/game_over/confetti.tres" id="5_4u8sn"]
 [ext_resource type="Script" path="res://game/ui/game_over/results_panel.gd" id="6_panel"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="7_sounds"]

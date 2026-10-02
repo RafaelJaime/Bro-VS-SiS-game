@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://bipo2b61nhjv3"]
 
-[ext_resource type="Texture2D" uid="uid://bk6lipxljwl8n" path="res://assets/backgrounds/fondo_nubes.png" id="1_2kpk6"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/fondo_nubes.png" id="1_2kpk6"]
 [ext_resource type="Script" uid="uid://dkgc6uth203gb" path="res://ui/global/background/moving_parallax_layer.gd" id="1_rllmm"]
 [ext_resource type="Texture2D" uid="uid://bnibj42bhbq8d" path="res://assets/backgrounds/fondo_cocina.png" id="2_rllmm"]
 [ext_resource type="Texture2D" uid="uid://b6g6tiuqnbv3u" path="res://assets/backgrounds/cocina.png" id="3_2m8yt"]

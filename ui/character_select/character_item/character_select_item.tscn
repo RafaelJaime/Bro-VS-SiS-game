@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://b7vrfar4xb67j"]
 
-[ext_resource type="Texture2D" uid="uid://su454ffr42hb" path="res://assets/images/game/characters/rafael/face/r_014.png" id="1_25cuk"]
+[ext_resource type="Texture2D" uid="uid://cufsij6o6ab3n" path="res://assets/images/game/characters/rafael/face/r_014.png" id="1_25cuk"]
 [ext_resource type="Script" uid="uid://br7gt0bs4g2cb" path="res://ui/character_select/character_item/character_select_item.gd" id="2_lneu6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lneu6"]

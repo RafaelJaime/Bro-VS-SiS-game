@@ -4,9 +4,9 @@
 [ext_resource type="Script" uid="uid://b15nou0romax8" path="res://ui/credits/credits.gd" id="1_xwmn8"]
 [ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="2_vaeic"]
 [ext_resource type="PackedScene" uid="uid://cgec1mb47wk6v" path="res://ui/global/back_button/back_button.tscn" id="3_brjbi"]
-[ext_resource type="Texture2D" uid="uid://blnq26l4va1b6" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="4_rqgi2"]
-[ext_resource type="Texture2D" uid="uid://6nyqw2vdxl0a" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="5_sunqn"]
-[ext_resource type="Texture2D" uid="uid://bh0e8pbj58f5e" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glo31.png" id="8_twsdw"]
+[ext_resource type="Texture2D" uid="uid://bir66wtf16cj8" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="4_rqgi2"]
+[ext_resource type="Texture2D" uid="uid://bey1gg8lhrewt" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="5_sunqn"]
+[ext_resource type="Texture2D" uid="uid://c4hxh6lpprnns" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glo31.png" id="8_twsdw"]
 
 [node name="Credits" type="Control" unique_id=1626998428]
 layout_mode = 3
