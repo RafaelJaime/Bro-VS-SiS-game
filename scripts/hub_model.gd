@@ -44,6 +44,14 @@ static func author_url(username: String) -> String:
 static func author_rl_url(username: String) -> String:
 	return "https://huggingface.co/api/models?author=%s&filter=%s&sort=downloads&limit=100" % [username.strip_edges().uri_encode(), RL_TAG]
 
+## Metadata of one model repo (`sha` and the file list), read once per selection.
+static func info_url(repo_id: String) -> String:
+	return "https://huggingface.co/api/models/%s" % repo_id
+
+## One file of a repo pinned to the revision `sha` (never `main`, a moving target).
+static func file_url(repo_id: String, sha: String, file: String) -> String:
+	return "https://huggingface.co/%s/resolve/%s/%s" % [repo_id, sha, file]
+
 func compat() -> Compat:
 	if not is_bvs:
 		return Compat.NOT_BVS

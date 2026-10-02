@@ -13,8 +13,12 @@ enum Kind { HUMAN, CPU, POLICY }
 ## Optional CpuDifficulty override: when set it replaces the preset, so a designer
 ## can drop in a `.tres` with no script change.
 @export var difficulty_resource: CpuDifficulty
-## Only used for Kind.POLICY. Empty keeps whatever the AI controller already has.
-@export var onnx_model_path: String = ""
+## Only used for Kind.POLICY: the loaded model handle (parsed graph, sidecar, repo and
+## revision). Held in memory, not a resource property, so a rematch keeps it with no
+## new download. Null means the selection has no usable model: `error_message`
+## says why and the match must not start with it.
+var model: OnnxPolicyModel
+var error_message: String = ""
 
 ## Convenience constructors, used by character select and the tests.
 static func human() -> ControllerConfig:
@@ -26,26 +30,29 @@ static func cpu(level: int = CpuDifficulty.Level.NORMAL) -> ControllerConfig:
 	config.difficulty = level
 	return config
 
-static func policy(model_path: String = "") -> ControllerConfig:
+## A policy fighter driven by `policy`. A null model is an explicit error state
+## (`error_message`), never a scripted CPU.
+static func policy_model(policy: OnnxPolicyModel, failure: String = "") -> ControllerConfig:
 	var config := ControllerConfig.new()
 	config.kind = Kind.POLICY
-	config.onnx_model_path = model_path
+	config.model = policy
+	if policy == null:
+		config.error_message = failure if failure != "" else "No model is loaded for this player"
 	return config
+
+## False for a Policy selection that has no usable model: it must not start a match.
+func is_playable() -> bool:
+	return kind != Kind.POLICY or model != null
 
 func build(fighter: Fighter) -> FighterController:
 	match kind:
 		Kind.POLICY:
-			# The ONNX mode is only ever set by an explicit selection. A model that
-			# is not on disk (a download still running, a failed one) falls back to
-			# the scripted CPU instead of leaving the fighter idle.
-			if onnx_model_path != "" and not FileAccess.file_exists(onnx_model_path):
-				push_warning("ControllerConfig: ONNX model missing at %s, using the scripted CPU" % onnx_model_path)
-				return _build_cpu()
-			var ai := fighter.ai_controller_2d
-			ai.control_mode = AIController2D.ControlModes.ONNX_INFERENCE
-			if onnx_model_path != "":
-				ai.onnx_model_path = onnx_model_path
-			return PolicyController.new()
+			# No CPU fallback and no AIController2D mode write: a Policy selection
+			# either carries a model, or yields a policy fighter that reports its
+			# error once and stays neutral.
+			if model == null:
+				push_error("ControllerConfig: no model for the policy fighter (%s)" % error_message)
+			return PolicyController.new(model)
 		Kind.CPU:
 			return _build_cpu()
 		_:

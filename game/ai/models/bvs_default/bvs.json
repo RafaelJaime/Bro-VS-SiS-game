@@ -1,0 +1,49 @@
+{
+  "format": "bvs-model/1",
+  "schema_version": 2,
+  "obs_dim": 102,
+  "action_branches": [
+    {
+      "name": "a0_move",
+      "size": 3
+    },
+    {
+      "name": "a1_vertical",
+      "size": 3
+    },
+    {
+      "name": "a2_jump",
+      "size": 2
+    },
+    {
+      "name": "a3_attack",
+      "size": 5
+    },
+    {
+      "name": "a4_special",
+      "size": 2
+    },
+    {
+      "name": "a5_throw",
+      "size": 2
+    },
+    {
+      "name": "a6_block",
+      "size": 2
+    },
+    {
+      "name": "a7_dash",
+      "size": 2
+    }
+  ],
+  "action_repeat": 4,
+  "onnx": {
+    "file": "model.onnx",
+    "input": "obs",
+    "output": "logits",
+    "opset": 17
+  },
+  "trained_on_commit": "ca08a243c91a3efd64c469b83486cffa5d5c539a",
+  "label": "BVS default",
+  "difficulty_hint": "easy"
+}

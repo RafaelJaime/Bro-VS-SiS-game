@@ -40,7 +40,7 @@ static func validate_sidecar(sidecar: Dictionary) -> String:
 	var schema := BvsSchemaV2
 	var obs_dim := _as_int(sidecar["obs_dim"])
 	if obs_dim != schema.OBS_DIM:
-		return "This model expects %s inputs; this game provides %d" % [str(sidecar["obs_dim"]), schema.OBS_DIM]
+		return "This model expects %s inputs; this game provides %d" % [str(obs_dim if obs_dim >= 0 else sidecar["obs_dim"]), schema.OBS_DIM]
 	var branches: Variant = sidecar["action_branches"]
 	if not (branches is Array) or branches.size() != schema.BRANCHES.size():
 		return "action_branches must list %d branches" % schema.BRANCHES.size()

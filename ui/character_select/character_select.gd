@@ -31,6 +31,15 @@ func _ready():
 	
 	for character in characters:
 		_load_character(character)
+	# Play waits for every selected model (a Hub download or the bundled one) to be ready.
+	ai_controller.selection_changed.connect(_update_play_button)
+	_update_play_button()
+
+## Play is disabled while a selected model is loading or failed to load.
+func _update_play_button() -> void:
+	var ready_to_play: bool = ai_controller.is_ready_to_play()
+	play_button.disabled = not ready_to_play
+	play_button.modulate.a = 1.0 if ready_to_play else 0.4
 
 func _load_character(character: CharacterUI):
 	if character_select_item_scene:
@@ -114,7 +123,8 @@ func set_ilustration(character: CharacterUI, sprite: Sprite2D):
 		push_error("No hay textura definida para ", character.name)
 
 func _on_play_button_pressed() -> void:
-	ai_controller.on_play_pressed()
+	if not ai_controller.is_ready_to_play():
+		return
 	var config_1: ControllerConfig = ai_controller.get_controller_config(false)
 	var config_2: ControllerConfig = ai_controller.get_controller_config(true)
 
