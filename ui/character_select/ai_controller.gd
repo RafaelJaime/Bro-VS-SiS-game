@@ -2,93 +2,106 @@ extends Control
 
 # P1
 @onready var ai_button_p1: Button = $ControlP1/AIButton
-@onready var text_edit_p1: TextEdit = $ControlP1/TextEdit
-@onready var search_button_p1: Button = $ControlP1/SearchButton
 @onready var option_button_p1: OptionButton = $ControlP1/OptionButton
 @onready var back_button_p1: Button = $ControlP1/BackButton
+@onready var controller_option_p1: OptionButton = $ControlP1/ControllerOption
 
 # P2
 @onready var ai_button_p2: Button = $ControlP2/AIButton
-@onready var text_edit_p2: TextEdit = $ControlP2/TextEdit
-@onready var search_button_p2: Button = $ControlP2/SearchButton
 @onready var option_button_p2: OptionButton = $ControlP2/OptionButton
 @onready var back_button_p2: Button = $ControlP2/BackButton
+@onready var controller_option_p2: OptionButton = $ControlP2/ControllerOption
+
+# Entries of ControllerOption, in order: Human, then CPU Easy, Normal, Hard.
+# Entry N (N >= 1) is the CpuDifficulty.Level N - 1.
+const OPTION_HUMAN := 0
+
+## The Hub model list (shared by both players); the choice is applied to whoever opened it.
+@onready var model_picker: Control = $"../ModelPicker"
+var _picking_p2 := false
 
 func _ready() -> void:
-	ModelManager.models_loaded.connect(_on_models_loaded)
 	ModelManager.model_downloaded.connect(_on_model_downloaded)
+	model_picker.model_chosen.connect(_on_model_chosen)
+	model_picker.cancelled.connect(_on_picker_cancelled)
 
 func _get_player_controls(is_p2: bool) -> Dictionary:
-	var text_edit = text_edit_p2 if is_p2 else text_edit_p1
 	var ai_button = ai_button_p2 if is_p2 else ai_button_p1
-	var search_button = search_button_p2 if is_p2 else search_button_p1
 	var option_button = option_button_p2 if is_p2 else option_button_p1
 	var back_button = back_button_p2 if is_p2 else back_button_p1
 
 	return {
-		"text_edit": text_edit,
 		"ai_button": ai_button,
-		"search_button": search_button,
 		"option_button": option_button,
-		"back_button": back_button
+		"back_button": back_button,
+		"controller_option": controller_option_p2 if is_p2 else controller_option_p1,
 	}
 
-func _on_models_loaded(player_id: int, models: Array) -> void:
-	var is_p2 = player_id == 1
+## The controller this player picked: Human, a CPU level, or (when a model was
+## chosen from the Hugging Face picker) the policy that model drives. The model is
+## explicit: it only wins when the user selected one, never because a file exists.
+func get_controller_config(is_p2: bool) -> ControllerConfig:
 	var controls = _get_player_controls(is_p2)
-	
-	# Show back and option buttons
-	controls.back_button.visible = true
-	controls.option_button.visible = true
+	if controls.option_button.selected >= 0:
+		return ControllerConfig.policy(ModelManager.get_model_path(1 if is_p2 else 0))
+	var index: int = controls.controller_option.selected
+	if index <= OPTION_HUMAN:
+		return ControllerConfig.human()
+	return ControllerConfig.cpu(index - 1)
 
-	if !models.is_empty():
-		update_menu_button(controls.option_button, models)
+## The player picked a compatible model in the picker: it becomes this player's
+## explicit controller (shown in the option button, with Back to undo it).
+func _on_model_chosen(model: HubModel) -> void:
+	var controls = _get_player_controls(_picking_p2)
+	update_menu_button(controls.option_button, [model.id])
+	controls.option_button.select(0)
+	select_model_menu(_picking_p2)
+
+func _on_picker_cancelled() -> void:
+	initial_menu(_picking_p2)
 
 func _on_model_downloaded(player_id: int, success: bool) -> void:
 	if success:
-		print("Model downloaded successfully for player", player_id)
 		check_both_models_ready()
 	else:
-		print("Failed to download model for player", player_id)
+		push_warning("Failed to download model for player %d" % player_id)
 
 func update_menu_button(menu_button: OptionButton, model_ids: Array) -> void:
 	menu_button.clear()
-	var popup := menu_button.get_popup()
 	for model_id in model_ids:
-		popup.add_item(model_id)
+		menu_button.add_item(model_id)
 
 func check_both_models_ready() -> void:
-	if ModelManager.model_exists(0) and ModelManager.model_exists(1):
-		print("Both models ready! Starting fight...")
+	# Nothing to do here: the match starts from the play button.
+	pass
 
 # Show initial AI button only
 func initial_menu(is_p2: bool = false) -> void:
 	var controls = _get_player_controls(is_p2)
-	
+
 	controls.ai_button.visible = true
-	controls.text_edit.visible = false
-	controls.search_button.visible = false
+	controls.controller_option.visible = true
 	controls.option_button.visible = false
 	controls.back_button.visible = false
 	controls.option_button.selected = -1
 
-# Show username input and search button
-func search_user_menu(is_p2: bool = false) -> void:
+# Open the Hub model picker for this player; the CPU option hides while it is open.
+func open_model_picker(is_p2: bool = false) -> void:
 	var controls = _get_player_controls(is_p2)
-	
+	_picking_p2 = is_p2
 	controls.ai_button.visible = false
-	controls.text_edit.visible = true
-	controls.search_button.visible = true
+	controls.controller_option.visible = false
 	controls.option_button.visible = false
 	controls.back_button.visible = true
 	controls.option_button.selected = -1
+	model_picker.open()
 
-# Show model selection menu
+# Show the chosen model with its Back button
 func select_model_menu(is_p2: bool = false) -> void:
 	var controls = _get_player_controls(is_p2)
-	
-	controls.text_edit.visible = false
-	controls.search_button.visible = false
+
+	controls.ai_button.visible = false
+	controls.controller_option.visible = false
 	controls.option_button.visible = true
 	controls.back_button.visible = true
 
@@ -107,35 +120,9 @@ func on_play_pressed() -> void:
 # --- SIGNAL HANDLERS ---
 
 func _on_ai_button_pressed(is_p2: bool) -> void:
-	search_user_menu(is_p2)
+	open_model_picker(is_p2)
 
-func _on_search_button_pressed(is_p2: bool) -> void:
-	var controls = _get_player_controls(is_p2)
-	var user = controls.text_edit.text.strip_edges()
-	
-	if user.is_empty():
-		return  # Prevent empty search
-
-	controls.text_edit.visible = false
-	controls.search_button.visible = false
-	controls.back_button.visible = true  # Keep back visible
-
-	ModelManager.fetch_user_models(user, is_p2)
-
+# Back drops the chosen model and returns to the Human / CPU options.
 func _on_back_button_pressed(is_p2: bool) -> void:
-	var controls = _get_player_controls(is_p2)
-	
-	if !controls.search_button.visible:
-		# Currently in model selection → go back to search
-		select_model_to_search(is_p2)
-	else:
-		# Currently in search → go back to AI button (initial)
-		initial_menu(is_p2)
-
-# Helper: go from model selection back to search
-func select_model_to_search(is_p2: bool) -> void:
-	var controls = _get_player_controls(is_p2)
-	controls.text_edit.visible = true
-	controls.search_button.visible = true
-	controls.option_button.visible = false
-	controls.option_button.selected = -1
+	model_picker.close()
+	initial_menu(is_p2)

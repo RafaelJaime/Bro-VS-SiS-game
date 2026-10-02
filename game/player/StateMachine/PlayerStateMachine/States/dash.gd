@@ -1,31 +1,28 @@
 extends Motion
 class_name Dash
 
-const DASH_SPEED = 600.0
-const DASH_DURATION = 0.3
-
 var dash_timer: float = 0.0
-var dash_direction: Vector2 = Vector2.ZERO
+var _in_air: bool = false
+
+# Dash works from Idle, Run and the air. In the air it needs the air dash, which
+# is spent here and restored on landing (Fighter._tick_movement).
+func can_enter() -> bool:
+	return profile.can_dash and (is_on_floor() or owner.air_dash_available)
 
 func _enter() -> void:
-	# Aplicar la dirección del dash ANTES de super._enter()
-	if dash_direction != Vector2.ZERO:
-		state_machine.velocity.x = dash_direction.x * DASH_SPEED
-	else:
-		state_machine.velocity.x = state_machine.direction.x * DASH_SPEED if state_machine.direction.x != 0 else DASH_SPEED
-	
-	# Invertir animación si el enemigo está en el lado contrario al dash
-	if owner.enemy:
-		var enemy_position_x = owner.enemy.global_position.x
-		var player_position_x = owner.global_position.x
-		var dash_is_right = state_machine.velocity.x > 0
-		var enemy_is_right = enemy_position_x > player_position_x
-		
-		# Si el dash va hacia un lado pero el enemigo está en el otro, invertir
-		if (dash_is_right and not enemy_is_right) or (not dash_is_right and enemy_is_right):
-			owner.animated_sprite_2d.flip_h = true
-		else:
-			owner.animated_sprite_2d.flip_h = false
+	_in_air = not is_on_floor()
+	owner.fast_falling = false
+	if _in_air:
+		owner.air_dash_available = false
+		state_machine.velocity.y = 0.0
+
+	# Dash direction: held direction (the double-tap key is still held), else
+	# the way the fighter faces. The Fighter owns facing and the sprite flip.
+	var dash_x: float = owner.intent.move_x
+	if is_zero_approx(dash_x):
+		dash_x = float(owner.facing)
+	state_machine.velocity.x = signf(dash_x) * profile.dash_speed
+
 	animation_state_changed.emit("dash")
 	velocity_updated.emit(state_machine.velocity)
 	dash_timer = 0.0
@@ -33,13 +30,13 @@ func _enter() -> void:
 func _update(delta: float) -> void:
 	dash_timer += delta
 	set_direction()
-	
-	# Aplicar gravedad durante el dash
-	calculate_gravity(delta)
+
+	# Air dashes suspend gravity (profile.air_dash_gravity_scale).
+	calculate_gravity(delta, profile.air_dash_gravity_scale if _in_air else 1.0)
 	velocity_updated.emit(state_machine.velocity)
-	
-	# Finalizar el dash después de la duración
-	if dash_timer >= DASH_DURATION:
+
+	var duration := profile.air_dash_duration if _in_air else profile.dash_duration
+	if dash_timer >= duration:
 		if is_on_floor():
 			# Si hay dirección de movimiento, ir a Run, sino a Idle
 			if state_machine.direction != Vector2.ZERO:

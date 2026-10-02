@@ -11,9 +11,6 @@ func _ready() -> void:
 	_create_state_map()
 	_initialize(start_state)
 
-func _input(event: InputEvent) -> void:
-	current_state._state_input(event)
-
 func _physics_process(delta: float) -> void:
 	current_state._update(delta)
 
@@ -30,7 +27,6 @@ func _initialize(state: State) -> void:
 func _set_active(value: bool) -> void:
 	_active = value
 	set_physics_process(value)
-	set_process_input(value)
 	if not _active:
 		current_state = null
 

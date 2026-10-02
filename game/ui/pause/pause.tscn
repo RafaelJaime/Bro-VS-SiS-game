@@ -36,12 +36,12 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
-text = "Pause"
+text = "PAUSED"
 horizontal_alignment = 1
 
 [node name="Label2" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-text = "Press anywhere to continue"
+text = "Press Esc (or Start) to resume"
 horizontal_alignment = 1
 
 [node name="UnpauseButton" type="Button" parent="."]
@@ -55,8 +55,8 @@ flat = true
 
 [node name="BackButton" parent="." instance=ExtResource("1_8sn3t")]
 layout_mode = 1
-offset_top = -102.0
-offset_bottom = 0.0
+offset_top = -222.0
+offset_bottom = -120.0
 metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="UnpauseButton" to="." method="_on_unpause_button_pressed"]

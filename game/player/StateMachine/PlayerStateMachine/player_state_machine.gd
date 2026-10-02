@@ -4,7 +4,6 @@ class_name PlayerStateMachine
 @export var animated_sprite_2d: AnimatedSprite2D
 @export var ai_controller_2d: AIController2D
 
-var input_dir: Vector2 = Vector2.ZERO
 var direction: Vector2 = Vector2.ZERO
 var velocity: Vector2 = Vector2.ZERO
 

@@ -1,22 +1,22 @@
 [gd_scene format=3 uid="uid://bpcx5sxh287su"]
 
-[ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_o7qwi"]
 [ext_resource type="Script" uid="uid://dtrxtrmxx5usc" path="res://ui/character_select/character_select.gd" id="1_qc8oi"]
 [ext_resource type="PackedScene" uid="uid://cgec1mb47wk6v" path="res://ui/global/back_button/back_button.tscn" id="2_ohdmo"]
 [ext_resource type="PackedScene" uid="uid://b7vrfar4xb67j" path="res://ui/character_select/character_item/character_select_item.tscn" id="2_qc8oi"]
-[ext_resource type="Texture2D" uid="uid://bt1m3lew3ak8w" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m2.png" id="2_xrmg0"]
+[ext_resource type="Texture2D" uid="uid://bb8ab8wmortly" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m2.png" id="2_xrmg0"]
 [ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="3_ipm0l"]
-[ext_resource type="Texture2D" uid="uid://b2lq377mpxmfk" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r2.png" id="3_x8414"]
-[ext_resource type="Texture2D" uid="uid://6nyqw2vdxl0a" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="4_i323y"]
+[ext_resource type="Texture2D" uid="uid://dvowqdqlhxl61" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r2.png" id="3_x8414"]
+[ext_resource type="Texture2D" uid="uid://bey1gg8lhrewt" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="4_i323y"]
 [ext_resource type="Texture2D" uid="uid://cufsij6o6ab3n" path="res://assets/images/game/characters/rafael/face/r_014.png" id="4_kj5ae"]
 [ext_resource type="SpriteFrames" uid="uid://dduif87iby0ca" path="res://assets/images/game/characters/rafael/rafael.tres" id="5_lm43w"]
-[ext_resource type="Texture2D" uid="uid://blnq26l4va1b6" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="6_lm43w"]
+[ext_resource type="Texture2D" uid="uid://bir66wtf16cj8" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="6_lm43w"]
 [ext_resource type="Texture2D" uid="uid://clh4qi7n4djvq" path="res://assets/images/game/characters/matilde/face/m_014.png" id="7_h0w06"]
 [ext_resource type="SpriteFrames" uid="uid://c5ndk0ecjvter" path="res://assets/images/game/characters/matilde/matilde.tres" id="7_kj5ae"]
 [ext_resource type="Texture2D" uid="uid://b1mhp7cvo12d5" path="res://assets/images/ui/buttons/button1.png" id="7_x3bhl"]
 [ext_resource type="Script" uid="uid://d2j51ffmniw35" path="res://ui/character_select/ai_controller.gd" id="8_yov7p"]
-[ext_resource type="Texture2D" uid="uid://dmybar0g2nd2a" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glow_1.PNG" id="12_ijk02"]
+[ext_resource type="Texture2D" uid="uid://x1wn2wwlli2d" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glow_1.PNG" id="12_ijk02"]
 [ext_resource type="Script" uid="uid://bivny4qorquqo" path="res://ui/global/custom_button/custom_button.gd" id="15_pumci"]
+[ext_resource type="Script" path="res://ui/character_select/model_picker/model_picker.gd" id="17_picker"]
 [ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="16_altl8"]
 
 [sub_resource type="Resource" id="Resource_kj5ae"]
@@ -126,8 +126,15 @@ script = ExtResource("1_qc8oi")
 character_select_item_scene = ExtResource("2_qc8oi")
 characters = Array[ExtResource("3_ipm0l")]([SubResource("Resource_kj5ae"), SubResource("Resource_h0w06")])
 
-[node name="background" parent="." unique_id=1388190371 instance=ExtResource("1_o7qwi")]
-modulate = Color(0.605274, 0.605274, 0.605274, 1)
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.4)
 
 [node name="P1_movable" type="Control" parent="." unique_id=1548782549]
 z_index = 10
@@ -255,22 +262,6 @@ offset_right = 200.0
 offset_bottom = 40.0
 text = "Use AI"
 
-[node name="TextEdit" type="TextEdit" parent="AIController/ControlP1" unique_id=1546823233]
-visible = false
-layout_mode = 0
-offset_top = -50.0
-offset_right = 200.0
-offset_bottom = -10.0
-placeholder_text = "Usarname"
-
-[node name="SearchButton" type="Button" parent="AIController/ControlP1" unique_id=1231124039]
-visible = false
-layout_mode = 0
-offset_left = 37.0
-offset_right = 200.0
-offset_bottom = 40.0
-text = "Search Username"
-
 [node name="OptionButton" type="OptionButton" parent="AIController/ControlP1" unique_id=1039738010]
 visible = false
 layout_mode = 0
@@ -284,6 +275,23 @@ layout_mode = 0
 offset_right = 37.0
 offset_bottom = 40.0
 text = "<"
+
+[node name="ControllerOption" type="OptionButton" parent="AIController/ControlP1"]
+visible = false
+layout_mode = 0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = -10.0
+selected = 0
+item_count = 4
+popup/item_0/text = "Human"
+popup/item_0/id = 0
+popup/item_1/text = "CPU Easy"
+popup/item_1/id = 1
+popup/item_2/text = "CPU Normal"
+popup/item_2/id = 2
+popup/item_3/text = "CPU Hard"
+popup/item_3/id = 3
 
 [node name="ControlP2" type="Control" parent="AIController" unique_id=476611909]
 anchors_preset = 0
@@ -299,22 +307,6 @@ offset_right = 200.0
 offset_bottom = 40.0
 text = "Use AI"
 
-[node name="TextEdit" type="TextEdit" parent="AIController/ControlP2" unique_id=1956587827]
-visible = false
-layout_mode = 0
-offset_top = -50.0
-offset_right = 200.0
-offset_bottom = -10.0
-placeholder_text = "Usarname"
-
-[node name="SearchButton" type="Button" parent="AIController/ControlP2" unique_id=1377185249]
-visible = false
-layout_mode = 0
-offset_left = 37.0
-offset_right = 200.0
-offset_bottom = 40.0
-text = "Search Username"
-
 [node name="OptionButton" type="OptionButton" parent="AIController/ControlP2" unique_id=320010741]
 visible = false
 layout_mode = 0
@@ -329,10 +321,35 @@ offset_right = 37.0
 offset_bottom = 40.0
 text = "<"
 
+[node name="ControllerOption" type="OptionButton" parent="AIController/ControlP2"]
+visible = false
+layout_mode = 0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = -10.0
+selected = 2
+item_count = 4
+popup/item_0/text = "Human"
+popup/item_0/id = 0
+popup/item_1/text = "CPU Easy"
+popup/item_1/id = 1
+popup/item_2/text = "CPU Normal"
+popup/item_2/id = 2
+popup/item_3/text = "CPU Hard"
+popup/item_3/id = 3
+
+[node name="ModelPicker" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("17_picker")
+
 [connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="AIController/ControlP1/AIButton" to="AIController" method="_on_ai_button_pressed" binds= [false]]
-[connection signal="pressed" from="AIController/ControlP1/SearchButton" to="AIController" method="_on_search_button_pressed" binds= [false]]
 [connection signal="pressed" from="AIController/ControlP1/BackButton" to="AIController" method="_on_back_button_pressed" binds= [false]]
 [connection signal="pressed" from="AIController/ControlP2/AIButton" to="AIController" method="_on_ai_button_pressed" binds= [true]]
-[connection signal="pressed" from="AIController/ControlP2/SearchButton" to="AIController" method="_on_search_button_pressed" binds= [true]]
 [connection signal="pressed" from="AIController/ControlP2/BackButton" to="AIController" method="_on_back_button_pressed" binds= [true]]

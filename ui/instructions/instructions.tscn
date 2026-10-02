@@ -1,18 +1,17 @@
 [gd_scene load_steps=14 format=3 uid="uid://btpro83jgkb8h"]
 
-[ext_resource type="PackedScene" uid="uid://bipo2b61nhjv3" path="res://ui/global/background/background.tscn" id="1_kvb2a"]
 [ext_resource type="PackedScene" uid="uid://dw0mxfdmhe651" path="res://ui/global/title_label/title_label.tscn" id="2_1hvjx"]
 [ext_resource type="PackedScene" uid="uid://cgec1mb47wk6v" path="res://ui/global/back_button/back_button.tscn" id="3_sf658"]
-[ext_resource type="Texture2D" uid="uid://dhtb8lsf4vgeg" path="res://assets/images/game/characters/matilde/jump/m_010.png" id="4_c22lu"]
-[ext_resource type="Texture2D" uid="uid://bqao6p4ia5nl7" path="res://assets/images/game/characters/matilde/run/m_008.png" id="5_qsfhk"]
-[ext_resource type="Texture2D" uid="uid://by3t8bcprnyil" path="res://assets/images/game/characters/matilde/protect/m_005.png" id="6_kv0fg"]
-[ext_resource type="Texture2D" uid="uid://ddnosvmshism3" path="res://assets/images/game/characters/matilde/punch/m_007.png" id="7_ciqjv"]
-[ext_resource type="Texture2D" uid="uid://c11mdhjsjq7gi" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="8_02qom"]
-[ext_resource type="Texture2D" uid="uid://faucyj5qnptr" path="res://assets/images/game/characters/rafael/punch/r_007.png" id="9_155o7"]
-[ext_resource type="Texture2D" uid="uid://cqqf5bb6yriok" path="res://assets/images/game/characters/rafael/protect/r_005.png" id="9_aumwn"]
-[ext_resource type="Texture2D" uid="uid://dwv2dlw5wdgta" path="res://assets/images/game/characters/rafael/shoot/r_006.png" id="9_nqyir"]
-[ext_resource type="Texture2D" uid="uid://bes7s2qrbowoq" path="res://assets/images/game/characters/rafael/jump/r_010.png" id="9_s20an"]
-[ext_resource type="Texture2D" uid="uid://dyplrrxmi6dh1" path="res://assets/images/game/characters/rafael/run/r_008.png" id="9_wtdte"]
+[ext_resource type="Texture2D" uid="uid://mfu78j02lj3i" path="res://assets/images/game/characters/matilde/jump/m_010.png" id="4_c22lu"]
+[ext_resource type="Texture2D" uid="uid://djmy8tt5666dk" path="res://assets/images/game/characters/matilde/run/m_008.png" id="5_qsfhk"]
+[ext_resource type="Texture2D" uid="uid://c4ey18pcsskxn" path="res://assets/images/game/characters/matilde/protect/m_005.png" id="6_kv0fg"]
+[ext_resource type="Texture2D" uid="uid://l45hq2ir1thw" path="res://assets/images/game/characters/matilde/punch/m_007.png" id="7_ciqjv"]
+[ext_resource type="Texture2D" uid="uid://qe1fijvk47v4" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="8_02qom"]
+[ext_resource type="Texture2D" uid="uid://blhbaodx4syiy" path="res://assets/images/game/characters/rafael/punch/r_007.png" id="9_155o7"]
+[ext_resource type="Texture2D" uid="uid://2v0ck8qwiwva" path="res://assets/images/game/characters/rafael/protect/r_005.png" id="9_aumwn"]
+[ext_resource type="Texture2D" uid="uid://dey7p3dmvhrm7" path="res://assets/images/game/characters/rafael/shoot/r_006.png" id="9_nqyir"]
+[ext_resource type="Texture2D" uid="uid://cy27llvebiqy2" path="res://assets/images/game/characters/rafael/jump/r_010.png" id="9_s20an"]
+[ext_resource type="Texture2D" uid="uid://dcsddtdxh0xi2" path="res://assets/images/game/characters/rafael/run/r_008.png" id="9_wtdte"]
 
 [node name="Instructions" type="Control"]
 layout_mode = 3
@@ -21,8 +20,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="background" parent="." instance=ExtResource("1_kvb2a")]
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
@@ -35,7 +32,7 @@ color = Color(0, 0, 0, 0.705882)
 
 [node name="TitleLabel" parent="." instance=ExtResource("2_1hvjx")]
 layout_mode = 1
-text = "Intructions"
+text = "Instructions"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -45,7 +42,7 @@ anchor_bottom = 1.0
 offset_top = 67.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 200
+theme_override_constants/separation = 160
 alignment = 1
 
 [node name="ItemList2" type="GridContainer" parent="HBoxContainer"]
@@ -53,7 +50,7 @@ layout_mode = 2
 columns = 2
 
 [node name="TextureRect2" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("5_qsfhk")
 expand_mode = 5
@@ -63,7 +60,7 @@ layout_mode = 2
 text = "A and D (Run)"
 
 [node name="TextureRect" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("4_c22lu")
 expand_mode = 5
@@ -73,7 +70,7 @@ layout_mode = 2
 text = "W (Jump)"
 
 [node name="TextureRect3" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("6_kv0fg")
 expand_mode = 5
@@ -83,7 +80,7 @@ layout_mode = 2
 text = "S (Protect)"
 
 [node name="TextureRect4" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("7_ciqjv")
 expand_mode = 5
@@ -93,21 +90,21 @@ layout_mode = 2
 text = "F (Punch)"
 
 [node name="TextureRect5" type="TextureRect" parent="HBoxContainer/ItemList2"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("8_02qom")
 expand_mode = 5
 
 [node name="Label5" type="Label" parent="HBoxContainer/ItemList2"]
 layout_mode = 2
-text = "G (Shoot)"
+text = "G (Pick up / Throw)"
 
 [node name="ItemList" type="GridContainer" parent="HBoxContainer"]
 layout_mode = 2
 columns = 2
 
 [node name="TextureRect2" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_wtdte")
 expand_mode = 5
@@ -117,7 +114,7 @@ layout_mode = 2
 text = "L and R Arrows (Run)"
 
 [node name="TextureRect" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_s20an")
 expand_mode = 5
@@ -127,7 +124,7 @@ layout_mode = 2
 text = "Up arrow (Jump) "
 
 [node name="TextureRect3" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_aumwn")
 expand_mode = 5
@@ -137,7 +134,7 @@ layout_mode = 2
 text = "Down arrow (Protect) "
 
 [node name="TextureRect4" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_155o7")
 expand_mode = 5
@@ -147,14 +144,36 @@ layout_mode = 2
 text = "J (Punch)"
 
 [node name="TextureRect5" type="TextureRect" parent="HBoxContainer/ItemList"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 texture = ExtResource("9_nqyir")
 expand_mode = 5
 
 [node name="Label5" type="Label" parent="HBoxContainer/ItemList"]
 layout_mode = 2
-text = "K (Shoot)"
+text = "K (Pick up / Throw)"
+
+[node name="MoreControls" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -250.0
+offset_right = 395.0
+offset_bottom = -105.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 14
+text = "Aim: E (up) and C (down) for Player 1, I (up) and Comma (down) for Player 2.
+Hold Punch to charge a smash. Aim + Punch: up, down and side attacks.
+Up + Punch in the air: recovery jump, once per airtime. Down while falling: fast fall.
+Fall past a table end to grab the leg: Up climbs, Jump ledge-jumps, Down lets go, Punch attacks.
+Double jump: Jump again. Dash: double-tap a direction. Esc or Start: pause."
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="BackButton" parent="." instance=ExtResource("3_sf658")]
 layout_mode = 1
