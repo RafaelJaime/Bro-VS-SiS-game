@@ -1,0 +1,44 @@
+# Default training recipe (design D11). Everything here is data: reward weights,
+# curriculum and the time box change without touching GDScript or Python.
+
+[run]
+seed = 1
+n_parallel = 4            # Godot processes, each with 8 rows (4 procs: ~4.6k agent steps/s, 8: ~8.4k on a 10-core M-series)
+speedup = 8               # physics speedup passed to Godot
+checkpoint_every = 250_000
+time_box_hours = 8.0      # checked at phase boundaries and every rollout
+rows = 8                  # Game rows per Godot process
+# Snapshot opponents need the S4 PolicyController inference path in TrainArena.
+# While false, the snapshot share of a phase is given to cpu_normal (a warning is printed).
+snapshot_opponents = false
+
+[ppo]
+n_steps = 512
+batch_size = 2048
+n_epochs = 4
+learning_rate = 3e-4
+gamma = 0.995
+gae_lambda = 0.95
+ent_coef = 0.01
+clip_range = 0.2
+net_arch_pi = [64, 64]
+net_arch_vf = [64, 64]
+
+# Reward overrides (data only). Keys are RewardConfig fields; see
+# game/ai/training/reward_config.gd for the defaults.
+[reward]
+
+[[phase]]
+name = "P1"
+steps = 3_000_000
+mix = { cpu_easy = 1.0 }
+
+[[phase]]
+name = "P2"
+steps = 3_000_000
+mix = { cpu_easy = 0.5, cpu_normal = 0.5 }
+
+[[phase]]
+name = "P3"
+steps = 4_000_000
+mix = { cpu_normal = 0.3, cpu_easy = 0.2, self = 0.2, snapshot = 0.3 }
