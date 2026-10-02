@@ -10,6 +10,10 @@ enum Phase { COUNTDOWN, PLAYING, SUDDEN_DEATH, OVER }
 signal countdown_tick(text: String)
 ## Emitted once when the match is decided (never in training).
 signal match_over(winner: Fighter)
+## Training only: a row's episode ended (a defeat or the timer). `winner` is the
+## fighter that still has stocks, or null for a draw. Fighters are not reset yet,
+## so the listeners (RewardTracker) can still read the stocks of both.
+signal training_episode_ended(winner: Fighter)
 
 @export var training: bool = false
 
@@ -71,6 +75,9 @@ var _countdown_index: int = 0
 var _skip_pending: bool = false
 var _banner_tween: Tween
 var _ledges: Array = []
+# Physics frame of the last training episode end, so a defeat and a timeout (or two
+# defeats) on the same frame end it once.
+var _episode_end_frame: int = -1
 
 # Loaded via load() at runtime, not preload()/ext_resource: this freesound
 # asset has no .import file yet (same caveat as T0's food sprites).
@@ -178,11 +185,10 @@ func get_state_snapshot() -> Dictionary:
 
 ## The two table legs a fighter can grab, Game-local: `side` -1 left end, +1 right
 ## end; `x` the table end (the fighter hangs just outside it); `top` the tabletop;
-## `bottom` the lowest grab height. Empty in training (the table is not there and
-## the RL environment stays as it was).
+## `bottom` the lowest grab height. Training rows have the ledges too (the table
+## art is freed there, so `ledge_depth` stands in for the leg height), so the
+## agent learns the same recovery the match has.
 func get_ledges() -> Array:
-	if training:
-		return []
 	if _ledges.is_empty():
 		var floor_shape := get_node_or_null("StaticBody2D/Floor") as CollisionShape2D
 		if floor_shape == null:
@@ -273,7 +279,8 @@ func _on_flow_timeout() -> void:
 
 func _on_player_defeated(_player_instance: Fighter) -> void:
 	if training:
-		_reset_players_for_training()
+		# Deferred, so a double KO on the same frame is judged once, after both.
+		_resolve_training_defeat.call_deferred()
 		return
 	# Deferred, so a double KO on the same frame is judged once, after both.
 	_resolve_defeat.call_deferred()
@@ -293,7 +300,11 @@ func _resolve_defeat() -> void:
 
 func _on_timer_timeout() -> void:
 	if training:
-		_reset_players_for_training()
+		# Time up: the fighter with more stocks wins the episode, a tie is a draw.
+		var leader: Fighter = null
+		if fighter_1.stocks != fighter_2.stocks:
+			leader = fighter_1 if fighter_1.stocks > fighter_2.stocks else fighter_2
+		_end_training_episode(leader)
 		return
 	if phase != Phase.PLAYING:
 		return
@@ -355,16 +366,37 @@ func _show_results() -> void:
 		game_over.visible = true
 	get_tree().paused = true
 
-func _reset_players_for_training() -> void:
-	if fighter_1:
-		fighter_1.reset_player()
+func _resolve_training_defeat() -> void:
+	var alive_1 := fighter_1.stocks > 0
+	var alive_2 := fighter_2.stocks > 0
+	if alive_1 and alive_2:
+		return
+	var survivor: Fighter = null
+	if alive_1 != alive_2:
+		survivor = fighter_1 if alive_1 else fighter_2
+	_end_training_episode(survivor)
 
-	if fighter_2:
-		fighter_2.reset_player()
-
+## Ends a training row's episode, exactly once per frame: tells the reward
+## trackers, flags `done` on both fighters through Fighter.game_over() (each resets
+## itself on its next physics frame, after Sync has seen `done`), clears the stage
+## and restarts the timer and the food spawner for the next episode.
+func _end_training_episode(winning_fighter: Fighter) -> void:
+	var frame := Engine.get_physics_frames()
+	if _episode_end_frame == frame:
+		return
+	_episode_end_frame = frame
+	training_episode_ended.emit(winning_fighter)
+	fighter_1.game_over()
+	fighter_2.game_over()
+	for child in get_children():
+		if child is FoodPickup or child is FoodProjectile:
+			child.queue_free()
 	if timer:
 		timer.stop()
 		timer.start()
+	if food_spawner:
+		food_spawner.stop()
+		food_spawner.start()
 
 # ------------------------------------------------------------------- banner
 

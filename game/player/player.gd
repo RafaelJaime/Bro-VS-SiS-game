@@ -398,6 +398,11 @@ func reset_player():
 	position = initial_position
 	ledge_side = 0
 	ledge_grabs = 0
+	# The state machine owns the velocity the states integrate and a defeated
+	# fighter is still in Defeated: start the next episode falling onto the stage.
+	if state_machine:
+		state_machine.velocity = Vector2.ZERO
+		state_machine._change_state("Fall")
 
 func game_over():
 	ai_controller_2d.done = true

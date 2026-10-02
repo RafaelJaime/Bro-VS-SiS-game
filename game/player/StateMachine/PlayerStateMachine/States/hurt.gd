@@ -29,8 +29,6 @@ func _enter() -> void:
 
 	if owner is Fighter:
 		owner.add_damage(pending_damage)
-		owner.enemy.state_machine.ai_controller_2d.reward += 1
-		state_machine.ai_controller_2d.reward -= 0.5
 
 	if owner.enemy is Fighter:
 		if owner.enemy.global_position.x < owner.global_position.x:
