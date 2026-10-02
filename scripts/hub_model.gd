@@ -9,9 +9,9 @@ extends RefCounted
 ## with no such tag (for example RafaelJaime/BVS_SB3, tagged BVS and BVS.1) predates
 ## the schema and is shown as trained for an older version.
 
-## The observation/action schema this build of the game understands. Raised only
-## when the schema changes (the later hf-ai-opponents change freezes it).
-const BVS_SCHEMA_VERSION := 1
+## The observation/action schema this build of the game understands: the one
+## BvsSchema registers as current. Raised only by a new schema module.
+const BVS_SCHEMA_VERSION := BvsSchema.CURRENT_VERSION
 ## The tag every BVS model carries on the Hub.
 const TAG := "BVS"
 const SCHEMA_TAG_PREFIX := "bvs-schema-"

@@ -22,8 +22,8 @@ const NOTHING_RL_URL := "https://huggingface.co/api/models?author=nobody&filter=
 
 ## alice's own BVS models (server-side author query).
 const ALICE_BODY := """[
-	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-1"]},
-	{"id": "alice/bvs-v0", "author": "alice", "downloads": 20, "tags": ["onnx", "BVS", "bvs-schema-0"]}
+	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-2"]},
+	{"id": "alice/bvs-v0", "author": "alice", "downloads": 20, "tags": ["onnx", "BVS", "bvs-schema-1"]}
 ]"""
 ## zed has no BVS model; the second query lists the other RL models.
 const ZED_RL_BODY := """[
@@ -34,10 +34,10 @@ const ZED_RL_BODY := """[
 ## Hub listing as the API returns it (most downloaded first), plus a model that
 ## lost its BVS tag (never listed).
 const FIXTURE := """[
-	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-1"]},
+	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-2"]},
 	{"id": "RafaelJaime/BVS_SB3", "author": "RafaelJaime", "downloads": 87, "tags": ["stable-baselines3", "BVS", "BVS.1"]},
 	{"id": "bob/old-fighter", "downloads": 12, "tags": ["BVS", "bvs-schema-0"]},
-	{"id": "carol/from-the-future", "author": "carol", "downloads": 2, "tags": ["BVS", "bvs-schema-2"]},
+	{"id": "carol/from-the-future", "author": "carol", "downloads": 2, "tags": ["BVS", "bvs-schema-3"]},
 	{"id": "dave/not-ours", "author": "dave", "downloads": 9000, "tags": ["onnx"]}
 ]"""
 
@@ -96,7 +96,7 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 	await s.frames(3)
 	s.check("Search queries the author server-side", fake.urls.back() == ALICE_URL, str(fake.urls))
 	s.check("the user's models are listed", _row_ids(picker) == ["alice/bvs-brawler", "alice/bvs-v0"], str(_row_ids(picker)))
-	s.check("their compat badges stay", _badge(_row_for(picker, "alice/bvs-brawler")) == "Compatible" and not _row_for(picker, "alice/bvs-brawler").disabled and _row_for(picker, "alice/bvs-v0").disabled)
+	s.check("their compat badges stay", _badge(_row_for(picker, "alice/bvs-brawler")) == "Compatible" and not _row_for(picker, "alice/bvs-brawler").disabled and _row_for(picker, "alice/bvs-v0").disabled and _badge(_row_for(picker, "alice/bvs-v0")) == "Trained for an older version")
 	s.check("the status names the user", picker.status_label.text.contains("by alice"), picker.status_label.text)
 	s.check("the username is remembered", manager.load_last_author() == "alice")
 	await s.screenshot("hf_picker_username")
@@ -166,7 +166,7 @@ func _run() -> void:
 	_install_fake()
 
 	# --- the listing logic, without any UI
-	s.check("the current schema version is a constant", HubModel.BVS_SCHEMA_VERSION == 1)
+	s.check("the current schema version is a constant", HubModel.BVS_SCHEMA_VERSION == 2 and HubModel.BVS_SCHEMA_VERSION == BvsSchema.CURRENT_VERSION)
 	s.check("discovery is by tag, most downloaded first, no username", HubModel.DISCOVERY_URL == EXPECTED_URL and not HubModel.DISCOVERY_URL.contains("author="), HubModel.DISCOVERY_URL)
 	var models: Array = HubModel.parse_list(FIXTURE)
 	s.check("the parser keeps the BVS-tagged models in the Hub's order", models.map(func(m: HubModel): return m.id) == ["alice/bvs-brawler", "RafaelJaime/BVS_SB3", "bob/old-fighter", "carol/from-the-future"])
