@@ -148,6 +148,16 @@ Satisfies spec: `rl-training-pipeline` "Remote upload authorization gate".
 - [ ] 6.2 After explicit confirmation only: `cd training && uv run python -m bvs_training.prepare_upload --repo <id> --license <spdx>` (local), check CLI syntax locally with `hf upload --help` (local, read-only), then run the printed `hf repo create` and `hf upload` commands exactly as confirmed.
 - [ ] 6.3 Read-only verification: `GET https://huggingface.co/api/models?author=<owner>&filter=BVS` lists the model with `bvs-schema-2`, and the in-game picker (`ONLY="hf_picker"` plus a manual run) shows it as Compatible. Record the repo URL in `training/reports/bvs_default-eval.md` in a follow-up docs commit if requested.
 
+## Phase R: Root folder restructure (user-approved, after S6)
+
+One `refactor:` commit; behavior unchanged; full `tests/smoke/run_all.sh` must stay SMOKE PASSED. Moves keep UIDs (scenes reference scripts by `uid://`), but path-based references must be updated.
+
+- [ ] R.1 Move `scripts/AIController/player_ai_controller.gd` and `scripts/hub_model.gd` (+ `.uid`) into `game/ai/`.
+- [ ] R.2 Move `scripts/SceneManager/*` and `scripts/model_manager.gd` (+ `.uid`) into `autoload/`; move `main.tscn` next to the SceneManager; update `[autoload]` paths in `project.godot` (stage only these hunks; the user's `folder_colors` hunk stays unstaged). `run/main_scene` stays by UID.
+- [ ] R.3 Move `train.tscn` into `game/ai/training/`; update the Python launcher path in `training/` and any `res://train.tscn` references (`rg 'train\.tscn'`).
+- [ ] R.4 Add empty `.gdignore` to `odd/` and `openspec/`; delete the now-empty `scripts/`.
+- [ ] R.5 Verify: `rg 'res://scripts/'` returns nothing; `--headless --import` prints no missing-resource errors; full smoke suite SMOKE PASSED; `uv run` launcher still finds the training scene.
+
 ## Cross-cutting acceptance (maps to proposal Success Criteria)
 
 - [ ] A.1 `bvs-schema-2` frozen in one module, shared by training and inference, `HubModel.BVS_SCHEMA_VERSION == 2` (1.3, 1.4, 1.8, 1.12, 4.3).
