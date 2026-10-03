@@ -1,5 +1,7 @@
 # BVS training recipe
 
+> New here? Start with the step-by-step guide: [docs/train-your-own-model.md](../docs/train-your-own-model.md). This file is the technical reference.
+
 Trains, exports and evaluates the fighter policies of Bro vs Sis. A policy is a small MLP; the game plays it with its own GDScript ONNX interpreter, so the Python side only produces a model file and numbers.
 
 ## Constraints you must respect
