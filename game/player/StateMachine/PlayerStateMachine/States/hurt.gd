@@ -6,10 +6,13 @@ class_name Hurt
 @export var hurt_duration: float = -1.0
 @export var particles: GPUParticles2D
 
-# Set by the attacker (via Combat.apply_hit) right before the state machine
-# switches into this state.
+# Set by Combat (via Combat.resolve) right before the state machine switches into
+# this state. `pending_source_x` is the global x the hit came from (a bomb has no
+# attacker, so the direction cannot come from `owner.enemy`); NAN falls back to
+# the enemy's side.
 var pending_damage: float = 8.0
 var pending_knockback: Vector2 = Vector2(200, -100)
+var pending_source_x: float = NAN
 
 var timer: Timer
 var shake: FastNoiseLite
@@ -30,8 +33,12 @@ func _enter() -> void:
 	if owner is Fighter:
 		owner.add_damage(pending_damage)
 
-	if owner.enemy is Fighter:
-		if owner.enemy.global_position.x < owner.global_position.x:
+	var source_x := pending_source_x
+	pending_source_x = NAN
+	if is_nan(source_x) and owner.enemy is Fighter:
+		source_x = owner.enemy.global_position.x
+	if not is_nan(source_x):
+		if source_x < owner.global_position.x:
 			final_knockback.x = abs(pending_knockback.x)
 		else:
 			final_knockback.x = -abs(pending_knockback.x)

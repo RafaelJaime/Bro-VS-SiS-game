@@ -145,4 +145,4 @@ func _climb_hit() -> void:
 	var dx := target.position.x - _end.x
 	var in_front := dx * (-_side) >= -20.0 and absf(dx) <= profile.ledge_attack_reach
 	if in_front and absf(target.position.y - _end.y) <= 100.0:
-		Combat.apply_hit(owner, target, profile.ledge_attack_damage, profile.ledge_attack_knockback)
+		Combat.resolve(Hit.punch(owner, profile.ledge_attack_damage, profile.ledge_attack_knockback, -1.0, Hit.Source.LEDGE), target)

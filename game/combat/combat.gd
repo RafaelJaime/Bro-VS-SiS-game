@@ -5,50 +5,78 @@ class_name Combat
 ## explosion SFX plays instead of the punch SFX.
 const HEAVY_DAMAGE_THRESHOLD := 16.0
 
-## Centralizes "attacker hits target" resolution so every damage source
-## (punch, thrown food, ...) shares identical block/no-block handling.
-## This is also the fix for the previously unused
-## Protect.receive_blocked_damage() codepath: before this, a hit landing on
-## a blocking target just kicked the target back to Idle with zero damage
-## and zero knockback (full immunity). Now a blocking target always goes
-## through receive_blocked_damage(), which applies the reduced % and
-## reduced knockback from the design doc. Also triggers hit-stop and the
-## punch/explosion SFX (T5).
-static func apply_hit(attacker: Fighter, target: Fighter, damage: float, knockback_base: Vector2) -> void:
+## What a hit did to its target.
+## IGNORED: invulnerable or intangible, nothing happened.
+## FULL: full damage and knockback (the target is in Hurt).
+## BLOCKED: the shield absorbed it (meter drain, chip damage, reduced pushback).
+## BROKE: the shield absorbed it and ran out; the target is dizzy.
+enum Outcome { IGNORED, FULL, BLOCKED, BROKE }
+
+## The single resolver of every damage source (punch, ledge attack, thrown food,
+## bomb), in a fixed order:
+##   1. an invulnerable or intangible target takes nothing;
+##   2. an unblockable hit applies in full whatever the target is doing;
+##   3. a dizzy target takes it in full (it is not shielding);
+##   4. a shielding target takes the shielded path (Protect.absorb);
+##   5. otherwise the hit applies normally (Hurt).
+## It emits `hit_received(hit, outcome)` on the target, which rewards, metrics and
+## the CPU consume, and plays the juice (hit-stop, SFX) unless training.
+static func resolve(hit: Hit, target: Fighter) -> Outcome:
 	if target == null or target.state_machine == null:
-		return
-	if target.is_invulnerable:
-		return
+		return Outcome.IGNORED
+	if target.is_invulnerable or target.is_intangible():
+		target.hit_received.emit(hit, Outcome.IGNORED)
+		return Outcome.IGNORED
 
 	var target_sm = target.state_machine
-	var blocked = target_sm.current_state and target_sm.current_state.name == "Protect"
-
-	if blocked:
-		target_sm.current_state.receive_blocked_damage(damage, knockback_base)
+	var shielding: bool = target_sm.current_state != null and target_sm.current_state.name == "Protect"
+	var outcome: Outcome
+	if shielding and not hit.unblockable:
+		outcome = Outcome.BROKE if target_sm.current_state.absorb(hit) else Outcome.BLOCKED
 	else:
-		var hurt_state = target_sm.state_map.get("Hurt")
-		if hurt_state:
-			hurt_state.pending_damage = damage
-			hurt_state.pending_knockback = knockback_base
-		target_sm._change_state("Hurt")
+		_apply_full(hit, target)
+		outcome = Outcome.FULL
 
-	# Skip juice (global time_scale hit-stop + SFX) under AI training: dozens
-	# of train.tscn's Game rows run in parallel, and time_scale is a single
-	# global Engine property, so one row's hit would stutter every other row.
+	target.hit_received.emit(hit, outcome)
+	_play_juice(hit, target, outcome)
+	return outcome
+
+## Thin wrapper kept for the call sites that build a plain punch.
+static func apply_hit(attacker: Fighter, target: Fighter, damage: float, knockback_base: Vector2) -> void:
+	resolve(Hit.punch(attacker, damage, knockback_base), target)
+
+# Full damage and knockback: the target goes into Hurt, which reads the pending
+# values (and the side the hit came from) when it starts.
+static func _apply_full(hit: Hit, target: Fighter) -> void:
+	var hurt_state = target.state_machine.state_map.get("Hurt")
+	if hurt_state:
+		hurt_state.pending_damage = hit.damage
+		hurt_state.pending_knockback = hit.knockback
+		hurt_state.pending_source_x = hit.source_position.x
+	target.state_machine._change_state("Hurt")
+
+# Skip juice (global time_scale hit-stop + SFX) under AI training: dozens
+# of train.tscn's Game rows run in parallel, and time_scale is a single
+# global Engine property, so one row's hit would stutter every other row.
+static func _play_juice(hit: Hit, target: Fighter, outcome: Outcome) -> void:
 	if Sfx.is_training(target):
 		return
-
-	if blocked:
-		_trigger_hit_stop(0.04, 0.3)
-	else:
-		_trigger_hit_stop(0.08, 0.05)
-
-	if blocked:
-		Sfx.play_event(&"block", target)
-	elif damage >= HEAVY_DAMAGE_THRESHOLD:
-		Sfx.play_event(&"heavy_hit", target)
-	else:
-		Sfx.play_event(&"hit", target)
+	match outcome:
+		Outcome.BROKE:
+			# The break cue (SFX) is played by the Dizzy state.
+			_trigger_hit_stop(0.14, 0.05)
+		Outcome.BLOCKED:
+			_trigger_hit_stop(0.04, 0.3)
+			Sfx.play_event(&"block", target)
+		_:
+			_trigger_hit_stop(0.08, 0.05)
+			# A bomb has its own explosion cue.
+			if hit.source == Hit.Source.BOMB:
+				return
+			if hit.damage >= HEAVY_DAMAGE_THRESHOLD:
+				Sfx.play_event(&"heavy_hit", target)
+			else:
+				Sfx.play_event(&"hit", target)
 
 ## Only the latest hit-stop may restore the clock. Every trigger takes a new
 ## token and its restore callback only acts while that token is still current,

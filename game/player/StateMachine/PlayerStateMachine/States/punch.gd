@@ -180,14 +180,17 @@ func _set_hitbox_active(active: bool) -> void:
 func _hit_overlapping_hurtboxes() -> void:
 	if punch_area == null:
 		return
-	var damage := _attack.damage * lerpf(1.0, profile.charge_damage_max, _charge)
+	var damage_scale := lerpf(1.0, profile.charge_damage_max, _charge)
+	var damage := _attack.damage * damage_scale
 	var knockback := _attack.knockback * lerpf(1.0, profile.charge_knockback_max, _charge)
+	# A set shield damage scales with the charge like the damage does.
+	var shield_damage := _attack.shield_damage * damage_scale if _attack.shield_damage >= 0.0 else -1.0
 	for area in punch_area.get_overlapping_areas():
 		var target := area.get_parent() as Fighter
 		if target == null or target == owner or _hit_targets.has(target):
 			continue
 		_hit_targets.append(target)
-		Combat.apply_hit(owner, target, damage, knockback)
+		Combat.resolve(Hit.punch(owner, damage, knockback, shield_damage), target)
 
 func end_punch() -> void:
 	is_punching = false

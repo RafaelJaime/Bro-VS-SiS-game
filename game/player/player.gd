@@ -5,6 +5,16 @@ signal updated_characterUI
 signal damage_changed(new_percent: float)
 signal stocks_changed(player_instance: Fighter, stocks_left: int)
 signal player_defeated(player_instance: Fighter)
+## Every hit that reached this fighter, with what it did (Combat.Outcome). Rewards,
+## match metrics and the CPU read this, never the observation.
+signal hit_received(hit: Hit, outcome: int)
+## The shield ran out. `cause` is the hit that broke it, or null when the hold
+## drain did.
+signal shield_broken(cause: Hit)
+signal food_picked_up(food_name: String)
+signal food_thrown(food_name: String)
+## The fighter finished a reset_player (a training episode restart).
+signal reset_done
 
 @export var character_ui: CharacterUI:
 	set(value):
@@ -45,10 +55,10 @@ const PUSH_HEIGHT: float = 120.0
 const PUSH_SPEED: float = 90.0
 # Smash: you face the way you move. No turning while an action owns the body.
 const TURN_DEADZONE: float = 0.1
-const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated", "LedgeHang"]
+const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated", "LedgeHang", "Dizzy", "AirDodge"]
 # Air states a fighter can grab a table leg from. Punches, throws and blocks in the
 # air finish first (Smash), a hit never grabs.
-const LEDGE_GRAB_STATES: Array[String] = ["Jump", "Fall", "Recovery", "Helpless", "Dash"]
+const LEDGE_GRAB_STATES: Array[String] = ["Jump", "Fall", "Recovery", "Helpless", "Dash", "AirDodge"]
 const INVULNERABILITY_BLINK_INTERVAL: float = 0.15
 
 ## How a jump request resolves this frame (see peek_jump / consume_jump).
@@ -76,6 +86,16 @@ var controls_locked: bool = false
 var facing: int = 1
 # Name of the food currently held above the head, or "" when empty-handed.
 var held_food: String = ""
+## The shield meter. Ticked once per physics frame (see _tick_combat), so it
+## regenerates in every state; Protect only holds and drains it.
+var shield: ShieldMeter
+## Once per airtime: spent by AirDodge, refilled with the other air actions. The
+## cooldown counts physics ticks down from the start of a dodge.
+var air_dodge_available: bool = true
+var air_dodge_cooldown_left: int = 0
+## Sprite tint of the current status (air dodge, dizzy). The one owner of the
+## sprite's `modulate` between charges, see set_charge_visual.
+var status_tint: Color = Color.WHITE
 
 # Air bookkeeping, ticked once per frame by _tick_movement. Tuning is in the
 # profile; these are only the counters.
@@ -116,6 +136,8 @@ var _blink_clock: float = 0.0
 func _enter_tree() -> void:
 	if profile == null:
 		profile = FighterProfile.new()
+	shield = ShieldMeter.new()
+	shield.setup(profile)
 
 func _ready():
 	initial_position = position
@@ -150,6 +172,7 @@ func _physics_process(delta: float) -> void:
 	if _blinking:
 		_blink_clock += delta
 	_apply_visibility()
+	_tick_combat()
 	_tick_movement(delta)
 
 	if ai_controller_2d.needs_reset:
@@ -162,6 +185,36 @@ func _physics_process(delta: float) -> void:
 	_apply_soft_push(delta)
 	_try_ledge_grab()
 	_check_blast_zone()
+
+# Per-frame combat bookkeeping, in physics ticks (hit-stop changes the time scale,
+# never the number of ticks). The shield drains while Protect is active, holds
+# while Dizzy and regenerates in every other state.
+func _tick_combat() -> void:
+	var state := _state_name()
+	if shield.tick(state == "Protect", state == "Dizzy"):
+		break_shield(null)
+	if air_dodge_cooldown_left > 0:
+		air_dodge_cooldown_left -= 1
+
+## The shield ran out (a hold or a blocked hit): the fighter goes dizzy. `cause` is
+## the hit that did it, or null for the hold drain.
+func break_shield(cause: Hit) -> void:
+	shield_broken.emit(cause)
+	if state_machine and state_machine.state_map.has("Dizzy"):
+		state_machine._change_state("Dizzy")
+
+func is_dizzy() -> bool:
+	return _state_name() == "Dizzy"
+
+## Seconds of dizzy left (0 when not dizzy).
+func dizzy_seconds_left() -> float:
+	if not is_dizzy():
+		return 0.0
+	return CombatClock.seconds(state_machine.current_state.ticks_left)
+
+## True during the invulnerable window of an air dodge.
+func is_intangible() -> bool:
+	return _state_name() == "AirDodge" and state_machine.current_state.is_intangible()
 
 # Floor contact is the result of the previous frame's move_and_slide. Landing
 # refills the air jump, air dash and coyote time; leaving the floor only runs the
@@ -187,6 +240,7 @@ func restore_air_actions() -> void:
 	jumps_left = profile.max_air_jumps if profile.can_double_jump else 0
 	air_dash_available = profile.can_dash
 	recovery_available = true
+	air_dodge_available = true
 	fast_falling = false
 
 ## What a jump would be right now, without spending anything. NONE unless a jump
@@ -288,7 +342,7 @@ func set_charge_visual(charge: float) -> void:
 		return
 	if charge < 0.0:
 		charge_glow.visible = false
-		animated_sprite_2d.modulate = Color.WHITE
+		animated_sprite_2d.modulate = status_tint
 		animated_sprite_2d.offset = Vector2.ZERO
 		return
 	# The fighter keeps its own colors: a bright flash (modulate above 1 brightens
@@ -409,6 +463,10 @@ func reset_player():
 	if state_machine:
 		state_machine.velocity = Vector2.ZERO
 		state_machine._change_state("Fall")
+	# After the state change, so a Dizzy._exit cannot overwrite the refill.
+	shield.refill()
+	air_dodge_cooldown_left = 0
+	reset_done.emit()
 
 func game_over():
 	ai_controller_2d.done = true
@@ -440,6 +498,8 @@ func prepare_sudden_death(damage: float) -> void:
 	position = initial_position
 	if state_machine:
 		state_machine._change_state("Fall")
+	shield.refill()
+	air_dodge_cooldown_left = 0
 
 # Adds damage and notifies listeners (HUD, etc.).
 func add_damage(amount: float) -> void:
@@ -487,6 +547,8 @@ func _respawn() -> void:
 	position = initial_position + Vector2(0, RESPAWN_HEIGHT_OFFSET)
 	if state_machine:
 		state_machine._change_state("Fall")
+	shield.refill()
+	air_dodge_cooldown_left = 0
 	grant_invulnerability(profile.respawn_invulnerability)
 
 ## Makes the fighter immune to hits for `duration` seconds. A newer grant never

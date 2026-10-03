@@ -1,68 +1,46 @@
 extends Motion
 class_name Protect
 
-@export var block_duration: float = 1
-@export var block_damage_reduction: float = 0.5  # Block halves the % gained from a hit.
-@export var block_knockback_reduction: float = 0.3  # Fraction of knockback RETAINED while blocking (30% knockback).
+## The ground shield. It lasts as long as the block key is held and the fighter's
+## ShieldMeter lasts: the meter (owned by the Fighter, ticked every frame) drains
+## while this state is active and `absorb` drains it further for every blocked hit.
+## A hit that empties the meter breaks the shield (Fighter.break_shield -> Dizzy).
+## Tuning is in the FighterProfile "Shield" group.
 
-var timer: Timer
-
-signal block_finished
-
-func _enter() -> void:
-	super._enter()
-
-	# Inicializar temporizador
-	if not timer:
-		timer = Timer.new()
-		timer.one_shot = true
-		add_child(timer)
-
-	if not timer.timeout.is_connected(_on_block_finished):
-		timer.timeout.connect(_on_block_finished)
-	timer.start(block_duration)
+func can_enter() -> bool:
+	return owner.is_on_floor() and not owner.shield.is_empty() and not owner.is_dizzy()
 
 func _update(delta: float) -> void:
 	super._update(delta)
 	calculate_gravity(delta)
-	# A blocking fighter plants itself (friction on the ground, air drag in the air).
+	# A shielding fighter plants itself.
 	calculate_velocity(0.0, Vector2.ZERO, delta)
 
-	# Hold-to-block, ground and air: the block lasts while the key is held, up to
-	# block_duration.
+	# Ground only: walking off the table drops the shield.
+	if not is_on_floor():
+		finished.emit("Fall")
+		return
 	if not owner.intent.block_held:
 		exit_to_neutral()
 
-func _exit() -> void:
-	timer.stop()
-	if timer.timeout.is_connected(_on_block_finished):
-		timer.timeout.disconnect(_on_block_finished)
+## Called by Combat.resolve when a blockable hit lands on this shielding fighter.
+## Drains the meter by the hit's shield damage, applies the chip damage and the
+## reduced pushback, and never starts hitstun. Returns true when the meter ran out:
+## the shield breaks and the fighter goes dizzy (no pushback then).
+func absorb(hit: Hit) -> bool:
+	var fighter: Fighter = owner
+	var shield_damage := hit.shield_damage if hit.shield_damage >= 0.0 else hit.damage * profile.shield_damage_scale
+	fighter.add_damage(hit.damage * profile.shield_chip_fraction)
+	if fighter.shield.absorb(shield_damage):
+		fighter.break_shield(hit)
+		return true
 
-func _on_block_finished() -> void:
-	block_finished.emit()
-	exit_to_neutral()
-
-# Called by Combat.apply_hit when the target is currently blocking. This is
-# the fix for the previously unused/dead receive_blocked_damage() codepath:
-# before, any hit landing on a blocking player was fully absorbed (full
-# immunity, 0 damage, 0 knockback). Now it halves the % gained and reduces
-# knockback to block_knockback_reduction of the attack's base knockback.
-func receive_blocked_damage(damage: float, knockback_base: Vector2) -> void:
-	var reduced_damage = damage * (1.0 - block_damage_reduction)
-	var final_knockback = knockback_base * block_knockback_reduction
-
-	if owner is Fighter:
-		owner.add_damage(reduced_damage)
-
-	if owner.enemy is Fighter:
-		if owner.enemy.global_position.x < owner.global_position.x:
-			final_knockback.x = abs(final_knockback.x)
-		else:
-			final_knockback.x = -abs(final_knockback.x)
-
-	# Smash-style: knockback grows with the victim's accumulated damage %,
-	# applied on top of the block reduction.
-	final_knockback *= owner.get_knockback_scale()
-
-	state_machine.velocity = final_knockback
-	owner.set_velocity(state_machine.velocity)
+	# A grounded shield slides back: only the horizontal push applies, so a blocked
+	# hit never lifts the fighter off the floor (the shield is ground-only).
+	var push := Vector2(hit.knockback.x * profile.shield_knockback_fraction, 0.0)
+	push.x = absf(push.x) if hit.source_position.x < fighter.global_position.x else -absf(push.x)
+	# Smash-style: knockback grows with the victim's accumulated damage %.
+	push *= fighter.get_knockback_scale()
+	state_machine.velocity = push
+	fighter.set_velocity(push)
+	return false

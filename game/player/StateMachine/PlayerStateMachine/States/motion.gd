@@ -26,16 +26,22 @@ func _update(_delta: float) -> void:
 	return
 
 # Fixed priority; the per-state `available_actions` and `can_enter()` gate it.
-# Relative order jump > punch > protect > shoot matches the old AI order.
-const ACTION_PRIORITY: Array[String] = ["recovery", "dash", "jump", "punch", "protect", "shoot"]
+# Relative order jump > punch > protect > shoot matches the old AI order. The
+# block key is "protect" on the ground and "air_dodge" in the air (a state lists
+# only the one it allows).
+const ACTION_PRIORITY: Array[String] = ["recovery", "dash", "jump", "punch", "protect", "air_dodge", "shoot"]
+# While holding food a throw outranks punch and block (only recovery, dash and
+# jump still win), so a punch pressed in the same frame never masks it.
+const ACTION_PRIORITY_HOLDING: Array[String] = ["recovery", "dash", "jump", "shoot", "punch", "protect", "air_dodge"]
 
 ## Reads owner.intent and emits at most one transition. Returns true when it did.
 func handle_actions() -> bool:
 	var intent: FighterIntent = owner.intent
-	for action in ACTION_PRIORITY:
+	var priority := ACTION_PRIORITY_HOLDING if owner.is_holding_food() else ACTION_PRIORITY
+	for action in priority:
 		if not available_actions.has(action) or not _is_requested(action, intent):
 			continue
-		var target_name := action.capitalize()
+		var target_name := action.to_pascal_case()
 		var target: State = state_machine.state_map.get(target_name)
 		if target == null or not target.can_enter():
 			continue
@@ -54,7 +60,7 @@ func _is_requested(action: String, intent: FighterIntent) -> bool:
 			return owner.jump_buffer_timer > 0.0
 		"punch":
 			return intent.attack_pressed
-		"protect":
+		"protect", "air_dodge":
 			return intent.block_pressed
 		"shoot":
 			return intent.throw_pressed

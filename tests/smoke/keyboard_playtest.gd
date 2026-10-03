@@ -491,9 +491,13 @@ func _block() -> void:
 	await s.frames(6)
 	var blocking := _state(p1)
 	await s.screenshot("kb_07_block")
+	var meter_before := p1.shield.value
 	Combat.apply_hit(p2, p1, 8.0, Vector2(220.0, -120.0))
 	await s.frames(4)
 	var blocked_damage := p1.damage_percent - base
+	var meter_drain := meter_before - p1.shield.value
+	var chip := 8.0 * p1.profile.shield_chip_fraction
+	var expected_drain := 8.0 * p1.profile.shield_damage_scale
 	release(&"P1_protect")
 	await s.frames(40)
 	await wait_until(func(): return p1.is_on_floor() and _state(p1) == "Idle" and not p1.is_invulnerable, 240)
@@ -501,7 +505,9 @@ func _block() -> void:
 	Combat.apply_hit(p2, p1, 8.0, Vector2(220.0, -120.0))
 	await s.frames(4)
 	var open_damage := p1.damage_percent - open_base
-	s.check("KB block: holding S enters Protect and halves the damage taken", blocking == "Protect" and is_equal_approx(blocked_damage, 4.0) and is_equal_approx(open_damage, 8.0), "state=%s blocked=%.1f open=%.1f" % [blocking, blocked_damage, open_damage])
+	# The hold itself drains a little between the press and the hit, so the drain is
+	# the hit's shield damage plus at most a few ticks of hold.
+	s.check("KB block: holding S enters Protect, takes the chip fraction and drains the meter", blocking == "Protect" and is_equal_approx(blocked_damage, chip) and meter_drain >= expected_drain and meter_drain < expected_drain + 3.0 and is_equal_approx(open_damage, 8.0), "state=%s blocked=%.2f chip=%.2f drain=%.2f open=%.1f" % [blocking, blocked_damage, chip, meter_drain, open_damage])
 	await s.frames(40)
 
 func _food() -> void:

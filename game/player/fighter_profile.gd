@@ -148,6 +148,45 @@ extends Resource
 @export var ledge_attack_knockback: Vector2 = Vector2(260.0, -180.0)
 @export var ledge_attack_reach: float = 130.0
 
+@export_group("Shield")
+## Shield meter (see ShieldMeter): holding drains it, a blocked hit drains it and
+## it breaks into a punishable dizzy state at zero. Times are game seconds; the
+## runtime converts them to physics ticks.
+@export var shield_max: float = 100.0
+## A continuous hold from full breaks the shield after this long.
+@export var shield_break_time: float = 5.0
+@export var shield_regen_delay: float = 0.5
+## Empty to full.
+@export var shield_regen_time: float = 6.0
+## Meter damage of a blocked hit = hit damage * this (unless the hit sets one).
+@export var shield_damage_scale: float = 1.5
+## Fraction of a blocked hit's damage that still lands (strictly between 0 and 1).
+@export_range(0.01, 0.99) var shield_chip_fraction: float = 0.25
+## Fraction of the knockback a blocked hit still applies.
+@export var shield_knockback_fraction: float = 0.3
+## Meter ratio the fighter wakes up with after a dizzy.
+@export var shield_break_recovery: float = 0.5
+@export var dizzy_duration: float = 2.0
+## Upward pop at the moment the shield breaks (negative is up).
+@export var shield_break_pop_velocity: float = -450.0
+
+@export_group("Air dodge")
+## In the air the block key dodges instead of shielding: intangible for
+## `air_dodge_invuln`, then helpless for `air_dodge_endlag`. One per airtime, and
+## a new one cannot start until `air_dodge_cooldown` (from the dodge start) is over.
+@export var air_dodge_invuln: float = 0.3
+@export var air_dodge_endlag: float = 0.15
+@export var air_dodge_cooldown: float = 0.6
+## Multipliers on the horizontal speed and on gravity during the dodge.
+@export var air_dodge_drift: float = 0.5
+@export var air_dodge_gravity_scale: float = 0.5
+
+@export_group("Pickup")
+## Food is picked up inside a rectangle `2 * pickup_reach_x` wide and
+## `pickup_reach_height` tall whose bottom sits at the fighter's feet.
+@export var pickup_reach_x: float = 105.0
+@export var pickup_reach_height: float = 100.0
+
 @export_group("Moveset")
 @export var can_double_jump: bool = true
 @export var can_dash: bool = true
