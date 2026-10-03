@@ -123,13 +123,14 @@ func _run() -> void:
 	var probe_agent := _agent_of(probe)
 	var probe_index := 1 if probe_agent == probe.fighter_2 else 0
 	var via_controller: Array = probe_agent.ai_controller_2d.get_obs()["obs"]
-	var via_schema := BvsSchemaV2.build_obs(probe.get_state_snapshot(), probe_index)
-	var same_obs := via_controller.size() == via_schema.size() and via_schema.size() == 102
+	var current_schema: Object = BvsSchema.current()
+	var via_schema: Array = current_schema.build_obs(probe.get_state_snapshot(), probe_index)
+	var same_obs: bool = via_controller.size() == via_schema.size() and via_schema.size() == current_schema.OBS_DIM
 	for i in via_schema.size():
 		same_obs = same_obs and is_equal_approx(float(via_controller[i]), via_schema[i])
-	s.check("the AI controller observation equals BvsSchemaV2.build_obs for the same fighter", same_obs)
+	s.check("the AI controller observation equals the current schema build_obs for the same fighter", same_obs)
 	var space: Dictionary = probe_agent.ai_controller_2d.get_action_space()
-	s.check("the AI controller action space is the schema's", space == BvsSchemaV2.action_space() and probe_agent.ai_controller_2d.get_obs_space()["obs"]["size"] == [102])
+	s.check("the AI controller action space is the schema's", space == current_schema.action_space() and probe_agent.ai_controller_2d.get_obs_space()["obs"]["size"] == [current_schema.OBS_DIM])
 
 	# set_action stores the branch indices and bumps the sequence.
 	var ai := probe_agent.ai_controller_2d as PlayerAIController
@@ -262,13 +263,13 @@ func _run() -> void:
 	s.check("an unknown opponent kind names its row and kind", broken.errors.size() >= 1 and broken.errors[0].contains("row 1") and broken.errors[0].contains("cpu_impossible"), str(broken.errors))
 	s.check("a snapshot whose file is missing names its row and path", broken.errors.size() >= 2 and broken.errors[1].contains("row 2") and broken.errors[1].contains("/nowhere.onnx"), str(broken.errors))
 	s.check("a snapshot row without a model path says so", broken.errors.size() >= 3 and broken.errors[2].contains("row 3") and broken.errors[2].contains("model path"), str(broken.errors))
-	s.check("a snapshot that does not fit schema 2 is rejected, naming its row", broken.errors.size() == 4 and broken.errors[3].contains("row 4") and broken.errors[3].contains("schema 2"), str(broken.errors))
+	s.check("a snapshot that does not fit the current schema is rejected, naming its row", broken.errors.size() == 4 and broken.errors[3].contains("row 4") and broken.errors[3].contains("schema %d" % BvsSchema.CURRENT_VERSION), str(broken.errors))
 	s.check("the invalid rows are not built, so no CPU Easy was substituted", broken.games.size() == 1)
 	broken.queue_free()
 	await s.frames(2)
 
 	# A snapshot row: the opponent is a PolicyController running the frozen model.
-	var snapshot_path := "res://tests/fixtures/onnx/random_policy.onnx"
+	var snapshot_path := "res://tests/fixtures/onnx/random_policy_v3.onnx"
 	var snapshot_arena := TrainArena.new()
 	snapshot_arena.name = "SnapshotTrain"
 	snapshot_arena.position = Vector2(0.0, 80000.0)
@@ -281,7 +282,7 @@ func _run() -> void:
 		var row_agent := _agent_of(row_game)
 		var foe: Fighter = row_game.fighter_2 if row_agent == row_game.fighter_1 else row_game.fighter_1
 		var foe_policy := foe.controller as PolicyController
-		s.check("snapshot row %d: the opponent is a PolicyController with the frozen model" % row_index, foe_policy != null and foe_policy.model != null and foe_policy.model.validate(BvsSchemaV2) == "" and foe.ai_controller_2d.control_mode == AIController2D.ControlModes.HUMAN, str(foe.controller))
+		s.check("snapshot row %d: the opponent is a PolicyController with the frozen model" % row_index, foe_policy != null and foe_policy.model != null and foe_policy.model.validate(BvsSchema.current()) == "" and foe.ai_controller_2d.control_mode == AIController2D.ControlModes.HUMAN, str(foe.controller))
 		s.check("snapshot row %d: the model decides every 4 frames and does not fail" % row_index, foe_policy != null and foe_policy.decisions >= 5 and foe_policy.error == "", "decisions=%d" % (foe_policy.decisions if foe_policy != null else -1))
 		s.check("snapshot row %d: the other fighter is the training agent" % row_index, row_agent != null and row_agent.ai_controller_2d.control_mode == AIController2D.ControlModes.TRAINING)
 	s.check("two rows naming the same snapshot share one loaded model", _policy_of(snapshot_arena.games[0]).model == _policy_of(snapshot_arena.games[1]).model)

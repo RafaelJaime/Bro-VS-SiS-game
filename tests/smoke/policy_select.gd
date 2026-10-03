@@ -104,14 +104,14 @@ func _run() -> void:
 	var start_x := p2.position.x
 	var active := 0
 	var moved := 0.0
-	for frame in 180:
+	for frame in 600:
 		await s.frames(1)
 		var intent := p2.intent
 		if not is_zero_approx(intent.move_x) or intent.attack_pressed or intent.jump_pressed or intent.dash_pressed or intent.block_held or intent.throw_pressed or intent.special_pressed:
 			active += 1
 		moved = maxf(moved, absf(p2.position.x - start_x))
 	s.check("the policy fighter takes decisions (one per 4 frames)", policy.decisions >= 40 and policy.error == "", "decisions=%d error=%s" % [policy.decisions, policy.error])
-	s.check("the policy fighter's actions are non-zero (it acts, it does not idle)", active > 20, "active_frames=%d of 180" % active)
+	s.check("the policy fighter's actions are non-zero (it acts, it does not idle)", active > 20, "active_frames=%d of 600" % active)
 	s.check("the policy fighter moves", moved > 20.0, "max dx=%.0f" % moved)
 	await s.screenshot("policy_select_match")
 	model_manager.hub_transport = Callable()

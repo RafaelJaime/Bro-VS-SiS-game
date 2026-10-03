@@ -8,10 +8,10 @@ extends RefCounted
 ## (bvs_schema_vN.gd plus its decoder) and one entry in each table here, and never
 ## edits an older version.
 
-## The playable schema. Version 3 is registered and trainable, but stays behind
-## this switch until a retrained model passes every acceptance gate; it flips to 3
-## in the same commit that bundles that model.
-const CURRENT_VERSION := 2
+## The playable schema (what the picker, the model manager and the bundled default
+## accept). It flipped to 3 in the commit that bundled the retrained schema 3 model
+## after every acceptance gate passed; schema 2 stays registered and frozen.
+const CURRENT_VERSION := 3
 
 ## Version -> schema script / action decoder script. Only the test hooks below
 ## touch them at run time (and never for the built-in versions).
