@@ -42,6 +42,24 @@ func _to_results(game: Node2D, loser_name: String) -> bool:
 func _rect(control: Control) -> Rect2:
 	return Rect2(control.global_position, control.size * control.scale)
 
+# The art reaches the panel's bottom border: its bottom edge is at or below the
+# panel's, it was lowered by the drop, and the bottom rows of the rendered panel
+# are not the panel background (no strip of background between art and border).
+func _check_art_meets_border(tag: String, panel: ResultsPanel) -> void:
+	var rect := panel.art_rect()
+	s.check("%s: the art's bottom edge is at or below the panel's inner bottom" % tag, rect.end.y >= panel.size.y, "art end=%.1f panel=%.1f" % [rect.end.y, panel.size.y])
+	s.check("%s: the art was lowered a few pixels" % tag, rect.position.y >= ResultsPanel.ART_DROP - 0.01, "art top=%.1f" % rect.position.y)
+	var shot := root.get_viewport().get_texture().get_image()
+	var base := panel._base_color()
+	var probe := Vector2i(int(panel.global_position.x + panel.size.x * 0.5), int(panel.global_position.y + panel.size.y - 6.0))
+	var pixel := shot.get_pixelv(probe)
+	var backgrounds: Array[Color] = [base, base.lightened(0.22), base.lightened(0.45)]
+	var on_background := false
+	for background in backgrounds:
+		if absf(pixel.r - background.r) + absf(pixel.g - background.g) + absf(pixel.b - background.b) < 0.03:
+			on_background = true
+	s.check("%s: the pixels just above the border are the art, not the panel background" % tag, not on_background, "pixel=%s" % [pixel])
+
 func _check_screen(game: Node2D, tag: String, winner_name: String, loser_name: String) -> void:
 	var over: Control = game.game_over
 	var winner: Fighter = game.get_node(winner_name)
@@ -73,6 +91,8 @@ func _check_screen(game: Node2D, tag: String, winner_name: String, loser_name: S
 	s.check("%s: the winner panel is on screen, apart from the buttons" % tag, SCREEN.encloses(_rect(panel)) and not _rect(panel).intersects((_rect(over.get_node("%ReplayButton")))))
 	var cut_height := panel.art_rect().size.y * panel.crop
 	s.check("%s: the visible part of the art ends exactly at the panel bottom (intentional chest cut)" % tag, absf(cut_height - panel.size.y) < 1.0 or panel.art_rect().size.y * panel.crop > panel.size.y, "cut=%.1f panel=%.1f" % [cut_height, panel.size.y])
+	_check_art_meets_border(tag + " winner", panel)
+	_check_art_meets_border(tag + " loser", loser_panel)
 	s.check("%s: the winner name is big and named" % tag, (over.get_node("%WinnerNameLabel") as Label).text == winner.character_ui.name.to_upper() and (over.get_node("%WinnerNameLabel") as Label).get_theme_font_size("font_size") >= 56)
 	s.check("%s: WINS! is shown" % tag, (over.get_node("%WinnerLabel") as Label).text == "WINS!")
 

@@ -30,7 +30,8 @@ extends Control
 const STRIPE_WIDTH := 22.0
 const STRIPE_GAP := 46.0
 const DOT_SPACING := 13.0
-const BOTTOM_BAND := 9.0
+## The art is lowered this many pixels so it reaches the bottom border (no strip of panel background between the character and the edge).
+const ART_DROP := 12.0
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
@@ -43,24 +44,27 @@ func outline() -> PackedVector2Array:
 		Vector2(size.x - slant, size.y), Vector2(0.0, size.y),
 	])
 
-## Where the art is placed (local coordinates): it covers the whole panel,
-## showing `crop` of its height from the top, centered horizontally.
+## Where the art is placed (local coordinates): it is centered horizontally and
+## lowered by ART_DROP (never past the point where its bottom leaves the panel).
 func art_rect() -> Rect2:
 	if texture == null:
 		return Rect2()
 	var tex_size := texture.get_size()
 	var scale_to_fit := maxf(size.y / (tex_size.y * crop), size.x / tex_size.x)
 	var drawn := tex_size * scale_to_fit
-	return Rect2(Vector2((size.x - drawn.x) / 2.0, 0.0), drawn)
+	var drop := clampf(ART_DROP, 0.0, maxf(drawn.y - size.y, 0.0))
+	return Rect2(Vector2((size.x - drawn.x) / 2.0, drop), drawn)
 
-## True when the art covers the whole panel outline: no gap, so the crop is the
-## panel's own edge.
+## True when the art covers the panel's flat bottom edge and its sides: the crop
+## is the panel's own edge. The top may start a few pixels lower (the drop).
 func art_covers_panel() -> bool:
 	if texture == null:
 		return true
 	var rect := art_rect().grow(0.5)
 	for point in outline():
-		if not rect.has_point(point):
+		if point.y > 0.0 and not rect.has_point(point):
+			return false
+		if point.y == 0.0 and (point.x < rect.position.x or point.x > rect.end.x):
 			return false
 	return true
 
@@ -112,13 +116,6 @@ func _draw() -> void:
 		if greyed:
 			tint = Color(0.62, 0.62, 0.62)
 		draw_colored_polygon(poly, tint, uvs, texture)
-	# The cut: a bold band along the flat bottom edge, then the outline.
-	var band_poly := PackedVector2Array([
-		Vector2(size.x - slant + (slant * BOTTOM_BAND / size.y), size.y - BOTTOM_BAND),
-		Vector2(size.x - slant, size.y), Vector2(0.0, size.y),
-		Vector2(slant * BOTTOM_BAND / size.y, size.y - BOTTOM_BAND),
-	])
-	draw_colored_polygon(band_poly, color.lightened(0.15) if not greyed else base.lightened(0.3))
 	var closed := poly.duplicate()
 	closed.append(poly[0])
 	draw_polyline(closed, Color(0, 0, 0, 0.9), 9.0, true)
