@@ -53,14 +53,17 @@ func _run() -> void:
 	s.check("e2e: the match opens in the countdown with both CPUs locked", first.phase == Game.Phase.COUNTDOWN and first.get_node("Fighter1").controls_locked and first.get_node("Fighter2").controls_locked)
 	await _play_to_results(first, "match 1", 20.0)
 
-	first.game_over.get_node("%ReplayButton").pressed.emit()
+	# The results have no Rematch button now; the API keeps the long-run coverage.
+	paused = false  # the old Rematch button unpaused before restarting
+	scene_manager.rematch()
 	await s.frames(4)
 	var second: Game = scene_manager.current_scene
 	s.check("e2e: rematch starts a new match in COUNTDOWN", second != first and second.phase == Game.Phase.COUNTDOWN and not paused)
 	s.check("e2e: rematch keeps both CPUs", second.get_node("Fighter1").controller is ScriptedController and second.get_node("Fighter2").controller is ScriptedController)
 	await _play_to_results(second, "match 2 (rematch)", 15.0)
 
-	second.game_over.get_node("%ReplayButton").pressed.emit()
+	paused = false  # the old Rematch button unpaused before restarting
+	scene_manager.rematch()
 	await s.frames(4)
 	var third: Game = scene_manager.current_scene
 	await _play_to_results(third, "match 3 (second rematch)", 15.0)
