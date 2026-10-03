@@ -174,9 +174,16 @@ func frames(count: int) -> void:
 ## Instantiates game.tscn. Positions given here are applied before _ready, so
 ## they also become the fighters' respawn anchors and initial facing. The match
 ## countdown is skipped unless `with_countdown` is set, so scripts that test
-## movement or combat can act at once.
-func spawn_game(p1_x: float = NAN, p2_x: float = NAN, with_countdown: bool = false) -> Node2D:
+## movement or combat can act at once. Both fighters get the baseline FighterProfile
+## (the numbers the original suite was written against) unless `kits` is set, which
+## leaves them with the kit of their character (Fighter1 Rafael, Fighter2 Matilde).
+func spawn_game(p1_x: float = NAN, p2_x: float = NAN, with_countdown: bool = false, kits: bool = false) -> Node2D:
 	var game: Node2D = load(GAME_SCENE).instantiate()
+	if not kits:
+		for fighter_name in ["Fighter1", "Fighter2"]:
+			var fighter: Fighter = game.get_node(fighter_name)
+			fighter.kit_from_character = false
+			fighter.profile = FighterProfile.new()
 	if not is_nan(p1_x):
 		game.get_node("Fighter1").position.x = p1_x
 	if not is_nan(p2_x):

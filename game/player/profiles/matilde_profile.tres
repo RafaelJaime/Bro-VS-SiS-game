@@ -1,0 +1,140 @@
+[gd_resource type="Resource" script_class="FighterProfile" format=3]
+
+[ext_resource type="Script" path="res://game/combat/attack_profile.gd" id="1_6jlii"]
+[ext_resource type="Script" path="res://game/player/fighter_profile.gd" id="2_md0p8"]
+
+[sub_resource type="Resource" id="Resource_thbur"]
+script = ExtResource("1_6jlii")
+damage = 3.0
+knockback = Vector2(40, -40)
+hitbox_offset = Vector2(55, -60)
+hitbox_size = Vector2(110, 90)
+startup_ticks = 3
+active_ticks = 2
+endlag_ticks = 8
+cooldown_ticks = 0
+link_window_ticks = 8
+hitstun_ticks = 12
+hitstop_scale = 0.5
+
+[sub_resource type="Resource" id="Resource_q38cv"]
+script = ExtResource("1_6jlii")
+damage = 4.0
+knockback = Vector2(180, -160)
+hitbox_offset = Vector2(55, -60)
+hitbox_size = Vector2(110, 90)
+startup_ticks = 3
+active_ticks = 3
+endlag_ticks = 12
+cooldown_ticks = 0
+
+[sub_resource type="Resource" id="Resource_mx428"]
+script = ExtResource("1_6jlii")
+damage = 7.0
+knockback = Vector2(30, 380)
+hitbox_offset = Vector2(0, 80)
+hitbox_size = Vector2(110, 70)
+direction = &"down"
+startup_ticks = 5
+active_ticks = 3
+endlag_ticks = 14
+cooldown_ticks = 0
+
+[sub_resource type="Resource" id="Resource_lx0hi"]
+script = ExtResource("1_6jlii")
+damage = 6.0
+knockback = Vector2(130, -220)
+hitbox_offset = Vector2(65, 55)
+hitbox_size = Vector2(130, 50)
+direction = &"down"
+startup_ticks = 4
+active_ticks = 3
+endlag_ticks = 12
+cooldown_ticks = 0
+
+[sub_resource type="Resource" id="Resource_hsenh"]
+script = ExtResource("1_6jlii")
+knockback = Vector2(260, -90)
+hitbox_offset = Vector2(90, -10)
+hitbox_size = Vector2(120, 44)
+direction = &"side"
+startup_ticks = 5
+active_ticks = 3
+endlag_ticks = 14
+cooldown_ticks = 0
+
+[sub_resource type="Resource" id="Resource_so5sv"]
+script = ExtResource("1_6jlii")
+damage = 6.0
+knockback = Vector2(20, -430)
+hitbox_offset = Vector2(30, -70)
+hitbox_size = Vector2(120, 80)
+direction = &"up"
+startup_ticks = 4
+active_ticks = 3
+endlag_ticks = 18
+cooldown_ticks = 0
+hitstun_ticks = 33
+
+[sub_resource type="Resource" id="Resource_iqnbe"]
+script = ExtResource("1_6jlii")
+damage = 2.5
+knockback = Vector2(50, -20)
+startup_ticks = 3
+active_ticks = 2
+endlag_ticks = 9
+cooldown_ticks = 0
+link_window_ticks = 9
+hitstun_ticks = 15
+hitstun_kb_growth = -0.08
+hitstop_scale = 0.5
+
+[sub_resource type="Resource" id="Resource_7yrfc"]
+script = ExtResource("1_6jlii")
+damage = 2.5
+knockback = Vector2(50, -20)
+startup_ticks = 3
+active_ticks = 2
+endlag_ticks = 9
+cooldown_ticks = 0
+link_window_ticks = 9
+hitstun_ticks = 14
+hitstun_kb_growth = -0.058
+hitstop_scale = 0.5
+
+[sub_resource type="Resource" id="Resource_54wa1"]
+script = ExtResource("1_6jlii")
+damage = 4.0
+knockback = Vector2(240, -200)
+startup_ticks = 4
+active_ticks = 3
+endlag_ticks = 14
+cooldown_ticks = 0
+
+[sub_resource type="Resource" id="Resource_2nam6"]
+script = ExtResource("1_6jlii")
+damage = 6.0
+knockback = Vector2(200, -120)
+startup_ticks = 4
+active_ticks = 3
+endlag_ticks = 12
+cooldown_ticks = 0
+
+[resource]
+script = ExtResource("2_md0p8")
+run_speed = 340.0
+jump_velocity = -900.0
+double_jump_velocity = -780.0
+knockback_scale = 1.1
+kit_id = 1
+kit_name = &"matilde"
+jab_chain = Array[ExtResource("1_6jlii")]([SubResource("Resource_iqnbe"), SubResource("Resource_7yrfc"), SubResource("Resource_54wa1")])
+air_jab_chain = Array[ExtResource("1_6jlii")]([SubResource("Resource_thbur"), SubResource("Resource_q38cv")])
+neutral_single = SubResource("Resource_2nam6")
+launcher_followup = &"air_jab"
+attack_side = SubResource("Resource_hsenh")
+attack_up = SubResource("Resource_so5sv")
+attack_down_ground = SubResource("Resource_lx0hi")
+attack_down_air = SubResource("Resource_mx428")
+recovery_velocity = -1050.0
+recovery_drift = 290.0

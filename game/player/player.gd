@@ -26,6 +26,11 @@ signal reset_done
 		character_ui = value
 		if character_ui != null:
 			_apply_character_ui_settings()
+			# SceneManager.play_game assigns the characters after the scene is in the
+			# tree: the fighter switches to the kit of its new character (an assignment
+			# made while the scene loads is resolved in _enter_tree instead).
+			if kit_from_character and is_inside_tree():
+				set_profile(FighterKits.for_character(character_ui))
 			updated_characterUI.emit()
 	get:
 		return character_ui
@@ -33,6 +38,9 @@ signal reset_done
 ## Tuning and moveset flags. When unset, a default FighterProfile (baseline
 ## values) is created, so no .tres is required.
 @export var profile: FighterProfile
+## When true the fighter takes the kit of its character (FighterKits) at spawn and
+## whenever its character changes. Tests that need the baseline numbers turn it off.
+@export var kit_from_character: bool = true
 enum PlayerNumber { JUGADOR1, JUGADOR2 }
 @export var control_scheme: PlayerNumber = PlayerNumber.JUGADOR1
 ## Where this fighter's intent comes from. AUTO resolves from the scene's
@@ -162,7 +170,7 @@ var _blink_clock: float = 0.0
 # Runs parent-first, before the state machine children use `profile`.
 func _enter_tree() -> void:
 	if profile == null:
-		profile = FighterProfile.new()
+		profile = FighterKits.for_character(character_ui) if kit_from_character else FighterProfile.new()
 	shield = ShieldMeter.new()
 	shield.setup(profile)
 	combo = ComboTracker.new()
@@ -194,6 +202,18 @@ func _ready():
 	if enemy:
 		facing = 1 if enemy.global_position.x >= global_position.x else -1
 	animated_sprite_2d.flip_h = facing < 0
+
+## Switches to another kit at run time (a character change, a training episode, the
+## harness): everything derived from the profile is rebuilt. The states read
+## `owner.profile` on every use, so nothing else caches it.
+func set_profile(new_profile: FighterProfile) -> void:
+	profile = new_profile if new_profile != null else FighterProfile.new()
+	if shield != null:
+		shield.setup(profile)
+		shield.refill()
+	restore_air_actions()
+	if is_node_ready():
+		_build_pickup_area()
 
 # The pickup rectangle (`2 * pickup_reach_x` wide, `pickup_reach_height` tall) sits
 # on the floor under the fighter's feet, so food lying next to it is in reach. Each

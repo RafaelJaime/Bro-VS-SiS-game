@@ -120,7 +120,7 @@ The victim MUST track the combo: hit count, start tick, accumulated combo damage
 
 The system MUST guarantee that no combo is infinite, using tunable data:
 1. Chain cap: the finisher always launches.
-2. Hitstun decay: from combo hit 4 each further hit's hitstun MUST be multiplied by a decay factor below 1 per hit (default 0.75).
+2. Hitstun decay: from combo hit 4 each further hit's hitstun MUST be multiplied by a decay factor below 1 per hit (default 0.8).
 3. Knockback growth: knockback MUST be multiplied by 1.1 per combo hit (cumulative).
 4. Hard cap: the 6th hit of a combo MUST launch the victim and the victim MUST become invulnerable immediately for the post-hit invulnerability window (default 0.5 s).
 5. Time cap: a combo MUST end no later than 1.5 s (90 ticks) after its first hit; the next hit after the cap is treated as a new combo start only after the post-hit invulnerability window.
