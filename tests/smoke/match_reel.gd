@@ -61,10 +61,16 @@ func _blue_specks(image: Image) -> String:
 					return " ".join(found)
 	return " ".join(found)
 
-# Which GPU/CPU particle emitters are running and visible right now.
+# Which GPU/CPU particle emitters are running and visible right now. The intentional
+# effects of combat depth are not strays: the fire trail of a hot food in flight, the
+# one-shot fire puff where it hits and the sudden-death bomb effects.
 func _running_emitters(game: Node) -> Array[String]:
 	var names: Array[String] = []
 	for node in game.find_children("*", "", true, false):
+		if node.get_parent() is FoodProjectile or node.get_parent() is SuddenDeathHazards or node.get_parent() is Bomb:
+			continue
+		if node is CPUParticles2D and node.one_shot:
+			continue
 		var running := false
 		if node is GPUParticles2D:
 			running = node.emitting

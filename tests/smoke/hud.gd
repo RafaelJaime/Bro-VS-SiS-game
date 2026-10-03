@@ -77,5 +77,40 @@ func _run() -> void:
 	var high_color: Color = high.get_theme_color("font_color")
 	s.check("300% is dark red with a thick dark outline and a shadow", high.text == "300%" and high_color.r > 0.4 and high_color.r < 0.6 and high_color.g < 0.1 and high.get_theme_constant("outline_size") >= 10 and high.get_theme_color("font_outline_color").get_luminance() < 0.1 and high.get_theme_color("font_shadow_color").a > 0.5 and high.get_theme_constant("shadow_offset_y") > 0, "color=%s outline=%d" % [high_color, high.get_theme_constant("outline_size")])
 	await s.screenshot("s5b_hud_300")
+	await _shield_hud(s, game, f1, f2, hud1, hud2)
 	await s.despawn(game)
 	s.finish()
+
+# The shield bar under the percent follows the meter, sits idle at full, and the
+# "BREAK!" cue shows while the fighter is dizzy.
+func _shield_hud(s: RefCounted, game: Node2D, f1: Fighter, f2: Fighter, hud1: FighterHud, hud2: FighterHud) -> void:
+	f1.stocks = Fighter.MAX_STOCKS
+	f1.shield.refill()
+	f2.shield.refill()
+	await s.frames(3)
+	s.check("the HUD card has a shield bar and a hidden BREAK label", hud1.shield_bar != null and hud1.shield_fill != null and hud1.break_label != null and not hud1.break_label.visible and hud2.shield_bar != null)
+	s.check("the shield bar is a plain panel, not a ProgressBar", hud1.shield_bar.get_class() == "Panel" and hud1.shield_bar.size.y == 6.0, "size=%s" % hud1.shield_bar.size)
+	s.check("a full meter shows a full bar, idle (dim)", is_equal_approx(hud1.shown_shield_ratio(), 1.0) and hud1.shield_bar.modulate.a < 0.6, "ratio=%.2f alpha=%.2f" % [hud1.shown_shield_ratio(), hud1.shield_bar.modulate.a])
+	f1.shield.set_ratio(0.5)
+	await s.frames(2)
+	s.check("the bar fill tracks the meter (about 0.5)", absf(hud1.shown_shield_ratio() - 0.5) < 0.02 and hud1.shield_bar.modulate.a > 0.9, "ratio=%.3f" % hud1.shown_shield_ratio())
+	s.check("the other fighter's bar is untouched", is_equal_approx(hud2.shown_shield_ratio(), 1.0))
+	var rect: Rect2 = hud1.panel.get_global_rect()
+	var bar_rect: Rect2 = hud1.shield_bar.get_global_rect()
+	s.check("the bar sits inside its panel", rect.encloses(bar_rect), "panel=%s bar=%s" % [rect, bar_rect])
+	f1.shield.set_ratio(0.2)
+	await s.frames(2)
+	var weak: Color = (hud1.shield_fill.get_theme_stylebox("panel") as StyleBoxFlat).bg_color
+	s.check("a weak shield turns the bar red", weak.r > 0.8 and weak.b < 0.4, "color=%s" % weak)
+	await s.screenshot("cd_hud_shield_bar")
+
+	f1.break_shield(null)
+	await s.frames(3)
+	s.check("BREAK! shows while dizzy", hud1.break_label.visible and hud1.break_label.text == "BREAK!" and not hud2.break_label.visible)
+	await s.screenshot("cd_hud_break_label")
+	var guard := 0
+	while f1.is_dizzy() and guard < 400:
+		await s.frames(1)
+		guard += 1
+	await s.frames(2)
+	s.check("BREAK! hides when the dizzy ends", not hud1.break_label.visible)

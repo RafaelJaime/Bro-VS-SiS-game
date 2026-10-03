@@ -2,7 +2,7 @@ extends SceneTree
 ## The credits screen, windowed: the two names sit on the same row (same global y
 ## and height) and each is centered over its own column, shown over the shared
 ## menu background. Each illustration slides in from its own side, ends with its cut
-## edge on the bottom of the screen and keeps it there while breathing.
+## edge on the bottom of the screen and keeps it there.
 
 const Smoke := preload("res://tests/smoke/smoke_util.gd")
 const CREDITS_SCENE := "res://ui/credits/credits.tscn"
@@ -37,7 +37,7 @@ func _run() -> void:
 	s.check("matilde ends on the left half, rafael on the right half", m_art.get_global_rect().get_center().x < 400.0 and r_art.get_global_rect().get_center().x > 400.0)
 	s.check("both illustrations end fully on screen", m_art.get_global_rect().position.x >= 0.0 and r_art.get_global_rect().end.x <= 800.0, "%s / %s" % [m_art.get_global_rect(), r_art.get_global_rect()])
 	s.check("both illustrations have the same size", m_art.size.is_equal_approx(r_art.size), "%s vs %s" % [m_art.size, r_art.size])
-	s.check("the names pop in to full size", is_equal_approx(rafael.scale.x, 1.0) and is_equal_approx(matilde.scale.x, 1.0))
+	s.check("the names show at full size with no pop animation", is_equal_approx(rafael.scale.x, 1.0) and is_equal_approx(matilde.scale.x, 1.0))
 	var bottom_ok := true
 	var bottoms := PackedStringArray()
 	for i in 8:
@@ -46,12 +46,9 @@ func _run() -> void:
 		bottoms.append("%.2f/%.2f" % [m_bottom, r_bottom])
 		bottom_ok = bottom_ok and absf(m_bottom - 600.0) <= 1.0 and absf(r_bottom - 600.0) <= 1.0
 		await create_timer(0.25).timeout
-	s.check("each illustration's cut edge stays on the screen bottom while breathing", bottom_ok, ", ".join(bottoms))
-	s.check("the art breathes (scale moved off 1.0)", m_art.scale.x > 1.0 or r_art.scale.x > 1.0)
+	s.check("each illustration's cut edge stays on the screen bottom", bottom_ok, ", ".join(bottoms))
+	s.check("the art does not grow or breathe (scale stays 1.0)", is_equal_approx(m_art.scale.x, 1.0) and is_equal_approx(r_art.scale.x, 1.0), "%.3f / %.3f" % [m_art.scale.x, r_art.scale.x])
+	s.check("no light-sweep material on the art", m_art.material == null and r_art.material == null)
 	await s.screenshot("credits")
-	credits.play_sweep(m_art)
-	credits.play_sweep(r_art)
-	await create_timer(0.45).timeout
-	await s.screenshot("credits_sweep")
 	s.check("the credits own no background of their own", credits.get_node_or_null("background") == null)
 	s.finish()

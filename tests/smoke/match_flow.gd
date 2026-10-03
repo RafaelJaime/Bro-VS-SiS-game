@@ -212,9 +212,15 @@ func _sudden_death() -> void:
 	var fighter_2: Fighter = game.get_node("Fighter2")
 	fighter_1.add_damage(50.0)
 	fighter_1.position.x = 400.0
+	# A short grace period and harmless bombs, so the escalation can be observed
+	# without the bombs deciding the match (hazards.gd covers them in earnest).
+	game.hazards.grace_time = 1.0
+	game.hazards.bomb_damage = 0.0
+	game.hazards.bomb_knockback = Vector2.ZERO
 	game.timer.start(0.3)
 	await s.sim(0.6)
 	s.check("sudden death: equal stocks at time-up start sudden death", game.phase == Game.Phase.SUDDEN_DEATH and game.get_state_snapshot()["sudden_death"])
+	s.check("sudden death: the bombs wait for the intro to end", not game.hazards.is_active() and game.hazards.bombs_spawned == 0)
 	s.check("sudden death: both fighters at 1 stock", fighter_1.stocks == 1 and fighter_2.stocks == 1, "%d/%d" % [fighter_1.stocks, fighter_2.stocks])
 	s.check("sudden death: both at 300%", is_equal_approx(fighter_1.damage_percent, 300.0) and is_equal_approx(fighter_2.damage_percent, 300.0), "%.0f/%.0f" % [fighter_1.damage_percent, fighter_2.damage_percent])
 	s.check("sudden death: the timer is off and its label hidden", game.timer.is_stopped() and not game.get_node("UI/TimerLabel").visible)
@@ -231,8 +237,12 @@ func _sudden_death() -> void:
 	s.check("sudden death: fighters are locked during the intro", absf(fighter_1.position.x - x_locked) < 1.0)
 	await s.sim(2.0)
 	s.check("sudden death: unlocked after the intro, no new stocks or timer", not fighter_1.controls_locked and game.timer.is_stopped() and game.phase == Game.Phase.SUDDEN_DEATH)
+	s.check("sudden death: the escalation is running and still in its grace period", game.hazards.is_active() and game.hazards.phase() == 1 and game.hazards.bombs_spawned == 0 and game.get_state_snapshot()["sudden_death_phase"] == 1)
+	await s.sim(1.5)
+	s.check("sudden death: bombs begin to fall after the grace period", game.hazards.bombs_spawned >= 1 and game.get_state_snapshot()["sudden_death_phase"] == 2)
 	_knock_out(fighter_2)
 	await s.frames(4)
+	s.check("sudden death: the escalation stops and no bomb remains once the match is over", not game.hazards.is_active() and game.hazards.get_child_count() == 0)
 	s.check("sudden death: the next KO ends the match with the survivor as winner", game.phase == Game.Phase.OVER and game.winner == fighter_1)
 	s.check("sudden death: GAME! is announced", game.countdown_label.visible and game.countdown_label.text == "GAME!")
 	await _wait_results(game)
@@ -264,6 +274,7 @@ func _double_ko() -> void:
 	await s.frames(4)
 	s.check("double KO on the last stocks: sudden death, not a game over", game.phase == Game.Phase.SUDDEN_DEATH and not game.game_over.visible)
 	s.check("double KO: both are alive again at 1 stock and 300%", fighter_1.stocks == 1 and fighter_2.stocks == 1 and is_equal_approx(fighter_1.damage_percent, 300.0))
+	s.check("double KO: the escalation starts over (no bombs, waiting for the intro)", not game.hazards.is_active() and game.hazards.get_child_count() == 0 and game.hazards.bombs_spawned == 0)
 	await _leave(game)
 
 func _game_and_results() -> void:

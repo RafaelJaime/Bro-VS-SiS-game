@@ -2,7 +2,8 @@
 
 The validation mirrors `BvsSchema.validate_sidecar` in GDScript: schema_version,
 obs_dim, action_branches (names and sizes, in order) and action_repeat must match
-`bvs_training.schema`.
+`bvs_training.schema` (the training schema, 3, unless a version is passed). The Hub
+tag of a schema is `schema.SCHEMA_TAG` (`bvs-schema-3`).
 """
 
 from __future__ import annotations
@@ -53,15 +54,16 @@ def build_sidecar(
     return sidecar
 
 
-def validate(sidecar: dict) -> str:
-    """"" when valid, otherwise a short reason."""
+def validate(sidecar: dict, version: int = schema.TRAIN_VERSION) -> str:
+    """"" when valid for schema `version` (default: the training schema), otherwise a short reason."""
+    spec = schema.SCHEMAS[version]
     for key in ("schema_version", "obs_dim", "action_branches", "action_repeat", "trained_on_commit"):
         if key not in sidecar:
             return f"bvs.json is missing '{key}'"
-    if sidecar["schema_version"] != schema.SCHEMA_VERSION:
-        return f"schema_version {sidecar['schema_version']} != {schema.SCHEMA_VERSION}"
-    if sidecar["obs_dim"] != schema.OBS_DIM:
-        return f"obs_dim {sidecar['obs_dim']} != {schema.OBS_DIM}"
+    if sidecar["schema_version"] != spec.version:
+        return f"schema_version {sidecar['schema_version']} != {spec.version}"
+    if sidecar["obs_dim"] != spec.obs_dim:
+        return f"obs_dim {sidecar['obs_dim']} != {spec.obs_dim}"
     if sidecar["action_branches"] != schema.sidecar_branches():
         return "action_branches do not match the schema"
     if sidecar["action_repeat"] != schema.ACTION_REPEAT:

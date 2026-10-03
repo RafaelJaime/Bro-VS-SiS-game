@@ -61,6 +61,16 @@ static func load_res(dir: String) -> Dictionary:
 		result.model.label = result.model.label if result.model.label != "" else dir.get_file()
 	return result
 
+## The bvs-schema-N this model was trained for, read from its sidecar. A model with
+## no (or a non-integer) `schema_version` is treated as the current schema.
+func schema_version() -> int:
+	var declared: Variant = sidecar.get("schema_version", null)
+	if declared is int:
+		return declared
+	if declared is float and is_finite(declared) and declared == floorf(declared):
+		return int(declared)
+	return BvsSchema.CURRENT_VERSION
+
 func input_dim() -> int:
 	return _graph.input_dim
 

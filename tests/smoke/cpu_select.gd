@@ -74,7 +74,7 @@ func _run() -> void:
 		var bundled_config: ControllerConfig = ai.get_controller_config(is_p2)
 		var bundled_model: OnnxPolicyModel = model_manager.bundled_default()
 		s.check("%s 'AI: BVS default' builds a Policy config with the bundled model" % ("P2" if is_p2 else "P1"), bundled_model != null and bundled_config.kind == ControllerConfig.Kind.POLICY and bundled_config.model == bundled_model and bundled_config.is_playable(), "model=%s" % str(bundled_config.model))
-	s.check("the bundled model is validated and labelled", model_manager.bundled_default().repo_id == "bundled" and model_manager.bundled_default().label == "BVS default" and model_manager.bundled_default().validate(BvsSchemaV2) == "")
+	s.check("the bundled model is validated and labelled", model_manager.bundled_default().repo_id == "bundled" and model_manager.bundled_default().label == "BVS default" and model_manager.bundled_default().validate(BvsSchema.current()) == "")
 	s.check("selecting the bundled model makes no HTTP request", urls.is_empty() and model_manager.get_children().all(func(child: Node): return not (child is HTTPRequest)), str(urls))
 	s.check("the bundled selection keeps Play enabled and shows it is ready", ai.is_ready_to_play() and ai.status_label_p2.text.contains("bundled"), ai.status_label_p2.text)
 	option_p1.select(0)

@@ -309,6 +309,14 @@ func _check_default_cost(s: Smoke) -> void:
 	print("INFO bundled default model inference cost: %.1f us per inference (%d runs, headless)" % [per_run, PERF_RUNS])
 	s.check("default cost: the bundled model infers under %d us" % int(MAX_INFERENCE_USEC), per_run <= MAX_INFERENCE_USEC, "%.1f us" % per_run)
 
+## The registered schema (2 or 3) whose observation has `obs_dim` floats, or null.
+func _schema_for_dim(obs_dim: int) -> Object:
+	for version in [2, 3]:
+		var schema := BvsSchema.get_schema(version)
+		if schema != null and int(schema.OBS_DIM) == obs_dim:
+			return schema
+	return null
+
 func _check_golden(s: Smoke, path: String) -> void:
 	var golden: Variant = _json(path)
 	s.check("golden file parses", golden is Dictionary, path)
@@ -323,7 +331,14 @@ func _check_golden(s: Smoke, path: String) -> void:
 	if loaded.model == null:
 		return
 	var model: OnnxPolicyModel = loaded.model
-	s.check("golden: exported model validates against bvs-schema-2", model.validate(BvsSchemaV2) == "", model.validate(BvsSchemaV2))
+	# The golden names its observation width; the schema that has it (2 or 3) is the one
+	# the model must fit, so a schema 3 export is checked before it is bundled.
+	var schema := _schema_for_dim(int(golden.get("obs_dim", 102)))
+	s.check("golden: obs_dim %d belongs to a registered schema" % int(golden.get("obs_dim", 102)), schema != null)
+	if schema == null:
+		return
+	var version: int = schema.VERSION
+	s.check("golden: exported model validates against bvs-schema-%d" % version, model.validate(schema) == "", model.validate(schema))
 	var tolerance := float(golden["tolerance"])
 	var worst := 0.0
 	var argmax_misses := 0
@@ -335,7 +350,7 @@ func _check_golden(s: Smoke, path: String) -> void:
 			continue
 		for i in expected.size():
 			worst = maxf(worst, absf(logits[i] - expected[i]))
-		var got_argmax := BvsSchemaV2.argmax_branches(logits)
+		var got_argmax: PackedInt32Array = schema.argmax_branches(logits)
 		var want_argmax: Array = case_spec["argmax"]
 		for b in want_argmax.size():
 			if got_argmax[b] != int(want_argmax[b]):

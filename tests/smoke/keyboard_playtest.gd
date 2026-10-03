@@ -330,7 +330,10 @@ func _controls() -> void:
 	await _press_time_aim()
 	await _recovery_and_fall()
 	await _block()
+	await _shield_and_dizzy()
+	await _air_dodge_keys()
 	await _food()
+	await _throw_priority_keys()
 	await _pause()
 	await _ledge()
 
@@ -491,9 +494,13 @@ func _block() -> void:
 	await s.frames(6)
 	var blocking := _state(p1)
 	await s.screenshot("kb_07_block")
+	var meter_before := p1.shield.value
 	Combat.apply_hit(p2, p1, 8.0, Vector2(220.0, -120.0))
 	await s.frames(4)
 	var blocked_damage := p1.damage_percent - base
+	var meter_drain := meter_before - p1.shield.value
+	var chip := 8.0 * p1.profile.shield_chip_fraction
+	var expected_drain := 8.0 * p1.profile.shield_damage_scale
 	release(&"P1_protect")
 	await s.frames(40)
 	await wait_until(func(): return p1.is_on_floor() and _state(p1) == "Idle" and not p1.is_invulnerable, 240)
@@ -501,7 +508,9 @@ func _block() -> void:
 	Combat.apply_hit(p2, p1, 8.0, Vector2(220.0, -120.0))
 	await s.frames(4)
 	var open_damage := p1.damage_percent - open_base
-	s.check("KB block: holding S enters Protect and halves the damage taken", blocking == "Protect" and is_equal_approx(blocked_damage, 4.0) and is_equal_approx(open_damage, 8.0), "state=%s blocked=%.1f open=%.1f" % [blocking, blocked_damage, open_damage])
+	# The hold itself drains a little between the press and the hit, so the drain is
+	# the hit's shield damage plus at most a few ticks of hold.
+	s.check("KB block: holding S enters Protect, takes the chip fraction and drains the meter", blocking == "Protect" and is_equal_approx(blocked_damage, chip) and meter_drain >= expected_drain and meter_drain < expected_drain + 3.0 and is_equal_approx(open_damage, 8.0), "state=%s blocked=%.2f chip=%.2f drain=%.2f open=%.1f" % [blocking, blocked_damage, chip, meter_drain, open_damage])
 	await s.frames(40)
 
 func _food() -> void:
@@ -541,6 +550,94 @@ func _landed_food() -> Array:
 		if child is FoodPickup and not child.picked_up and child.is_on_floor():
 			found.append(child)
 	return found
+
+## Combat depth through the real keys: the shield bubble and its meter, the shield
+## break (dizzy, BREAK! on the card, keys ignored, the meter back at 50%), the air
+## dodge, and the throw that beats a punch pressed in the same frame.
+func _shield_and_dizzy() -> void:
+	await reset_scene(700.0, 330.0)
+	await s.frames(20)
+	var bubble: ShieldBubble = p1.get_node("ShieldBubble")
+	var hud: FighterHud = p1.get_node("PlayerUI")
+	var meter_start := p1.shield.value
+	press(&"P1_protect")
+	await s.sim(1.0)
+	var shielding := _state(p1) == "Protect"
+	var drained := meter_start - p1.shield.value
+	var bar_shown := hud.shown_shield_ratio()
+	await s.screenshot("kb_15_shield_bubble")
+	s.check("KB shield: holding S raises the bubble, the meter drains about 20 per second and the HUD bar follows", shielding and bubble.visible and drained > 12.0 and drained < 30.0 and absf(bar_shown - p1.shield.ratio()) < 0.05, "state=%s drained=%.1f bar=%.2f meter=%.2f" % [_state(p1), drained, bar_shown, p1.shield.ratio()])
+	release(&"P1_protect")
+	await s.frames(3)
+	var at_release := p1.shield.value
+	await s.sim(1.5)
+	s.check("KB shield: letting go hides the bubble and the meter regenerates", not bubble.visible and p1.shield.value > at_release, "meter %.1f -> %.1f" % [at_release, p1.shield.value])
+
+	# Hold it until it breaks (about 5 s from full).
+	p1.shield.refill()
+	press(&"P1_protect")
+	var broke := await wait_until(func(): return _state(p1) == "Dizzy", 420)
+	await s.frames(8)
+	await s.screenshot("kb_16_dizzy")
+	var stars: DizzyStars = p1.get_node("DizzyStars")
+	s.check("KB shield break: holding S breaks the shield, the fighter is dizzy with stars and BREAK! on its card", broke and p1.is_dizzy() and stars.visible and hud.break_label.visible, "state=%s" % _state(p1))
+	release(&"P1_protect")
+	var x_dizzy := p1.position.x
+	press(&"P1_right")
+	await tap(&"P1_punch", 2)
+	await tap(&"P1_jump", 2)
+	await s.sim(0.5)
+	release(&"P1_right")
+	s.check("KB shield break: while dizzy the movement, punch and jump keys do nothing", _state(p1) == "Dizzy" and absf(p1.position.x - x_dizzy) < 2.0, "state=%s dx=%.1f" % [_state(p1), p1.position.x - x_dizzy])
+	var woke := await wait_until(func(): return _state(p1) != "Dizzy", 300)
+	s.check("KB shield break: the dizzy wears off and the meter is back at half", woke and absf(p1.shield.ratio() - 0.5) < 0.1, "ratio=%.2f" % p1.shield.ratio())
+	await s.frames(30)
+
+func _air_dodge_keys() -> void:
+	await reset_scene(700.0, 330.0)
+	await s.frames(20)
+	await tap(&"P1_jump", 3)
+	await s.frames(8)
+	var meter := p1.shield.value
+	await tap(&"P1_protect", 3)
+	await s.frames(2)
+	var dodging := _state(p1) == "AirDodge" and p1.is_intangible()
+	var bubble: ShieldBubble = p1.get_node("ShieldBubble")
+	s.check("KB air dodge: S in the air is an intangible dodge with no bubble and no meter cost", dodging and not bubble.visible and p1.shield.value >= meter - 0.01, "state=%s meter %.1f -> %.1f" % [_state(p1), meter, p1.shield.value])
+	await wait_until(func(): return p1.is_on_floor(), 300)
+	await s.frames(20)
+
+func _throw_priority_keys() -> void:
+	await reset_scene(700.0, 330.0)
+	# Only the food this check drops: the spawner is stopped and anything it dropped removed.
+	game.food_spawner.stop()
+	for child in game.get_children():
+		if child is FoodPickup:
+			child.queue_free()
+	await s.frames(2)
+	var pickup: FoodPickup = load("res://game/food/food_pickup.tscn").instantiate()
+	pickup.food_name = "turkey"
+	game.add_child(pickup)
+	pickup.position = Vector2(p1.position.x + 60.0, _stage()["top"] - 30.0)
+	await s.sim(0.8)
+	await tap(&"P1_shoot", 3)
+	await s.frames(6)
+	s.check("KB food: G picks up a food item that is 60 px away (the wider reach)", p1.held_food == "turkey", "held=%s" % p1.held_food)
+	await wait_until(func(): return _state(p1) == "Idle", 60)
+	await s.frames(25)
+	# Punch and throw pressed in the same frame: the throw wins while holding food.
+	var punched := false
+	press(&"P1_punch")
+	press(&"P1_shoot")
+	for i in 4:
+		await s.frames(1)
+		punched = punched or _state(p1) == "Punch"
+	release(&"P1_punch")
+	release(&"P1_shoot")
+	await s.frames(3)
+	var thrown: bool = p1.held_food == "" and not game.get_state_snapshot()["projectiles"].is_empty()
+	s.check("KB throw priority: F and G together throw the food and do not punch", thrown and not punched, "held=%s punched=%s state=%s" % [p1.held_food, punched, _state(p1)])
+	await s.sim(1.0)
 
 func _pause() -> void:
 	await reset_scene(700.0, 380.0)

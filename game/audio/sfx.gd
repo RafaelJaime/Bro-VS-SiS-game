@@ -31,7 +31,11 @@ const EVENTS := {
 	&"double_jump": [PUNCH, 1.68, 1.80],
 	# Explosion: a deep boom for a KO, the normal one for a heavy hit.
 	&"ko": [EXPLOSION, 0.60, 0.72],
+	# A bomb going off, between the KO boom and the heavy hit.
+	&"bomb": [EXPLOSION, 0.78, 0.90],
 	&"heavy_hit": [EXPLOSION, 0.96, 1.10],
+	# The shield breaking: a bright crack above the heavy hit.
+	&"shield_break": [EXPLOSION, 1.20, 1.32],
 	# UI click: countdown ticks (the caller multiplies the pitch per digit) and GO.
 	&"countdown": [CLICK, 0.95, 1.0],
 	&"go": [CLICK, 1.55, 1.65],

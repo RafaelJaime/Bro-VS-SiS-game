@@ -2,12 +2,13 @@ extends Node2D
 class_name FoodSpawner
 
 ## Drops a random food item every spawn_min_interval..spawn_max_interval
-## seconds, capped at max_alive items alive at once (design doc: 3-5s, max 4).
+## seconds, capped at max_alive items alive at once (1.8-3 s and 5 since combat
+## depth; it was 3-5 s and 4, which left the stage empty most of the time).
 
 @export var food_pickup_scene: PackedScene
-@export var spawn_min_interval: float = 3.0
-@export var spawn_max_interval: float = 5.0
-@export var max_alive: int = 4
+@export var spawn_min_interval: float = 1.8
+@export var spawn_max_interval: float = 3.0
+@export var max_alive: int = 5
 ## Spawn range in this spawner's local space (the Game origin), over the counter.
 @export var spawn_x_min: float = 100.0
 @export var spawn_x_max: float = 760.0

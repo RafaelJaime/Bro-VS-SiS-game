@@ -27,10 +27,12 @@ BUNDLED_DIR = schema.REPO_ROOT / "game" / "ai" / "models" / "bvs_default"
 TEMPLATE = Path(__file__).resolve().parents[1] / "templates" / "model_card.md"
 STAGE_ROOT = Path(__file__).resolve().parents[1] / "out" / "upload"
 FILES = ("model.onnx", "bvs.json")
+# Staged next to the model when present in the source folder (a gameplay replay for the model page).
+OPTIONAL_FILES = ("replay.mp4",)
 # `hf` alone can resolve to an unrelated CLI (for example the Higgsfield one), so the printed
 # commands run the Hugging Face CLI through uvx. `hf upload` also creates a missing repo.
 HF = "uvx --from huggingface_hub hf"
-TAGS = ("BVS", "bvs-schema-2", "reinforcement-learning")
+TAGS = ("BVS", schema.SCHEMA_TAG, "reinforcement-learning")
 
 
 def sha256(path: Path) -> str:
@@ -96,6 +98,10 @@ def stage(repo: str, license_id: str, source: Path, allow_unbundled: bool) -> Pa
     for file in FILES:
         shutil.copyfile(source / file, target / file)
         assert sha256(target / file) == sha256(source / file), f"staged {file} differs from its source"
+    for file in OPTIONAL_FILES:
+        if (source / file).is_file():
+            shutil.copyfile(source / file, target / file)
+            assert sha256(target / file) == sha256(source / file), f"staged {file} differs from its source"
     (target / "README.md").write_text(render_card(repo, license_id, side))
     return target
 
@@ -122,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     target = stage(args.repo, args.license, args.source, args.allow_unbundled)
-    message = "Add BVS policy (bvs-schema-2)"
+    message = f"Add BVS policy ({schema.SCHEMA_TAG})"
     try:
         shown = target.relative_to(schema.REPO_ROOT)
     except ValueError:

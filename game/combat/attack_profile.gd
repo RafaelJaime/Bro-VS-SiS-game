@@ -16,12 +16,16 @@ extends Resource
 @export var hitbox_size: Vector2 = Vector2(110.0, 40.0)
 ## Name written to `Fighter.last_attack_direction`.
 @export var direction: StringName = &"neutral"
+## Meter damage against a shield. Below 0 means "derive it from `damage`" (the
+## fighter profile's shield_damage_scale).
+@export var shield_damage: float = -1.0
 
-static func make(attack_damage: float, attack_knockback: Vector2, offset: Vector2, size: Vector2, attack_direction: StringName) -> AttackProfile:
+static func make(attack_damage: float, attack_knockback: Vector2, offset: Vector2, size: Vector2, attack_direction: StringName, attack_shield_damage: float = -1.0) -> AttackProfile:
 	var attack := AttackProfile.new()
 	attack.damage = attack_damage
 	attack.knockback = attack_knockback
 	attack.hitbox_offset = offset
 	attack.hitbox_size = size
 	attack.direction = attack_direction
+	attack.shield_damage = attack_shield_damage
 	return attack

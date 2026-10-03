@@ -1,18 +1,24 @@
-# Training notes: bvs_default
+# Training notes: bvs_default (schema 3, combat depth)
 
-Machine: Apple M5 (10 cores, 24 GB), Godot 4.7.2 headless, godot-rl 0.8.2, stable-baselines3 2.3.2, torch 2.14.1 (CPU). Seed 1. Time-box start 2026-10-03 00:00 (CEST); the whole S5 run took under 1 hour of the 8 h box. Curriculum and hyperparameters are `configs/default.toml` unchanged (reward overrides empty, defaults of `game/ai/training/reward_config.gd`); the only flag changed was `--n-parallel 8` (8 Godot processes of 8 rows, 6.8k to 7.8k agent steps per second measured, config default stays 4).
+Machine: Apple M5 (10 cores, 24 GB), Godot 4.7.2 headless, godot-rl 0.8.2, stable-baselines3 2.3.2, torch 2.14.1 (CPU). Seed 1. Trained on commit `7bf9e3a` (`bvs-schema-3`).
 
 ## Runs
 
-| Run | Phases | Agent steps | Wall time | Config changes | Result (40 or 20 matches, sides alternating) |
-|-----|--------|-------------|-----------|----------------|----------------------------------------------|
-| run1 | P1 only (100% CPU Easy) | 3.01M | 455 s | none | 20 matches each: Easy 20 W 0 L, Normal 20 W 0 L, all KO wins, 0 timeouts |
-| run2 (shipped) | P1 (CPU Easy) then P2 (50/50 Easy/Normal) then P3 (30% Normal, 20% Easy, 20% self-play, 30% frozen snapshots) | 3.01M + 3.01M + 4.01M = 10.04M | 444 s + 440 s + 512 s (P3 resumed after a fix, below) | none to the recipe | P2 checkpoint 20 matches: Easy 20 W, Normal 20 W; P3 final 40 matches: Easy 40 W, Normal 40 W, Hard 40 W (all KO wins) |
+| Run | Phases | Agent steps | Wall time | Config changes | Gates |
+|-----|--------|-------------|-----------|----------------|-------|
+| sanity | P1, P2, P3 with `--steps 100000` each, `--n-parallel 4` | 0.3M | 133 s | none | 1033 `BVS_EPISODE` lines with the new terms; SD-start rows present in the P2 config; no `SCRIPT ERROR` (only the usual headless "resources still in use at exit" lines) |
+| r1 (shipped) | P1 (CPU Easy), P2 (Easy/Normal, `sd_start` 0.125), P3 (Normal, Easy, self-play, snapshots, `sd_start` 0.25) | 10.04M | 2817 s | none to `configs/default.toml` (flags: `--n-parallel 8`, `--seed 1`) | all pass, first run |
 
-run2 P3 failed to start on the first attempt: SB3 `set_env` refuses a changed number of environments, and self-play rows add agents (both sides learn: 64 envs in P1 and P2, 80 in P3). `train.py` now reloads the model through `PPO.load(..., env=env)` in that case and `--resume` seeds the snapshot pool from `out/snapshots`. P3 was then started with `--phase P3 --resume out/run2/checkpoints/step_P2_final.zip` (same optimizer state and step counter, 24 snapshots from P1 and P2 in the pool, 2 of 8 rows per process playing a snapshot). No reward or curriculum adjustment was needed: no run degenerated, so no further runs were made.
+No reward or curriculum iteration was needed: the first full run passed every gate, so no second run was made.
 
-## Quality gate (shipped model, `bvs_default-eval.md`)
+## Gates (shipped model)
 
-Gate vs CPU Easy: at least 0.60 over at least 20 matches. Result: 1.00 over 40, every win a KO (0 timeout wins), 0 stocks lost against any level. Behavior over the 40 matches versus Easy: approach ratio 0.29 (mean fighter gap 217 px), recovery succeeded in 6 of 8 off-stage events (Normal 11 of 12, Hard 9 of 10), idle share 0.03, mean match 18.7 s, action entropy between 0.70 and 1.51 bits on every branch (no branch collapsed to one action; `a3_attack` leans on indices 0, 1 and 4 and never uses 2 and 3). Self-KO share is 0.00 (no stock was lost at all).
+- Parity: 64 golden cases (32 random, 32 recorded), max abs error 1e-6, exact argmax, validates against `bvs-schema-3`.
+- Evaluation (`bvs_default-eval.md`, 40 matches per level): Easy 40 W, Normal 40 W, Hard 38 W 2 L, all KO wins; self-KO share 0.06 versus Easy, idle share 0.08 to 0.10, recovery success 0.72 to 0.76, action entropy 0.37 to 1.95 bits on every branch.
+- Harness (`bvs_default-harness.md`, seed 1, 20 matches per matchup): mean forced sudden death 6.7 s (limit 45), pickups per fighter-minute 1.73 in model-vs-model (limit above 1), blocked share 0.57 (limit 0.70), KO win rate versus Easy 1.00 (floor 0.60).
 
-Interpreter checks: parity with onnxruntime max abs error 1.4e-6 with exact argmax on 64 golden cases (32 seeded, 32 recorded in matches); 355 us per inference headless.
+## Notes
+
+- The model-vs-model regulation matches are long (mean 97 s, KO results 16 of 20; mean sudden death 5.4 s, longest 12.5 s) because both sides shield often (248 shield breaks over 20 matches). Matches that reach a tie end in sudden death within seconds.
+- Against a passive human the policy moves and attacks but also holds the shield long enough to break it (observed in `policy_select`); the training opponents are never passive.
+- `train.py` now resolves `--out` to an absolute path: Godot reads `BVS_TRAIN_CONFIG` from its own working directory, so a relative `--out` made every row fail.

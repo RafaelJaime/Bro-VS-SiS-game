@@ -5,7 +5,9 @@
 
 Launches `tests/smoke/policy_eval.gd` once per level, renders
 `reports/<name>-eval.md` (and keeps `<name>-eval.json`), and exits non-zero when the
-win rate versus CPU Easy (the gate level) is below `--min-win-rate`.
+win rate versus CPU Easy (the gate level) is below `--min-win-rate`. The report also
+carries the combat-depth metrics (sudden-death length, pickups and throws per
+fighter-minute, blocked share, damage by source, shield breaks).
 """
 
 from __future__ import annotations
@@ -52,6 +54,29 @@ def run_level(model: Path, level: str, matches: int, work_dir: Path, dump: Path 
     return json.loads(out.read_text())
 
 
+def render_combat_depth(reports: dict[str, dict]) -> list[str]:
+    """The combat-depth table: sudden-death length, food use, blocking, damage by source, shield breaks.
+
+    Reports written before combat depth lack these fields; those levels are skipped.
+    """
+    lines = ["", "## Combat depth", "",
+             "| Level | SD matches | Mean SD (s) | Max SD (s) | Pickups / fighter-min | Throws / fighter-min | Blocked share | Shield breaks | Damage: punch | ledge | food | bomb |",
+             "|-------|------------|-------------|------------|-----------------------|----------------------|---------------|---------------|---------------|-------|------|------|"]
+    rows = 0
+    for level, r in reports.items():
+        if "pickups_per_fighter_minute" not in r:
+            continue
+        damage = r.get("damage_by_source", {})
+        lines.append(
+            f"| {level} | {r.get('sd_matches', 0)} | {r.get('mean_sd_seconds', 0.0):.1f} | {r.get('max_sd_seconds', 0.0):.1f} | "
+            f"{r['pickups_per_fighter_minute']:.2f} | {r.get('throws_per_fighter_minute', 0.0):.2f} | {r.get('blocked_share', 0.0):.2f} | "
+            f"{r.get('shield_breaks', 0)} | {damage.get('punch', 0.0):.0f} | {damage.get('ledge', 0.0):.0f} | "
+            f"{damage.get('food', 0.0):.0f} | {damage.get('bomb', 0.0):.0f} |"
+        )
+        rows += 1
+    return lines if rows else []
+
+
 def render_markdown(name: str, reports: dict[str, dict], gate: dict) -> str:
     lines = [f"# Evaluation: {name}", "", "Played in Godot with the shipped GDScript ONNX interpreter, full matches versus the scripted CPU, sides alternating.", ""]
     lines += [
@@ -79,6 +104,7 @@ def render_markdown(name: str, reports: dict[str, dict], gate: dict) -> str:
             f"| {level} | {r.get('ko_wins', 0)} | {r.get('timeout_wins', 0)} | {r.get('ko_losses', 0)} | {r.get('timeout_losses', 0)} | "
             f"{r.get('off_stage_events', 0)} | {r.get('recovery_success_rate', 0.0):.2f} | {r.get('special_presses', 0)} | {r.get('mean_distance', 0.0):.0f} |"
         )
+    lines += render_combat_depth(reports)
     for level, r in reports.items():
         lines += ["", f"## Action distribution vs {level} (share of decisions per branch index, entropy in bits)", "",
                   "| Branch | Shares | Entropy |", "|--------|--------|---------|"]

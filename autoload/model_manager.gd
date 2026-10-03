@@ -501,7 +501,7 @@ func _validate_files(sidecar_bytes: PackedByteArray, onnx_bytes: PackedByteArray
 			kind = ModelFailure.TOO_LARGE
 		return {"model": null, "failure": kind, "message": error.substr(0, 1).to_upper() + error.substr(1)}
 	var model: OnnxPolicyModel = loaded.model
-	var mismatch := model.validate(BvsSchemaV2)
+	var mismatch := model.validate(BvsSchema.current())
 	if mismatch != "":
 		return {"model": null, "failure": ModelFailure.SCHEMA_MISMATCH, "message": mismatch}
 	return {"model": model, "failure": -1, "message": ""}

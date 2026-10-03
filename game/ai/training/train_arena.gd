@@ -6,9 +6,17 @@ extends Node2D
 ##
 ## BVS_TRAIN_CONFIG is the path of a JSON file (environment variable, inherited
 ## from the trainer):
-##   {"rows": [{"opponent": "cpu_easy", "seed": 11}, {"opponent": "self"}],
-##    "reward": {"win": 3.0}, "episode_log": true, "columns": 8}
+##   {"rows": [{"opponent": "cpu_easy", "seed": 11}, {"opponent": "self", "start": "sudden_death"}],
+##    "reward": {"win": 3.0}, "episode_log": true, "columns": 8,
+##    "schema_version": 3, "match": {"sudden_death": true, "sd_safety_cap": 60.0}}
 ## Without it the arena builds DEFAULT_ROWS rows: 6 cpu_easy and 2 self.
+##
+## `schema_version` picks the observation/action schema of every agent (BvsSchema
+## registry; default: the playable version) and the schema the snapshot models must
+## fit. `match.sudden_death` (default true) sends a tied timer expiry into sudden
+## death instead of ending the episode as a draw, and `match.sd_safety_cap` is the
+## seconds of sudden death after which an episode is truncated as a draw. A row with
+## `"start": "sudden_death"` begins every episode in sudden death.
 ##
 ## Row opponent kinds:
 ##   self                     both fighters are training agents (shared policy)
@@ -43,6 +51,8 @@ const CPU_LEVELS := {
 
 ## Set before the node enters the tree to use a config without a file (tests).
 var config: Dictionary = {}
+## The schema the agents of every row use (from the config, validated in _ready).
+var schema_version: int = BvsSchema.CURRENT_VERSION
 ## The Game of every row that was built.
 var games: Array[Game] = []
 ## One entry per built row: index, opponent kind, agent_side (1, 2 or 0 for self).
@@ -57,12 +67,20 @@ func _ready() -> void:
 		config = _load_config()
 	var reward_config := RewardConfig.from_dict(config.get("reward", {}))
 	var row_specs: Array = config.get("rows", [])
+	schema_version = int(config.get("schema_version", BvsSchema.CURRENT_VERSION))
+	if BvsSchema.get_schema(schema_version) == null or BvsSchema.new_decoder(schema_version) == null:
+		var message := "TrainArena: schema_version %d is not registered, no row is built" % schema_version
+		errors.append(message)
+		push_error(message)
+		return
 	var columns := int(config.get("columns", row_specs.size()))
 	columns = maxi(columns, 1)
 	for index in row_specs.size():
 		var spec: Dictionary = row_specs[index]
 		var opponent := String(spec.get("opponent", ""))
 		var problem := _check_opponent(opponent, spec)
+		if problem == "":
+			problem = _check_start(String(spec.get("start", "")))
 		if problem != "":
 			var message := "TrainArena: row %d: %s" % [index, problem]
 			errors.append(message)
@@ -102,6 +120,12 @@ func _check_opponent(opponent: String, spec: Dictionary) -> String:
 		return _prepare_snapshot(_snapshot_path(opponent, spec))
 	return "unknown opponent kind '%s' (use self, cpu_easy, cpu_normal, cpu_hard, snapshot)" % opponent
 
+## "" for a supported episode start, otherwise why the row cannot be built.
+static func _check_start(start: String) -> String:
+	if start == "" or start == "regulation" or start == "sudden_death":
+		return ""
+	return "unknown start '%s' (use regulation or sudden_death)" % start
+
 ## The model path of a snapshot row: `snapshot:<path>` or the spec's `model`.
 static func _snapshot_path(opponent: String, spec: Dictionary) -> String:
 	if opponent.begins_with("snapshot:"):
@@ -122,12 +146,18 @@ func _prepare_snapshot(path: String) -> String:
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(sidecar_path))
 		if parsed is Dictionary:
 			sidecar_data = parsed
+	# A snapshot exported by the trainer has no sidecar: it was trained on this run's schema.
+	if not sidecar_data.has("schema_version"):
+		sidecar_data["schema_version"] = schema_version
 	var loaded := OnnxPolicyModel.load_bytes(FileAccess.get_file_as_bytes(path), sidecar_data)
 	if loaded.model == null:
 		return "the snapshot model '%s' was rejected: %s" % [path, loaded.error]
-	var mismatch := (loaded.model as OnnxPolicyModel).validate(BvsSchemaV2)
+	var model := loaded.model as OnnxPolicyModel
+	if model.schema_version() != schema_version:
+		return "the snapshot model '%s' does not fit schema %d: it was trained for schema %d" % [path, schema_version, model.schema_version()]
+	var mismatch := model.validate(BvsSchema.get_schema(schema_version))
 	if mismatch != "":
-		return "the snapshot model '%s' does not fit schema 2: %s" % [path, mismatch]
+		return "the snapshot model '%s' does not fit schema %d: %s" % [path, schema_version, mismatch]
 	_snapshot_models[path] = loaded.model
 	return ""
 
@@ -144,11 +174,24 @@ func _build_row(index: int, spec: Dictionary, opponent: String, offset: Vector2,
 		var is_agent := opponent == "self" or side + 1 == agent_side
 		var ai := fighter.get_node("AIController2D") as PlayerAIController
 		ai.reward_config = reward_config
+		ai.schema_version = schema_version
 		if is_agent:
 			ai.control_mode = AIController2D.ControlModes.TRAINING
 		else:
 			ai.control_mode = AIController2D.ControlModes.HUMAN
+	# Episode rules of the row, set before it enters the tree (it may start in sudden death).
+	var match_rules: Dictionary = config.get("match", {})
+	game.training_sudden_death = bool(match_rules.get("sudden_death", true))
+	game.training_start_in_sudden_death = String(spec.get("start", "")) == "sudden_death"
 	add_child(game)
+	if match_rules.has("sd_safety_cap"):
+		# The hazards node is an @onready of the Game, which may not be ready yet when
+		# the arena builds its rows at start-up; the cap is only read at run time.
+		var cap := float(match_rules["sd_safety_cap"])
+		if game.hazards != null:
+			game.hazards.training_cap = cap
+		else:
+			game.ready.connect(func() -> void: game.hazards.training_cap = cap)
 	if opponent != "self":
 		var foe := fighters[2 - agent_side]
 		if CPU_LEVELS.has(opponent):

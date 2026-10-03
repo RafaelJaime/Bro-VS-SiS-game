@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://s1s48xh0wvx8" path="res://game/player/StateMachine/PlayerStateMachine/States/run.gd" id="7_j0mij"]
 [ext_resource type="Script" uid="uid://cnhwso0ubtdi6" path="res://game/player/StateMachine/PlayerStateMachine/States/jump.gd" id="8_gb4gm"]
 [ext_resource type="Script" uid="uid://dbs738wwvch7q" path="res://game/player/StateMachine/PlayerStateMachine/States/fall.gd" id="9_uv2nh"]
+[ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/defeated.gd" id="99_defeated"]
 [ext_resource type="Script" uid="uid://cgoog0bvcfg7w" path="res://game/player/StateMachine/PlayerStateMachine/States/punch.gd" id="10_j0mij"]
 [ext_resource type="Script" uid="uid://bxl6rrxrrob6g" path="res://game/player/StateMachine/PlayerStateMachine/States/shoot.gd" id="11_brh81"]
 [ext_resource type="PackedScene" path="res://game/food/food_projectile.tscn" id="12_food1"]
@@ -23,6 +24,11 @@
 [ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/helpless.gd" id="25_helpless"]
 [ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/ledge_hang.gd" id="26_ledge"]
 [ext_resource type="Texture2D" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glow_1.PNG" id="27_glow"]
+[ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/dizzy.gd" id="28_dizzy"]
+[ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/air_dodge.gd" id="29_air_dodge"]
+[ext_resource type="Script" path="res://game/player/shield_bubble.gd" id="30_bubble"]
+[ext_resource type="Script" path="res://game/player/dizzy_stars.gd" id="31_stars"]
+[ext_resource type="Texture2D" path="res://assets/textures/2D Fire  - Tutorial/T_LeLuStar11.jpg" id="32_star"]
 
 [sub_resource type="Resource" id="Resource_usp30"]
 script = ExtResource("2_gh012")
@@ -48,8 +54,8 @@ size = Vector2(120, 171)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8soms"]
 size = Vector2(110, 40)
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_food1"]
-radius = 70.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pickup"]
+size = Vector2(210, 100)
 
 [sub_resource type="Gradient" id="Gradient_usp30"]
 colors = PackedColorArray(1, 0, 0, 1, 1, 0, 0, 0)
@@ -97,12 +103,12 @@ available_actions = Array[String](["dash", "jump", "punch", "protect", "shoot"])
 [node name="Jump" type="Node" parent="StateMachine" unique_id=1240213622 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("8_gb4gm")
 state_machine = NodePath("..")
-available_actions = Array[String](["recovery", "dash", "jump", "punch", "protect", "shoot"])
+available_actions = Array[String](["recovery", "dash", "jump", "punch", "air_dodge", "shoot"])
 
 [node name="Fall" type="Node" parent="StateMachine" unique_id=1039386031 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("9_uv2nh")
 state_machine = NodePath("..")
-available_actions = Array[String](["recovery", "dash", "jump", "punch", "protect", "shoot"])
+available_actions = Array[String](["recovery", "dash", "jump", "punch", "air_dodge", "shoot"])
 
 [node name="Punch" type="Node" parent="StateMachine" unique_id=804022935 node_paths=PackedStringArray("punch_area", "state_machine")]
 script = ExtResource("10_j0mij")
@@ -117,7 +123,7 @@ state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
 [node name="Defeated" type="Node" parent="StateMachine" unique_id=1062683954 node_paths=PackedStringArray("state_machine")]
-script = ExtResource("17_gh012")
+script = ExtResource("99_defeated")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
@@ -152,6 +158,14 @@ script = ExtResource("26_ledge")
 state_machine = NodePath("..")
 available_actions = Array[String](["jump", "punch"])
 
+[node name="Dizzy" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("28_dizzy")
+state_machine = NodePath("..")
+
+[node name="AirDodge" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("29_air_dodge")
+state_machine = NodePath("..")
+
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1671102877]
 texture_filter = 6
 material = SubResource("ShaderMaterial_cgi3i")
@@ -167,6 +181,21 @@ material = SubResource("CanvasItemMaterial_glow")
 texture_filter = 6
 position = Vector2(0, 10)
 texture = ExtResource("27_glow")
+
+[node name="ShieldBubble" type="Sprite2D" parent="."]
+visible = false
+z_index = 1
+material = SubResource("CanvasItemMaterial_glow")
+texture_filter = 6
+position = Vector2(0, 10)
+texture = ExtResource("27_glow")
+script = ExtResource("30_bubble")
+
+[node name="DizzyStars" type="Node2D" parent="."]
+visible = false
+z_index = 1
+script = ExtResource("31_stars")
+star_texture = ExtResource("32_star")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=489426174]
 position = Vector2(0, 19)
@@ -201,7 +230,8 @@ collision_layer = 0
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea" unique_id=2100493298]
-shape = SubResource("CircleShape2D_food1")
+position = Vector2(0, 44)
+shape = SubResource("RectangleShape2D_pickup")
 
 [node name="HeldFoodSprite" type="Sprite2D" parent="." unique_id=547939449]
 texture_filter = 6

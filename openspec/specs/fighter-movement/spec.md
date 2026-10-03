@@ -55,7 +55,8 @@ A fighter MUST have exactly one extra jump per airtime, restored on landing.
 
 ### Requirement: Air actions
 
-Jump and Fall states MUST allow air punch, air throw, and air block (via `available_actions`).
+Jump and Fall states MUST allow air punch, air throw, and air dodge (via `available_actions`). Block intent in the air MUST trigger an air dodge, not a sustained shield (see `fighter-shield`). While holding food, air throw keeps the priority defined in `food-fight-items`.
+(Previously: Jump and Fall states allowed air punch, air throw and a sustained air block held until released.)
 
 #### Scenario: Air punch
 - GIVEN an airborne fighter
@@ -67,11 +68,20 @@ Jump and Fall states MUST allow air punch, air throw, and air block (via `availa
 - WHEN throw is pressed
 - THEN the food is thrown
 
-#### Scenario: Air block
-- GIVEN an airborne fighter
-- WHEN block is held
-- THEN the fighter blocks until released
+#### Scenario: Air dodge replaces air block
+- GIVEN an airborne fighter with the air dodge available
+- WHEN block is pressed
+- THEN a brief air dodge with invulnerability occurs, no shield bubble is shown, and the shield meter is unchanged
 
+#### Scenario: One air dodge per airtime
+- GIVEN an airborne fighter that already air dodged
+- WHEN block is pressed again before landing
+- THEN nothing happens
+
+#### Scenario: Air dodge restored
+- GIVEN an air dodge was used
+- WHEN the fighter lands, grabs the ledge, or is hit
+- THEN the air dodge is available again
 ### Requirement: Dash availability
 
 Dash MUST be usable from Idle, Run, and air, with one air dash per airtime (restored on landing). The double-tap trigger MUST stay and no new binding is added for dash.

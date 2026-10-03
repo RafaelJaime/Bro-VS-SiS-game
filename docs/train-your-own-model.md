@@ -13,9 +13,10 @@ uv run python -m bvs_training.train --phase P1 --steps 4096 --seed 1            
 mkdir -p out && uv run python -m bvs_training.train --config configs/default.toml > out/train.log 2>&1   # full run
 uv run python -m bvs_training.export --checkpoint out/final.zip --out out/my_fighter/model.onnx
 uv run python -m bvs_training.evaluate --model out/my_fighter/model.onnx --level easy --level normal --matches 20 --min-win-rate 0.60
+uv run python -m bvs_training.harness --model out/my_fighter/model.onnx   # sudden-death length, food use, blocked share
 ```
 
-Then [publish](#7-publish-to-hugging-face) the folder `out/my_fighter/` (`model.onnx` + `bvs.json` + `README.md`) with tags `BVS` and `bvs-schema-2`.
+Then [publish](#7-publish-to-hugging-face) the folder `out/my_fighter/` (`model.onnx` + `bvs.json` + `README.md`) with tags `BVS` and `bvs-schema-3`.
 
 ## Contents
 
@@ -56,7 +57,7 @@ uv sync
 uv run python -m bvs_training.handshake
 ```
 
-`HANDSHAKE OK` means Godot, `godot-rl` and the schema agree (observation `[102]`, action space `MultiDiscrete([3 3 2 5 2 2 2 2])`).
+`HANDSHAKE OK` means Godot, `godot-rl` and the schema agree (observation `[136]`, action space `MultiDiscrete([3 3 2 5 2 2 2 2])`).
 
 Then a short run to prove the whole loop works (it writes to `training/out/`):
 
@@ -96,14 +97,16 @@ Total: 10M agent steps. Each phase opens a fresh Godot environment, so the oppon
 | `[run]` | `snapshot_opponents` | `true` | Lets P3 play frozen snapshots; when `false` (or none exist yet) that share goes to CPU Normal, with a printed warning. |
 | `[ppo]` | `n_steps`, `batch_size`, `n_epochs`, `learning_rate`, `gamma`, `gae_lambda`, `ent_coef`, `clip_range` | see file | Standard PPO hyperparameters. |
 | `[ppo]` | `net_arch_pi`, `net_arch_vf` | `[64, 64]` | Network size. Keep the exported graph inside the [limits](#the-model-contract). |
-| `[reward]` | any `RewardConfig` field | empty | Overrides the defaults of `game/ai/training/reward_config.gd`. |
-| `[[phase]]` | `name`, `steps`, `mix` | P1 to P3 | The curriculum itself. |
+| `[match]` | `sudden_death`, `sd_safety_cap` | `true`, 60 | A tied timer expiry goes to sudden death (300% damage, one stock, escalating bombs) instead of a draw; a sudden death that lasts `sd_safety_cap` seconds is truncated as a draw (`sd_cap`). |
+| `[reward]` | any `RewardConfig` field | combat terms set | Overrides the defaults of `game/ai/training/reward_config.gd`. The shipped config sets the combat-depth terms `pickup`, `food_hit`, `shield_break_dealt`, `shield_break_taken` and `shield_hold`. |
+| `[acceptance]` | gate thresholds | see file | Used by `harness` (below). |
+| `[[phase]]` | `name`, `steps`, `mix`, `sd_start` | P1 to P3 | The curriculum itself. `sd_start` is the share of rows that begin every episode in sudden death (P2 0.125, P3 0.25). |
 
 Copy the file (`cp configs/default.toml configs/mine.toml`) and pass `--config configs/mine.toml` to experiment.
 
 ### Command-line options
 
-`train` accepts `--config`, `--phase` (`P1`, `P2`, `P3` or `all`), `--steps` (overrides every selected phase), `--seed`, `--n-parallel`, `--speedup`, `--out`, `--resume <zip>` and `--checkpoint-every`.
+`train` accepts `--config`, `--phase` (`P1`, `P2`, `P3` or `all`), `--steps` (overrides every selected phase), `--seed`, `--n-parallel`, `--speedup`, `--out` (a folder, resolved to an absolute path), `--resume <zip>` and `--checkpoint-every`.
 
 ### Time and throughput
 
@@ -185,14 +188,16 @@ Full non-training matches, sides alternating, using the interpreter players use.
 
 ### What good looks like
 
-| Signal | Reference (`BVS-default`, 40 matches per level) |
+| Signal | Reference (`BVS-default`, schema 3, 40 matches per level) |
 |--------|--------------------------------------------------|
 | Win rate vs Easy | 1.00 (gate: at least 0.60 over at least 20 matches) |
-| Win rate vs Normal, Hard | 1.00 and 1.00 |
-| Stocks lost | 0.00 against every level |
-| Idle share | 0.03 |
-| Self-KO share of stocks lost | 0.00 |
-| Action entropy per branch | 0.70 to 1.51 bits (no branch collapsed to one action) |
+| Win rate vs Normal, Hard | 1.00 and 0.95 |
+| Stocks lost (mean) | 0.42 vs Easy, 0.70 vs Normal, 1.00 vs Hard |
+| Idle share | 0.08 to 0.10 |
+| Self-KO share of stocks lost | 0.06 vs Easy, 0.00 vs Normal and Hard |
+| Action entropy per branch | 0.41 to 1.93 bits (no branch collapsed to one action) |
+
+`harness` adds the combat-depth gates (`[acceptance]` in the config): in model-vs-model matches forced into sudden death the bombs must end the match in under 45 s on average (reference 6.7 s), food must be picked up more than once per fighter-minute (reference 1.73) and at most 70% of landed hits may be blocked (reference 0.57). `BVS-default` passes all of them.
 
 A model that wins by timeout, idles most of the match, or loses stocks to its own falls is weaker than its win rate suggests: read the "Behavior indicators" and "Play quality" tables, not only the first one.
 
@@ -232,7 +237,7 @@ Run the commands exactly as printed. They go through `uvx --from huggingface_hub
 
 ### Verify
 
-Open `https://huggingface.co/api/models?author=<your-username>&filter=BVS` in a browser. Your repo should be listed with the tags `BVS` and `bvs-schema-2`.
+Open `https://huggingface.co/api/models?author=<your-username>&filter=BVS` in a browser. Your repo should be listed with the tags `BVS` and `bvs-schema-3`.
 
 ## 8. Play against it
 
@@ -254,24 +259,24 @@ A repo must contain exactly these for the game to use it.
 
 | File | Purpose |
 |------|---------|
-| `model.onnx` | The policy: input `obs` `[1, 102]` float32, output `logits` `[1, 21]`. |
+| `model.onnx` | The policy: input `obs` `[1, 136]` float32, output `logits` `[1, 21]`. |
 | `bvs.json` | The sidecar (`format: bvs-model/1`). Downloaded and validated first. |
 | `README.md` | The model card. Its front matter carries the Hub tags. |
 
 | Tag | Meaning |
 |-----|---------|
 | `BVS` | Makes the model discoverable by the picker. |
-| `bvs-schema-2` | Marks it **Compatible** with this game. Without it, or with another number, the model is not selectable. |
+| `bvs-schema-3` | Marks it **Compatible** with this game. Without it, or with another number, the model is not selectable. A model tagged `bvs-schema-2` (or lower) is shown as "Trained for an older version". |
 
 Recommended extra tags: `reinforcement-learning`, `onnx`. The generated card sets all four.
 
 ### Sidecar fields
 
-| Field | Value for schema 2 |
+| Field | Value for schema 3 |
 |-------|--------------------|
 | `format` | `bvs-model/1` |
-| `schema_version` | `2` |
-| `obs_dim` | `102` |
+| `schema_version` | `3` |
+| `obs_dim` | `136` |
 | `action_branches` | `a0_move` 3, `a1_vertical` 3, `a2_jump` 2, `a3_attack` 5, `a4_special` 2, `a5_throw` 2, `a6_block` 2, `a7_dash` 2 (names and order must match) |
 | `action_repeat` | `4` (one decision per 4 physics frames) |
 | `onnx` | `{"file": "model.onnx", "input": "obs", "output": "logits", "opset": 17}` |
@@ -283,9 +288,9 @@ Recommended extra tags: `reinforcement-learning`, `onnx`. The generated card set
 
 ### Observation and action
 
-- **Observation** (`[1, 102]`, built by the game, "me first, opponent second"): own state (35 values), opponent state (35), relative position and stage flags, the 2 nearest foods, the 2 nearest projectiles, timer and sudden death. Python never builds observations. The authoritative layout is `game/ai/schema/bvs_schema_v2.gd`.
-- **Action**: `MultiDiscrete([3, 3, 2, 5, 2, 2, 2, 2])`, 21 logits. The game takes the argmax of each branch (ties go to the lowest index).
-- The schema is frozen. A change would arrive as a new schema version with a new tag.
+- **Observation** (`[1, 136]`, built by the game, "me first, opponent second"): own state (43 values, including the shield meter, dizzy and air dodge), opponent state (43), relative position and stage flags, the 2 nearest foods (with their hot/hard tags), the 2 nearest projectiles, the 2 nearest sudden-death bombs, timer and sudden-death phase. Python never builds observations. The authoritative layout is `game/ai/schema/bvs_schema_v3.gd` and `tests/fixtures/schema/v3_layout.json`.
+- **Action**: `MultiDiscrete([3, 3, 2, 5, 2, 2, 2, 2])`, 21 logits. The game takes the argmax of each branch (ties go to the lowest index). While holding food, `a5_throw` is exclusive (a punch and a throw never fire together); in the air, `a6_block` is the air dodge; on the ground it raises the shield, which drains while held and breaks into a short dizzy state.
+- Schema 3 is frozen once released. Schema 2 stays frozen next to it for old models. A change would arrive as a new schema version with a new tag.
 
 ## Troubleshooting
 
@@ -293,9 +298,9 @@ Recommended extra tags: `reinforcement-learning`, `onnx`. The generated card set
 
 | Badge | Cause | Fix |
 |-------|-------|-----|
-| **Trained for an older version** | The model has no `bvs-schema-N` tag, or N is lower than the game's schema (2). | Retrain against schema 2 and add the tag `bvs-schema-2`. |
+| **Trained for an older version** | The model has no `bvs-schema-N` tag, or N is lower than the game's schema (3). Models trained for schema 2 (102 inputs) land here: schema 3 added the shield, dizzy, air dodge, food tags and sudden-death bombs, so they cannot be mapped over. | Retrain against schema 3 and add the tag `bvs-schema-3`. |
 | **Needs a newer game** | N is higher than the game's schema. | Update the game, or tag the model correctly. |
-| **Not a BVS model** | Listed as one of your other reinforcement-learning models because you have no `BVS`-tagged model. | Add the tag `BVS` (and `bvs-schema-2`) to the repo. |
+| **Not a BVS model** | Listed as one of your other reinforcement-learning models because you have no `BVS`-tagged model. | Add the tag `BVS` (and `bvs-schema-3`) to the repo. |
 | Model not listed | Wrong username, repo is private or gated, or the tag is missing. | Check `https://huggingface.co/api/models?author=<you>&filter=BVS`. |
 
 Tags come from the `tags:` list in the front matter of the repo `README.md`.
@@ -306,9 +311,9 @@ Tags come from the `tags:` list in the front matter of the repo `README.md`.
 |------------------|---------|-----|
 | "The repo is missing model.onnx and/or bvs.json" | A required file is not in the repo. | Upload both files at the repo root. |
 | "bvs.json is not valid JSON" or "bvs.json is missing '...'" | Broken or incomplete sidecar. | Regenerate it with `export` or `sidecar`. |
-| `schema_version`, `obs_dim`, `action_branches` or `action_repeat` mismatch | Sidecar does not match schema 2. | Regenerate it; do not hand-edit. |
+| `schema_version`, `obs_dim`, `action_branches` or `action_repeat` mismatch | Sidecar does not match schema 3. | Regenerate it; do not hand-edit. |
 | "unsupported operator ..." | The graph uses an op outside the whitelist. | Use a plain MLP; `export` would have refused it, so you probably produced the file another way. |
-| "This model expects N inputs; this game provides 102" | The ONNX input size differs from the schema (sidecar and graph disagree). | Train and export through `bvs_training`; do not change the observation size. |
+| "This model expects N inputs; this game provides 136" | The ONNX input size differs from the schema (sidecar and graph disagree). | Train and export through `bvs_training`; do not change the observation size. |
 | "model.onnx is too large" or "needs N multiply-adds (limit 250000)" | Over the size or compute limit. | Use a smaller network (`net_arch_pi`). |
 | "opset N is not supported (need 13 to 18)" | Exported with another opset. | Use `bvs_training.export`. |
 | "was not found on Hugging Face" or "is private or gated" | Wrong id, or the repo is not public. | Check the owner/name and make the repo public. |
@@ -322,6 +327,7 @@ Tags come from the `tags:` list in the front matter of the repo `README.md`.
 | `handshake` cannot start Godot | Set `GODOT_BIN` to a Godot 4.7.2 executable. |
 | `export` fails with an unsupported op | The checkpoint network is not a plain MLP; use the default `net_arch_pi` and `net_arch_vf`. |
 | `evaluate` exits non-zero | Win rate versus CPU Easy is below `--min-win-rate`. Train longer or adjust the curriculum. |
+| `harness` exits non-zero | A combat-depth gate failed (see `reports/<name>-harness.md`): sudden death too long, too little food use, too much blocking, or too few KO wins versus CPU Easy. Adjust the `[reward]` terms or the curriculum. |
 | `evaluate` refuses fewer than 20 matches | Raise `--matches`, or add `--smoke` for a pipeline check only. |
 | A bare `hf` command does nothing useful | Use `uvx --from huggingface_hub hf ...` as printed by `prepare_upload`. |
 

@@ -31,6 +31,27 @@ enum Level { EASY, NORMAL, HARD }
 ## Food farther than this is ignored (it must also be closer than the opponent).
 @export var pickup_seek_distance: float = 220.0
 
+@export_group("Shield")
+## The bot lets go of the shield when its meter falls to this ratio (0..1) and only
+## raises it again 0.15 above it, so its own hold never breaks it.
+@export_range(0.0, 1.0) var shield_release_ratio: float = 0.35
+## Chance, each time the opponent goes dizzy, that the bot commits to punishing it
+## (walks over and hits it, no accuracy roll). Easy never does.
+@export_range(0.0, 1.0) var punish_dizzy_chance: float = 0.7
+## Chance of pressuring a shielding opponent with food: it throws held food at it
+## (this replaces `throw_chance` while the opponent shields, if higher) and, once the
+## opponent has shielded for `turtle_time`, fetches food from twice as far.
+@export_range(0.0, 1.0) var food_pressure_chance: float = 0.5
+@export var turtle_time: float = 1.5
+
+@export_group("Bombs")
+## Sudden-death bombs: step out of the impact column of a bomb that lands on the bot
+## within `bomb_lookahead` seconds, keeping `bomb_margin` pixels of clearance, and
+## air dodge one that is about to hit while airborne. Only Hard does it.
+@export var bomb_dodge: bool = false
+@export var bomb_lookahead: float = 0.9
+@export var bomb_margin: float = 40.0
+
 @export_group("Spacing")
 ## The bot stops walking toward the opponent at this distance.
 @export var approach_stop_distance: float = 60.0
@@ -66,6 +87,9 @@ static func preset(level: Level) -> CpuDifficulty:
 			d.recovery_skill = 0.60
 			d.use_directional = false
 			d.use_up_recovery = false
+			d.shield_release_ratio = 0.45
+			d.punish_dizzy_chance = 0.0
+			d.food_pressure_chance = 0.0
 		Level.HARD:
 			d.decision_interval = 0.12
 			d.action_accuracy = 0.95
@@ -76,6 +100,10 @@ static func preset(level: Level) -> CpuDifficulty:
 			d.pickup_seek_distance = 320.0
 			d.approach_stop_distance = 55.0
 			d.recovery_skill = 1.0
+			d.shield_release_ratio = 0.25
+			d.punish_dizzy_chance = 1.0
+			d.food_pressure_chance = 0.9
+			d.bomb_dodge = true
 		_:
 			pass # NORMAL: the field defaults above.
 	return d

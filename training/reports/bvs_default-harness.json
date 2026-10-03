@@ -1,0 +1,182 @@
+{
+  "name": "bvs_default",
+  "model": "out/s3_r1/model/model.onnx",
+  "seed": 1,
+  "matches": 20,
+  "schema_version": 3,
+  "acceptance": {
+    "max_mean_sd_seconds": 45,
+    "min_pickups_per_fighter_minute": 1.0,
+    "max_blocked_share": 0.7,
+    "min_ko_win_rate_easy": 0.6,
+    "min_matches": 20
+  },
+  "regulation": {
+    "cpu_hard_vs_cpu_hard": {
+      "blocked_share": 0.306709265175719,
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 3341.5,
+        "ledge": 350.0,
+        "punch": 5433.5
+      },
+      "draws": 0,
+      "ko_results": 20,
+      "ko_win_rate": 0.6,
+      "ko_wins": 12,
+      "matches": 20,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 66.1883333333333,
+      "mean_sd_seconds": 0.0,
+      "pickups_per_fighter_minute": 9.90355802885705,
+      "sd_matches": 0,
+      "shield_breaks": 2,
+      "throws_per_fighter_minute": 9.47296854934152
+    },
+    "m_vs_cpu_easy": {
+      "blocked_share": 0.154347826086957,
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 718.25,
+        "ledge": 0.0,
+        "punch": 3404.5
+      },
+      "draws": 0,
+      "ko_results": 20,
+      "ko_win_rate": 1.0,
+      "ko_wins": 20,
+      "matches": 20,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 36.4766666666667,
+      "mean_sd_seconds": 0.0,
+      "pickups_per_fighter_minute": 5.63373846294435,
+      "sd_matches": 0,
+      "shield_breaks": 17,
+      "throws_per_fighter_minute": 4.31782874897195
+    },
+    "m_vs_cpu_normal": {
+      "blocked_share": 0.269890795631825,
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 1146.5,
+        "ledge": 12.5,
+        "punch": 3998.0
+      },
+      "draws": 0,
+      "ko_results": 20,
+      "ko_win_rate": 1.0,
+      "ko_wins": 20,
+      "matches": 20,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 38.9958333333333,
+      "mean_sd_seconds": 0.0,
+      "pickups_per_fighter_minute": 6.38529757452719,
+      "sd_matches": 0,
+      "shield_breaks": 13,
+      "throws_per_fighter_minute": 5.88524415001603
+    },
+    "mvm": {
+      "blocked_share": 0.572319201995013,
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 713.0,
+        "ledge": 0.0,
+        "punch": 8597.5
+      },
+      "draws": 0,
+      "ko_results": 16,
+      "ko_win_rate": 0.4,
+      "ko_wins": 8,
+      "matches": 20,
+      "max_sd_seconds": 12.4666666666667,
+      "mean_match_seconds": 96.9725,
+      "mean_sd_seconds": 5.42857142857143,
+      "pickups_per_fighter_minute": 1.73244992136946,
+      "sd_matches": 7,
+      "shield_breaks": 248,
+      "throws_per_fighter_minute": 1.14465441233339
+    }
+  },
+  "forced_sd": {
+    "cpu_hard_vs_cpu_hard": {
+      "blocked_share": 0.428571428571429,
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 0.0,
+        "ledge": 0.0,
+        "punch": 190.0
+      },
+      "draws": 0,
+      "ko_results": 20,
+      "ko_win_rate": 0.5,
+      "ko_wins": 10,
+      "matches": 20,
+      "max_sd_seconds": 3.56666666666667,
+      "mean_match_seconds": 3.31416666666667,
+      "mean_sd_seconds": 3.26416666666667,
+      "pickups_per_fighter_minute": 0.0,
+      "sd_matches": 20,
+      "shield_breaks": 0,
+      "throws_per_fighter_minute": 0.0
+    },
+    "mvm": {
+      "blocked_share": 0.0909090909090909,
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 187.5,
+        "ledge": 0.0,
+        "punch": 162.5
+      },
+      "draws": 0,
+      "ko_results": 20,
+      "ko_win_rate": 0.55,
+      "ko_wins": 11,
+      "matches": 20,
+      "max_sd_seconds": 11.05,
+      "mean_match_seconds": 6.70416666666667,
+      "mean_sd_seconds": 6.65416666666667,
+      "pickups_per_fighter_minute": 3.8036047234307,
+      "sd_matches": 20,
+      "shield_breaks": 0,
+      "throws_per_fighter_minute": 3.57986326911125
+    }
+  },
+  "gates": [
+    {
+      "name": "sudden_death_length",
+      "passed": true,
+      "value": 6.65416666666667,
+      "threshold": 45.0,
+      "detail": "mean sudden death 6.7 s (limit 45 s)"
+    },
+    {
+      "name": "pickups",
+      "passed": true,
+      "value": 1.73244992136946,
+      "threshold": 1.0,
+      "detail": "lowest 1.73 per fighter-minute in mvm (must exceed 1)"
+    },
+    {
+      "name": "blocked_share",
+      "passed": true,
+      "value": 0.572319201995013,
+      "threshold": 0.7,
+      "detail": "highest 0.57 in mvm (limit 0.7)"
+    },
+    {
+      "name": "ko_win_rate_easy",
+      "passed": true,
+      "value": 1.0,
+      "threshold": 0.6,
+      "detail": "1.00 KO wins over 20 matches (floor 0.6)"
+    },
+    {
+      "name": "min_matches",
+      "passed": true,
+      "value": 20.0,
+      "threshold": 20.0,
+      "detail": "every matchup has at least the required matches"
+    }
+  ],
+  "passed": true
+}

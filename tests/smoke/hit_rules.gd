@@ -50,10 +50,11 @@ func _air_actions(s: RefCounted) -> void:
 	block_setup[1][0].block_held_level = true
 	block_setup[1][0].press_block()
 	await s.frames(3)
-	s.check("air block enters Protect while airborne", s.state_of(blocker) == "Protect" and not blocker.is_on_floor(), "state=%s" % s.state_of(blocker))
+	s.check("air block is an air dodge, not a shield", s.state_of(blocker) == "AirDodge" and not blocker.is_on_floor(), "state=%s" % s.state_of(blocker))
+	var air_meter := blocker.shield.value
 	block_setup[1][0].block_held_level = false
-	await s.frames(3)
-	s.check("releasing block leaves Protect", s.state_of(blocker) != "Protect", "state=%s" % s.state_of(blocker))
+	await s.frames(40)
+	s.check("the air dodge costs no shield meter and ends on its own", s.state_of(blocker) != "AirDodge" and is_equal_approx(blocker.shield.value, air_meter), "state=%s meter=%.1f" % [s.state_of(blocker), blocker.shield.value])
 	await s.despawn(block_setup[0])
 
 	var throw_setup := await _setup(s, 330.0, 700.0)
