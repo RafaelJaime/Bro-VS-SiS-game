@@ -72,9 +72,15 @@ func _enter() -> void:
 
 func _update(delta: float) -> void:
 	super._update(delta)
-	# Grounded punches stop where the fighter stands; air punches keep falling.
+	# Grounded punches stop where the fighter stands. An air punch keeps the jump:
+	# gravity carries on and the horizontal speed and air control are the ones of
+	# Jump and Fall (it used to brake the fighter to a stop in mid-air).
 	calculate_gravity(delta)
-	calculate_velocity(0.0, Vector2.ZERO, delta)
+	if is_on_floor():
+		calculate_velocity(0.0, Vector2.ZERO, delta)
+	else:
+		set_direction()
+		calculate_velocity(profile.run_speed, state_machine.direction, delta)
 
 	if phase == Phase.CHARGING:
 		_update_charge(delta)
