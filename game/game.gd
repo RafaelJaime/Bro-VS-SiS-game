@@ -101,6 +101,10 @@ func _ready() -> void:
 	var blast_zone := Rect2(blast_left, blast_top, blast_right - blast_left, blast_bottom - blast_top)
 	fighter_1.blast_zone = blast_zone
 	fighter_2.blast_zone = blast_zone
+	var table := get_node_or_null("TableStage") as TableStage
+	if table != null and not training:
+		fighter_1.defeat_floor_y = table.floor_y
+		fighter_2.defeat_floor_y = table.floor_y
 
 	# The kitchen art and the table are only for human matches: train.tscn runs
 	# 25 Game instances and would just pay for 25 copies of a 1176x902 texture.

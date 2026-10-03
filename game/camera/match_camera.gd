@@ -130,6 +130,9 @@ func is_indicating(fighter: Fighter) -> bool:
 func _in_play(fighter: Fighter) -> bool:
 	return is_instance_valid(fighter) and fighter.stocks > 0
 
+func _is_defeated(fighter: Fighter) -> bool:
+	return is_instance_valid(fighter) and fighter.stocks <= 0
+
 # Opaque pixel rect of the fighter's current sprite frame, in texture pixels.
 func _used_rect(texture: Texture2D) -> Rect2i:
 	if not _used_rects.has(texture):
@@ -171,9 +174,14 @@ func _needed_rect() -> Rect2:
 	var needed := Rect2()
 	var have := false
 	for fighter in _fighters:
-		if not _in_play(fighter):
+		# A defeated fighter lying on the room floor is framed too, so the body
+		# is never left out of the picture.
+		if not _in_play(fighter) and not _is_defeated(fighter):
 			continue
 		var rect := fighter_rect(fighter)
+		if not _in_play(fighter):
+			# Keep the body clear of the HUD panels at the bottom of the screen.
+			rect.size.y += hud_reserve / zoom.x
 		var shift := (fighter.velocity * look_ahead).limit_length(max_look_ahead)
 		var swept := rect.merge(Rect2(rect.position + shift, rect.size)).grow(frame_pad)
 		var low := swept.position.clamp(world_rect.position, world_rect.end)

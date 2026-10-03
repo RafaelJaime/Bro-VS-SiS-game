@@ -70,6 +70,9 @@ var initial_position: Vector2
 # owning Game (which overwrites this default from its exports) so offset Game
 # rows (train.tscn) work.
 var blast_zone: Rect2 = Rect2(-100.0, -400.0, 1376.0, 1210.0)
+## Y (Game-local) of the room floor a defeated fighter lies on; negative when the
+## stage has none (training rows), and the body then just falls.
+var defeat_floor_y: float = -1.0
 # Damage % (Smash-style ring-out combat). Starts at 0 and has no upper cap;
 # it never kills by itself, it only scales knockback (see get_knockback_scale).
 var damage_percent: float = 0.0
@@ -469,6 +472,10 @@ func _cooldown_left(state_name: String) -> float:
 		return 0.0
 	var cooldown_timer: Timer = state.cooldown_timer
 	return cooldown_timer.time_left if cooldown_timer else 0.0
+
+## Y the fighter's origin has when its feet stand on `floor_y`.
+func origin_for_floor(floor_y: float) -> float:
+	return floor_y - _feet_offset
 
 func set_velocity_from_motion(vel: Vector2) -> void:
 	velocity = vel

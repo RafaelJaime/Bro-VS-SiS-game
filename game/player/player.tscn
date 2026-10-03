@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://s1s48xh0wvx8" path="res://game/player/StateMachine/PlayerStateMachine/States/run.gd" id="7_j0mij"]
 [ext_resource type="Script" uid="uid://cnhwso0ubtdi6" path="res://game/player/StateMachine/PlayerStateMachine/States/jump.gd" id="8_gb4gm"]
 [ext_resource type="Script" uid="uid://dbs738wwvch7q" path="res://game/player/StateMachine/PlayerStateMachine/States/fall.gd" id="9_uv2nh"]
+[ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/defeated.gd" id="99_defeated"]
 [ext_resource type="Script" uid="uid://cgoog0bvcfg7w" path="res://game/player/StateMachine/PlayerStateMachine/States/punch.gd" id="10_j0mij"]
 [ext_resource type="Script" uid="uid://bxl6rrxrrob6g" path="res://game/player/StateMachine/PlayerStateMachine/States/shoot.gd" id="11_brh81"]
 [ext_resource type="PackedScene" path="res://game/food/food_projectile.tscn" id="12_food1"]
@@ -122,7 +123,7 @@ state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
 [node name="Defeated" type="Node" parent="StateMachine" unique_id=1062683954 node_paths=PackedStringArray("state_machine")]
-script = ExtResource("17_gh012")
+script = ExtResource("99_defeated")
 state_machine = NodePath("..")
 metadata/_custom_type_script = "uid://o00jff2rmlo"
 
