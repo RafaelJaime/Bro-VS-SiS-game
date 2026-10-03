@@ -14,17 +14,12 @@ var pending_damage: float = 8.0
 var pending_knockback: Vector2 = Vector2(200, -100)
 var pending_source_x: float = NAN
 
-var timer: Timer
 var shake: FastNoiseLite
-
-func _ready() -> void:
-	super._ready()
-	# One timer, connected once. _exit stops it, so a stale timeout can never
-	# end a later Hurt early.
-	timer = Timer.new()
-	timer.one_shot = true
-	add_child(timer)
-	timer.timeout.connect(_on_hurt_finished)
+## Hitstun left, in physics ticks (hit-stop changes the time scale, never the tick
+## count). The tick the state is entered on does not count, so the stun is the same
+## whichever fighter updates first.
+var _ticks_left: int = 0
+var _entered_frame: int = -1
 
 func _enter() -> void:
 	shake = FastNoiseLite.new()
@@ -68,16 +63,23 @@ func _enter() -> void:
 	particles.restart()
 	particles.emitting = true
 
-	timer.start(_hitstun_for(final_knockback))
+	_ticks_left = maxi(1, CombatClock.ticks(_hitstun_for(final_knockback)))
+	_entered_frame = Engine.get_physics_frames()
 
 func _update(delta: float) -> void:
 	super._update(delta)
 	# Light gravity while in hitstun keeps the launch arc long; x momentum is kept.
 	state_machine.velocity.y += gravity * profile.hurt_gravity_scale * delta
 	owner.set_velocity(state_machine.velocity)
+	if Engine.get_physics_frames() == _entered_frame:
+		return
+	_ticks_left -= 1
+	if _ticks_left <= 0:
+		_on_hurt_finished()
 
-func _exit() -> void:
-	timer.stop()
+## Ticks of hitstun still to run.
+func ticks_left() -> int:
+	return _ticks_left
 
 # Harder hits stun longer: clamp(base + |knockback| * per_knockback, min, max).
 func _hitstun_for(knockback: Vector2) -> float:

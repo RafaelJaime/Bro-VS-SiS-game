@@ -19,14 +19,16 @@ extends Motion
 
 enum Phase { CHARGING, SWING }
 
-var punch_timer: Timer
-var cooldown_timer: Timer
 var is_punching: bool = false
 var phase: Phase = Phase.SWING
 
 # One swing = one hit per target, however long the hitbox overlaps.
 var _hit_targets: Array[Fighter] = []
-var _elapsed: float = 0.0
+## Physics ticks since the swing fired (1 on the first `_update` after it). Timing
+## counts ticks, never `Timer` nodes or delta, so hit-stop cannot stretch a swing.
+var _tick: int = 0
+## Startup / active / endlag / cooldown ticks of the current swing (see `_resolve_frames`).
+var _frames: Dictionary = {"startup": 0, "active": 0, "endlag": 0, "cooldown": 0}
 var _swing_facing: int = 1
 var _hold_time: float = 0.0
 var _charge: float = 0.0
@@ -43,14 +45,22 @@ func _ready() -> void:
 		var shape_node: CollisionShape2D = punch_area.get_node("CollisionShape2D")
 		shape_node.shape = shape_node.shape.duplicate()
 
-# Cooldown gate used by Motion.handle_actions() (no re-entrant reject emit).
+# Cooldown gate used by Motion.handle_actions() (no re-entrant reject emit). The
+# lockout is `Fighter.attack_cooldown_ticks`, which keeps running after Punch exits.
 func can_enter() -> bool:
 	if not (owner.is_on_floor() or profile.can_air_punch):
 		return false
-	return cooldown_timer == null or cooldown_timer.is_stopped()
+	return owner.attack_cooldown_ticks <= 0
+
+## Seconds until a punch can start: the larger of the cooldown and the swing that
+## is still running (the `cooldowns.punch` value of the snapshot).
+func cooldown_left() -> float:
+	var ticks_left: int = owner.attack_cooldown_ticks
+	if is_punching:
+		ticks_left = maxi(ticks_left, _swing_ticks() - _tick)
+	return CombatClock.seconds(maxi(0, ticks_left))
 
 func _enter() -> void:
-	setup_timers()
 	super._enter()
 
 	# Facing is locked for the whole punch (the Fighter does not turn during
@@ -58,10 +68,12 @@ func _enter() -> void:
 	# moved: reach comes from the hitbox, never from teleporting the fighter.
 	_swing_facing = owner.facing
 	_hit_targets.clear()
-	_elapsed = 0.0
+	_tick = 0
 	_hold_time = 0.0
 	_charge = 0.0
-	_start_aim = owner.intent.aim
+	# The press may have been made a few ticks ago (the attack buffer); its aim is
+	# the one held at the press.
+	_start_aim = owner.consume_attack_buffer()
 	_set_hitbox_active(false)
 
 	# Charging only starts on the ground, from a held key (spec: no air charge).
@@ -86,15 +98,16 @@ func _update(delta: float) -> void:
 		_update_charge(delta)
 		return
 
-	_elapsed += delta
-	var duration := _duration()
-	var active := _elapsed >= duration * profile.punch_active_start \
-			and _elapsed < duration * profile.punch_active_end
+	_tick += 1
+	var startup: int = _frames["startup"]
+	var active := _tick > startup and _tick <= startup + int(_frames["active"])
 	_set_hitbox_active(active)
 	# monitoring is switched deferred, so the area only reports overlaps from the
 	# frame after it turned on.
 	if active and punch_area.monitoring:
 		_hit_overlapping_hurtboxes()
+	if _tick >= _swing_ticks():
+		end_punch()
 
 # Winding up: the glow starts after the tap threshold, the swing fires on release.
 func _update_charge(delta: float) -> void:
@@ -115,8 +128,10 @@ static func charge_for(hold: float, p: FighterProfile) -> float:
 # Starts the swing with the variant for the aim held right now.
 func _fire() -> void:
 	phase = Phase.SWING
-	_elapsed = 0.0
+	_tick = 0
 	_attack = _select_attack(_start_aim)
+	_frames = _resolve_frames()
+	owner.attack_cooldown_ticks = int(_frames["cooldown"])
 	owner.last_attack_direction = _attack.direction
 	owner.charge_level = _charge
 	owner.set_charge_visual(-1.0)
@@ -149,25 +164,29 @@ func _damage() -> float:
 func _knockback() -> Vector2:
 	return punch_knockback if punch_knockback != Vector2.ZERO else profile.punch_knockback
 
-func setup_timers() -> void:
-	if not punch_timer:
-		punch_timer = Timer.new()
-		punch_timer.one_shot = true
-		add_child(punch_timer)
-	
-	if not cooldown_timer:
-		cooldown_timer = Timer.new()
-		cooldown_timer.one_shot = true
-		add_child(cooldown_timer)
-
 func start_punch() -> void:
 	is_punching = true
-	
-	if not punch_timer.is_connected("timeout", _on_punch_timer_timeout):
-		punch_timer.connect("timeout", _on_punch_timer_timeout)
-	
-	punch_timer.start(_duration())
-	cooldown_timer.start(_cooldown())
+
+# Swing timing in ticks. The legacy fields give the baseline numbers: with the
+# default 0.3 s punch that is startup 3, active 9 (ticks 4..12) and endlag 6, and
+# the next punch 42 ticks after the swing started.
+func _resolve_frames() -> Dictionary:
+	var total := CombatClock.ticks(_duration())
+	var first_active := ceili(total * profile.punch_active_start - 0.0001)
+	var last_active := ceili(total * profile.punch_active_end - 0.0001)
+	var startup := maxi(0, first_active - 1)
+	var active := maxi(1, last_active - first_active)
+	var endlag := maxi(0, total - startup - active)
+	return {
+		"startup": startup,
+		"active": active,
+		"endlag": endlag,
+		"cooldown": CombatClock.ticks(_cooldown()),
+	}
+
+# The swing ends this many ticks after it fired.
+func _swing_ticks() -> int:
+	return int(_frames["startup"]) + int(_frames["active"]) + int(_frames["endlag"])
 
 # Single hitbox shape, mirrored by the swing's facing.
 func _place_hitbox() -> void:
@@ -202,14 +221,9 @@ func end_punch() -> void:
 	is_punching = false
 	finished.emit("Idle" if is_on_floor() else "Fall")
 
-func _on_punch_timer_timeout() -> void:
-	end_punch()
-
 func _exit() -> void:
 	is_punching = false
 	phase = Phase.SWING
-	if punch_timer and not punch_timer.is_stopped():
-		punch_timer.stop()
 	_set_hitbox_active(false)
 	# Hit, or finished, while charging: the glow and the charge go away.
 	owner.set_charge_visual(-1.0)

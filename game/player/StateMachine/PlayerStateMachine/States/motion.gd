@@ -45,6 +45,9 @@ func handle_actions() -> bool:
 		var target: State = state_machine.state_map.get(target_name)
 		if target == null or not target.can_enter():
 			continue
+		# One press, one action: any other transition spends the remembered punch.
+		if action != "punch":
+			owner.clear_attack_buffer()
 		finished.emit(target_name)
 		return true
 	return false
@@ -59,7 +62,8 @@ func _is_requested(action: String, intent: FighterIntent) -> bool:
 			# The jump buffer (Fighter) remembers a press for a few frames.
 			return owner.jump_buffer_timer > 0.0
 		"punch":
-			return intent.attack_pressed
+			# The attack buffer (Fighter) remembers a press for a few ticks.
+			return owner.attack_buffer_ticks > 0
 		"protect", "air_dodge":
 			return intent.block_pressed
 		"shoot":

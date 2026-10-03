@@ -60,6 +60,10 @@ const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", 
 # air finish first (Smash), a hit never grabs.
 const LEDGE_GRAB_STATES: Array[String] = ["Jump", "Fall", "Recovery", "Helpless", "Dash", "AirDodge"]
 const INVULNERABILITY_BLINK_INTERVAL: float = 0.15
+# States in which a punch press is remembered (the attack buffer). Presses in Hurt,
+# ShieldDrop, Protect, Dizzy, AirDodge, LedgeHang, Dash, Recovery and Helpless are
+# edges and are not buffered.
+const ATTACK_BUFFER_STATES: Array[String] = ["Idle", "Run", "Jump", "Fall", "Punch"]
 
 ## How a jump request resolves this frame (see peek_jump / consume_jump).
 enum JumpKind { NONE, GROUND, AIR }
@@ -112,6 +116,12 @@ var jumps_left: int = 0
 var air_dash_available: bool = true
 var coyote_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
+## Physics ticks until the next punch may start, counted from the swing's first tick.
+## It lives on the fighter (not in Punch) so it keeps running in Idle.
+var attack_cooldown_ticks: int = 0
+## Ticks left on a remembered punch press, and the aim held when it was pressed.
+var attack_buffer_ticks: int = 0
+var buffered_attack_aim: FighterIntent.Aim = FighterIntent.Aim.NEUTRAL
 # Set by a ground jump so the floor contact of the take-off frame cannot refill
 # the coyote time (that would allow ground jump + coyote jump + double jump).
 var _coyote_blocked: bool = false
@@ -194,6 +204,7 @@ func _physics_process(delta: float) -> void:
 	if _blinking:
 		_blink_clock += delta
 	_apply_visibility()
+	_tick_attack_buffer()
 	_tick_combat()
 	_tick_movement(delta)
 
@@ -217,6 +228,33 @@ func _tick_combat() -> void:
 		break_shield(null)
 	if air_dodge_cooldown_left > 0:
 		air_dodge_cooldown_left -= 1
+	if attack_cooldown_ticks > 0:
+		attack_cooldown_ticks -= 1
+
+# Remembers a punch press made in an actionable state (or in Punch itself) for
+# `attack_buffer_ticks`; only the press edge arms it, so holding the key never
+# re-presses. The state machine reads it in the same tick (Motion.handle_actions).
+func _tick_attack_buffer() -> void:
+	if intent.attack_pressed and ATTACK_BUFFER_STATES.has(_state_name()):
+		attack_buffer_ticks = profile.attack_buffer_ticks
+		buffered_attack_aim = intent.aim
+	elif attack_buffer_ticks > 0:
+		attack_buffer_ticks -= 1
+
+## Spends the remembered press and returns its aim (the current aim when nothing
+## is buffered, e.g. a state entered by a script).
+func consume_attack_buffer() -> FighterIntent.Aim:
+	var aim := buffered_attack_aim if attack_buffer_ticks > 0 else intent.aim
+	attack_buffer_ticks = 0
+	return aim
+
+func clear_attack_buffer() -> void:
+	attack_buffer_ticks = 0
+
+# Reset, respawn and sudden death start with a clean attack slate.
+func _clear_attack_state() -> void:
+	attack_buffer_ticks = 0
+	attack_cooldown_ticks = 0
 
 ## The shield ran out (a hold or a blocked hit): the fighter goes dizzy. `cause` is
 ## the hit that did it, or null for the hold drain.
@@ -482,6 +520,9 @@ func _cooldown_left(state_name: String) -> float:
 	var state = state_machine.state_map.get(state_name) if state_machine else null
 	if state == null:
 		return 0.0
+	# Tick-based states (Punch) own their cooldown and report it in seconds.
+	if state.has_method("cooldown_left"):
+		return state.cooldown_left()
 	var cooldown_timer: Timer = state.cooldown_timer
 	return cooldown_timer.time_left if cooldown_timer else 0.0
 
@@ -512,6 +553,7 @@ func reset_player():
 	# After the state change, so a Dizzy._exit cannot overwrite the refill.
 	shield.refill()
 	air_dodge_cooldown_left = 0
+	_clear_attack_state()
 	reset_done.emit()
 
 func game_over():
@@ -546,6 +588,7 @@ func prepare_sudden_death(damage: float) -> void:
 		state_machine._change_state("Fall")
 	shield.refill()
 	air_dodge_cooldown_left = 0
+	_clear_attack_state()
 
 # Adds damage and notifies listeners (HUD, etc.).
 func add_damage(amount: float) -> void:
@@ -595,6 +638,7 @@ func _respawn() -> void:
 		state_machine._change_state("Fall")
 	shield.refill()
 	air_dodge_cooldown_left = 0
+	_clear_attack_state()
 	grant_invulnerability(profile.respawn_invulnerability)
 
 ## Makes the fighter immune to hits for `duration` seconds. A newer grant never

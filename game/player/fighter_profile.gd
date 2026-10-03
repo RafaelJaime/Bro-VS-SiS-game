@@ -64,6 +64,10 @@ extends Resource
 ## punch_duration: startup before it, recovery after it (Smash-style frames).
 @export_range(0.0, 1.0) var punch_active_start: float = 0.2
 @export_range(0.0, 1.0) var punch_active_end: float = 0.7
+## A punch pressed up to this many physics ticks before the fighter can act (end lag,
+## hit-stop, cooldown) still fires on the first actionable tick. 6 ticks = 0.10 s,
+## the same window as the jump buffer.
+@export var attack_buffer_ticks: int = 6
 
 @export_group("Directional punches")
 ## Smash-style variants (neutral is the Punch group above). Each uses the same
