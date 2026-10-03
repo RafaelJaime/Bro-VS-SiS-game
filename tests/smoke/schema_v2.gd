@@ -25,8 +25,9 @@ const PROJ1 := 94
 const TIMER := 100
 const SUDDEN := 101
 
-## Registered as schema 3 in the extensibility check, then removed again.
-class StubSchemaV3 extends RefCounted:
+## Registered as schema 4 in the extensibility check, then removed again (versions 2
+## and 3 are built in).
+class StubSchemaV4 extends RefCounted:
 	const OBS_DIM := 7
 
 func _initialize() -> void:
@@ -309,12 +310,14 @@ func _check_fixtures(s: RefCounted) -> void:
 # ------------------------------------------------------------------ registry
 
 func _check_registry(s: RefCounted) -> void:
-	s.check("the current schema version is 2", BvsSchema.CURRENT_VERSION == 2 and BvsSchemaV2.VERSION == 2)
+	# Nothing in this function depends on which schema is the CURRENT one: the frozen
+	# v2 contract is checked against schema 2 itself (BvsSchema.validate_sidecar_for).
+	s.check("schema 2 declares version 2", BvsSchemaV2.VERSION == 2 and BvsSchema.get_schema(2).VERSION == 2)
 	s.check("the registry maps 2 to BvsSchemaV2", BvsSchema.get_schema(2) == BvsSchemaV2)
 	s.check("an unregistered version is unsupported, not a default layout", BvsSchema.get_schema(99) == null)
 
 	var template := BvsSchemaV2.sidecar_template()
-	s.check("the schema's own sidecar template validates", BvsSchema.validate_sidecar(template) == "", BvsSchema.validate_sidecar(template))
+	s.check("the schema's own sidecar template validates against schema 2", BvsSchema.validate_sidecar_for(template, 2) == "", BvsSchema.validate_sidecar_for(template, 2))
 	var future := template.duplicate(true)
 	future["schema_version"] = 99
 	s.check("a sidecar for version 99 reports unsupported", BvsSchema.validate_sidecar(future).to_lower().contains("unsupported"), BvsSchema.validate_sidecar(future))
@@ -323,32 +326,32 @@ func _check_registry(s: RefCounted) -> void:
 	s.check("a sidecar for version 1 reports an older schema", BvsSchema.validate_sidecar(old).to_lower().contains("older") or BvsSchema.validate_sidecar(old).to_lower().contains("unsupported"), BvsSchema.validate_sidecar(old))
 	var narrow := template.duplicate(true)
 	narrow["obs_dim"] = 13
-	s.check("a wrong obs_dim says what the model expects and what the game provides", BvsSchema.validate_sidecar(narrow).contains("expects 13 inputs") and BvsSchema.validate_sidecar(narrow).contains("provides 102"), BvsSchema.validate_sidecar(narrow))
+	s.check("a wrong obs_dim says what the model expects and what the game provides", BvsSchema.validate_sidecar_for(narrow, 2).contains("expects 13 inputs") and BvsSchema.validate_sidecar_for(narrow, 2).contains("provides 102"), BvsSchema.validate_sidecar_for(narrow, 2))
 	var reordered := template.duplicate(true)
 	var swapped: Array = reordered["action_branches"]
 	var first_branch: Dictionary = swapped[0]
 	swapped[0] = swapped[1]
 	swapped[1] = first_branch
-	s.check("reordered action branches are rejected naming action_branches", BvsSchema.validate_sidecar(reordered).contains("action_branches"), BvsSchema.validate_sidecar(reordered))
+	s.check("reordered action branches are rejected naming action_branches", BvsSchema.validate_sidecar_for(reordered, 2).contains("action_branches"), BvsSchema.validate_sidecar_for(reordered, 2))
 	var resized := template.duplicate(true)
 	resized["action_branches"][3]["size"] = 4
-	s.check("a wrong branch size is rejected", BvsSchema.validate_sidecar(resized).contains("a3_attack"), BvsSchema.validate_sidecar(resized))
+	s.check("a wrong branch size is rejected", BvsSchema.validate_sidecar_for(resized, 2).contains("a3_attack"), BvsSchema.validate_sidecar_for(resized, 2))
 	var repeated := template.duplicate(true)
 	repeated["action_repeat"] = 2
-	s.check("a wrong action_repeat is rejected", BvsSchema.validate_sidecar(repeated).contains("action_repeat"), BvsSchema.validate_sidecar(repeated))
+	s.check("a wrong action_repeat is rejected", BvsSchema.validate_sidecar_for(repeated, 2).contains("action_repeat"), BvsSchema.validate_sidecar_for(repeated, 2))
 	var lacking := template.duplicate(true)
 	lacking.erase("schema_version")
 	s.check("a missing sidecar key is named", BvsSchema.validate_sidecar(lacking).contains("schema_version"), BvsSchema.validate_sidecar(lacking))
 
-	# A test-only schema 3 must leave schema 2 untouched.
+	# A test-only schema 4 must leave schema 2 untouched.
 	var snapshot := _snapshot(_fighter(), _fighter({"position": Vector2(630.0, 386.0)}), {"foods": [{"name": "pizza", "position": Vector2(480.0, 400.0)}]})
 	var before := BvsSchemaV2.build_obs(snapshot, 0)
-	BvsSchema.register_test_stub(3, StubSchemaV3)
+	BvsSchema.register_test_stub(4, StubSchemaV4)
 	var with_stub := BvsSchemaV2.build_obs(snapshot, 0)
-	s.check("a stub registered as version 3 is found by the registry", BvsSchema.get_schema(3) == StubSchemaV3)
-	s.check("schema 2 results are identical with the version 3 stub registered", with_stub == before and BvsSchema.validate_sidecar(template) == "")
-	BvsSchema.unregister_test_stub(3)
-	s.check("the stub is gone again after the test", BvsSchema.get_schema(3) == null)
+	s.check("a stub registered as version 4 is found by the registry", BvsSchema.get_schema(4) == StubSchemaV4)
+	s.check("schema 2 results are identical with the version 4 stub registered", with_stub == before and BvsSchema.validate_sidecar_for(template, 2) == "")
+	BvsSchema.unregister_test_stub(4)
+	s.check("the stub is gone again after the test", BvsSchema.get_schema(4) == null)
 
 # ----------------------------------------------------------------- real game
 

@@ -3,13 +3,18 @@ class_name PlayerAIController
 
 ## The godot_rl_agents side of a fighter in TRAINING mode. It owns no layout of its
 ## own: the observation, the action space and the action decode all come from the
-## bvs-schema-2 module (BvsSchemaV2 / BvsActionDecoderV2), the same code the
-## in-game policy uses, so training and play cannot drift.
+## bvs-schema module registered for `schema_version` (BvsSchema registry), the same
+## code the in-game policy uses, so training and play cannot drift.
 ##
 ## Sync calls set_action() once per decision (every ACTION_REPEAT physics frames,
 ## before the fighters process); the action is stored here and PolicyController
 ## decodes it frame by frame. Rewards come from a RewardTracker (damage, stock and
 ## match signals), not from the states.
+
+## The schema this agent observes and acts with. TrainArena sets it from
+## BVS_TRAIN_CONFIG.schema_version before the row enters the tree; the default is the
+## playable version.
+var schema_version: int = BvsSchema.CURRENT_VERSION
 
 ## Branch indices of the latest decision (empty before the first one).
 var latest_action := PackedInt32Array()
@@ -30,15 +35,24 @@ func _ready() -> void:
 		reward_tracker = RewardTracker.new()
 		reward_tracker.setup(self, _player as Fighter, reward_config)
 
+## The registered schema module of `schema_version`; never a silent default.
+func _schema() -> Object:
+	var schema := BvsSchema.get_schema(schema_version)
+	if schema == null:
+		push_error("PlayerAIController: schema version %d is not registered" % schema_version)
+	return schema
+
 func get_obs() -> Dictionary:
+	var schema := _schema()
 	var game := _player.get_parent() as Game if _player != null else null
-	if game == null:
-		push_error("PlayerAIController: the fighter is not inside a Game, no observation")
+	if game == null or schema == null:
+		if game == null:
+			push_error("PlayerAIController: the fighter is not inside a Game, no observation")
 		var empty := PackedFloat32Array()
-		empty.resize(BvsSchemaV2.OBS_DIM)
+		empty.resize(int(schema.OBS_DIM) if schema != null else 0)
 		return {"obs": Array(empty)}
 	var my_index := 1 if game.fighter_2 == _player else 0
-	return {"obs": Array(BvsSchemaV2.build_obs(game.get_state_snapshot(), my_index))}
+	return {"obs": Array(schema.build_obs(game.get_state_snapshot(), my_index))}
 
 func get_reward() -> float:
 	if reward_tracker != null:
@@ -46,8 +60,12 @@ func get_reward() -> float:
 	return reward
 
 func get_action_space() -> Dictionary:
-	return BvsSchemaV2.action_space()
+	var schema := _schema()
+	return schema.action_space() if schema != null else {}
 
 func set_action(action) -> void:
-	latest_action = BvsSchemaV2.action_from_dict(action)
+	var schema := _schema()
+	if schema == null:
+		return
+	latest_action = schema.action_from_dict(action)
 	action_seq += 1
