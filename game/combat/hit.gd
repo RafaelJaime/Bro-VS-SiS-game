@@ -21,9 +21,17 @@ var source: Source = Source.PUNCH
 ## Global position the hit comes from; the knockback pushes away from its x.
 var source_position: Vector2 = Vector2.ZERO
 var food_name: String = ""
+## The attack that produced a punch hit (null for food, bombs and ledge attacks): its
+## frame data (hitstun) is applied by Hurt.
+var attack: AttackProfile
+## Multiplies the hit-stop of a FULL hit (jabs 0.5).
+var hitstop_scale: float = 1.0
 
-static func punch(from: Fighter, hit_damage: float, hit_knockback: Vector2, hit_shield_damage: float = -1.0, hit_source: Source = Source.PUNCH) -> Hit:
+static func punch(from: Fighter, hit_damage: float, hit_knockback: Vector2, hit_shield_damage: float = -1.0, hit_source: Source = Source.PUNCH, hit_attack: AttackProfile = null) -> Hit:
 	var hit := Hit.new()
+	hit.attack = hit_attack
+	if hit_attack != null:
+		hit.hitstop_scale = hit_attack.hitstop_scale
 	hit.attacker = from
 	hit.damage = hit_damage
 	hit.knockback = hit_knockback

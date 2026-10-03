@@ -53,6 +53,7 @@ static func _apply_full(hit: Hit, target: Fighter) -> void:
 		hurt_state.pending_damage = hit.damage
 		hurt_state.pending_knockback = hit.knockback
 		hurt_state.pending_source_x = hit.source_position.x
+		hurt_state.pending_attack = hit.attack
 	target.state_machine._change_state("Hurt")
 
 # Skip juice (global time_scale hit-stop + SFX) under AI training: dozens
@@ -69,7 +70,7 @@ static func _play_juice(hit: Hit, target: Fighter, outcome: Outcome) -> void:
 			_trigger_hit_stop(0.04, 0.3)
 			Sfx.play_event(&"block", target)
 		_:
-			_trigger_hit_stop(0.08, 0.05)
+			_trigger_hit_stop(0.08 * hit.hitstop_scale, 0.05)
 			# A bomb has its own explosion cue.
 			if hit.source == Hit.Source.BOMB:
 				return

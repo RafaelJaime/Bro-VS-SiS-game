@@ -13,6 +13,9 @@ class_name Hurt
 var pending_damage: float = 8.0
 var pending_knockback: Vector2 = Vector2(200, -100)
 var pending_source_x: float = NAN
+## The attack that caused this hit: its frame data sets the hitstun. Null (food,
+## bombs, ledge attacks) falls back to the knockback formula.
+var pending_attack: AttackProfile
 
 var shake: FastNoiseLite
 ## Hitstun left, in physics ticks (hit-stop changes the time scale, never the tick
@@ -63,7 +66,8 @@ func _enter() -> void:
 	particles.restart()
 	particles.emitting = true
 
-	_ticks_left = maxi(1, CombatClock.ticks(_hitstun_for(final_knockback)))
+	_ticks_left = _hitstun_ticks_for(final_knockback)
+	pending_attack = null
 	_entered_frame = Engine.get_physics_frames()
 
 func _update(delta: float) -> void:
@@ -80,6 +84,13 @@ func _update(delta: float) -> void:
 ## Ticks of hitstun still to run.
 func ticks_left() -> int:
 	return _ticks_left
+
+# Hitstun in ticks: an attack with frame data sets it (plus its growth per px/s of
+# the final knockback), anything else uses the knockback formula below.
+func _hitstun_ticks_for(knockback: Vector2) -> int:
+	if pending_attack != null and pending_attack.hitstun_ticks >= 0:
+		return maxi(1, pending_attack.hitstun_ticks + roundi(pending_attack.hitstun_kb_growth * knockback.length()))
+	return maxi(1, CombatClock.ticks(_hitstun_for(knockback)))
 
 # Harder hits stun longer: clamp(base + |knockback| * per_knockback, min, max).
 func _hitstun_for(knockback: Vector2) -> float:

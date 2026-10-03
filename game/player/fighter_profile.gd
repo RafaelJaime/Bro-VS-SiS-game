@@ -69,6 +69,22 @@ extends Resource
 ## the same window as the jump buffer.
 @export var attack_buffer_ticks: int = 6
 
+@export_group("Kit")
+## Which kit this profile is (-1 generic baseline); a schema feature, see FighterKits.
+@export var kit_id: int = -1
+@export var kit_name: StringName = &"default"
+## Grounded neutral punch chain: one step per neutral press inside the link window
+## of the previous step (at most 3; the last step is the finisher). Empty keeps the
+## single legacy neutral punch.
+@export var jab_chain: Array[AttackProfile] = []
+## The same for a neutral punch in the air.
+@export var air_jab_chain: Array[AttackProfile] = []
+## The neutral punch of a charged grounded press (held past tap_threshold) and of a
+## kit without a chain. Null means the legacy neutral built from the punch_* fields.
+@export var neutral_single: AttackProfile
+## CPU hint for what to do after the up launcher connects: &"none" or &"air_jab".
+@export var launcher_followup: StringName = &"none"
+
 @export_group("Directional punches")
 ## Smash-style variants (neutral is the Punch group above). Each uses the same
 ## punch frame and timing; they differ in damage, angle and hitbox.
