@@ -52,10 +52,17 @@ func _run() -> void:
 		await s.frames(1)
 		alphas.append(bubble1.modulate.a)
 		hue_kept = hue_kept and absf(bubble1.modulate.h - f1.character_ui.color.h) <= HUE_TOLERANCE
-	var low: float = alphas.min()
 	var high: float = alphas.max()
+	# The pulse runs on wall-clock time (4 Hz), so how much of a period 20 frames cover
+	# depends on the machine: the live frames prove "dimmer", and the pulse is read from
+	# the bubble's own colour function over one full second of phase.
+	var pulse: Array[float] = []
+	for step in 100:
+		pulse.append(bubble1.bubble_color(ShieldBubble.player_color(f1), 0.3, -1.0, step * 0.01).a)
+	var low: float = pulse.min()
+	var peak: float = pulse.max()
 	s.check("a weak shield keeps the player hue (no switch to red)", hue_kept)
-	s.check("a weak shield is dimmer than a full one and pulses", high < full_alpha and high - low > 0.03, "alpha %.2f..%.2f vs %.2f" % [low, high, full_alpha])
+	s.check("a weak shield is dimmer than a full one and pulses", high < full_alpha and peak - low > 0.03, "live alpha max %.2f vs %.2f full; pulse %.2f..%.2f" % [high, full_alpha, low, peak])
 	await s.screenshot("shield_weak_pulse")
 
 	# Drop lag: the bubble shrinks and fades away over the lag.
