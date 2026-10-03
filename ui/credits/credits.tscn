@@ -6,6 +6,13 @@
 [ext_resource type="Texture2D" uid="uid://bir66wtf16cj8" path="res://assets/images/game/characters/matilde/ilustration/Ilustracion_m1.png" id="4_rqgi2"]
 [ext_resource type="Texture2D" uid="uid://bey1gg8lhrewt" path="res://assets/images/game/characters/rafael/ilustration/Ilustracion_r1.png" id="5_sunqn"]
 [ext_resource type="Texture2D" uid="uid://c4hxh6lpprnns" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glo31.png" id="8_twsdw"]
+[ext_resource type="Shader" path="res://ui/credits/light_sweep.gdshader" id="9_sweep"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sweepr"]
+shader = ExtResource("9_sweep")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sweepm"]
+shader = ExtResource("9_sweep")
 
 [node name="Credits" type="Control" unique_id=1626998428]
 layout_mode = 3
@@ -52,6 +59,17 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 1, 0.117647)
 
+[node name="Art" type="TextureRect" parent="RafaelButton" unique_id=7000001]
+material = SubResource("ShaderMaterial_sweepr")
+layout_mode = 0
+offset_right = 332.0
+offset_bottom = 470.0
+mouse_filter = 2
+texture = ExtResource("5_sunqn")
+expand_mode = 1
+stretch_mode = 5
+flip_h = true
+
 [node name="VBoxContainer" type="VBoxContainer" parent="RafaelButton" unique_id=1207459481]
 layout_mode = 0
 offset_top = 90.0
@@ -65,15 +83,6 @@ layout_mode = 2
 text = "RafaelJaime"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="TextureRect" type="TextureRect" parent="RafaelButton/VBoxContainer" unique_id=530264131]
-custom_minimum_size = Vector2(400, 0)
-layout_mode = 2
-size_flags_vertical = 3
-texture = ExtResource("5_sunqn")
-expand_mode = 1
-stretch_mode = 5
-flip_h = true
 
 [node name="MatildeButton" type="Button" parent="." unique_id=561887643]
 layout_mode = 1
@@ -94,6 +103,16 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(1, 0, 0, 0.117647)
 
+[node name="Art" type="TextureRect" parent="MatildeButton" unique_id=7000002]
+material = SubResource("ShaderMaterial_sweepm")
+layout_mode = 0
+offset_right = 332.0
+offset_bottom = 470.0
+mouse_filter = 2
+texture = ExtResource("4_rqgi2")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="VBoxContainer" type="VBoxContainer" parent="MatildeButton" unique_id=1792786111]
 layout_mode = 0
 offset_top = 90.0
@@ -107,14 +126,6 @@ layout_mode = 2
 text = "@mati_mola"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="TextureRect" type="TextureRect" parent="MatildeButton/VBoxContainer" unique_id=1603895146]
-custom_minimum_size = Vector2(400, 0)
-layout_mode = 2
-size_flags_vertical = 3
-texture = ExtResource("4_rqgi2")
-expand_mode = 1
-stretch_mode = 5
 
 [node name="BackButton" parent="." unique_id=1043219883 instance=ExtResource("3_brjbi")]
 layout_mode = 1
