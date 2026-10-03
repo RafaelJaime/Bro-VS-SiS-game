@@ -10,9 +10,7 @@ extends Control
 @onready var winner_label: Label = %WinnerLabel
 @onready var stats_label: Label = %StatsLabel
 @onready var loser_label: Label = %LoserLabel
-@onready var replay_button: Button = %ReplayButton
 @onready var characters_button: Button = %CharactersButton
-@onready var main_menu_button: Button = %MainMenuButton
 
 # Set by Game when the match is decided (elimination, or more stocks at
 # time-up; a tie goes to sudden death, so there is always a winner).
@@ -23,7 +21,7 @@ const FOCUS_SCALE := 1.12
 
 func _ready():
 	connect("visibility_changed", _on_visibility_changed)
-	for button in [replay_button, characters_button, main_menu_button]:
+	for button in [characters_button]:
 		button.pivot_offset = button.custom_minimum_size / 2.0
 		button.focus_entered.connect(_set_highlight.bind(button, true))
 		button.focus_exited.connect(_set_highlight.bind(button, false))
@@ -51,7 +49,7 @@ func _on_visibility_changed():
 			loser_label.text = ""
 			stats_label.text = "Stocks left %d - %d" % [player1.stocks, player2.stocks]
 			up_gpu_particles_2d_5.modulate = Color(1, 1, 1, 1)
-			replay_button.grab_focus()
+			characters_button.grab_focus()
 			return
 		var loser: Fighter = player2 if winner == player1 else player1
 		winner_label.text = "WINS!"
@@ -65,7 +63,7 @@ func _on_visibility_changed():
 		loser_panel.color = loser.character_ui.color
 		loser_label.text = loser.character_ui.name.to_upper()
 		stats_label.text = stats_text(winner, loser)
-		replay_button.grab_focus()
+		characters_button.grab_focus()
 	elif visible:
 		push_error("P1 or P2 is not configured")
 
@@ -109,14 +107,6 @@ static func face_texture(character: CharacterUI) -> Texture2D:
 		return character.face_texture
 	return winner_texture(character)
 
-func _on_replay_button_pressed() -> void:
-	get_tree().paused = false
-	SceneManager.rematch()
-
 func _on_characters_button_pressed() -> void:
 	get_tree().paused = false
 	SceneManager.change_scene("res://ui/character_select/character_select.tscn")
-
-func _on_main_menu_button_pressed() -> void:
-	get_tree().paused = false
-	SceneManager.change_scene("res://ui/main_menu/main_menu.tscn")

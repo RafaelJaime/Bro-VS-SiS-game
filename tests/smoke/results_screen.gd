@@ -4,9 +4,8 @@ extends SceneTree
 ## greyed portrait, final stats, and keyboard / gamepad focus navigation.
 
 const Smoke := preload("res://tests/smoke/smoke_util.gd")
-const BUTTON_REMATCH := "res://assets/images/ui/buttons/button5.png"
-const BUTTON_CHARACTERS := "res://assets/images/ui/buttons/button1.png"
-const BUTTON_MAIN_MENU := "res://assets/images/ui/buttons/button4.png"
+const BUTTON_CHARACTERS := "res://assets/images/ui/buttons/button5.png"
+const BACK_SCENE := "res://ui/global/back_button/back_button.tscn"
 const SCREEN := Rect2(0, 0, 800, 600)
 
 var s: RefCounted
@@ -66,19 +65,14 @@ func _check_screen(game: Node2D, tag: String, winner_name: String, loser_name: S
 	var loser: Fighter = game.get_node(loser_name)
 	var panel: ResultsPanel = over.get_node("%WinnerPanel")
 	var loser_panel: ResultsPanel = over.get_node("%LoserPanel")
-	var buttons := {
-		"%ReplayButton": BUTTON_REMATCH, "%CharactersButton": BUTTON_CHARACTERS, "%MainMenuButton": BUTTON_MAIN_MENU,
-	}
-	for button_name in buttons:
-		var button: Button = over.get_node(button_name)
-		var expected: Texture2D = load(buttons[button_name])
-		s.check("%s: %s reuses the menu art %s" % [tag, button_name.trim_prefix("%"), String(buttons[button_name]).get_file()], button.icon == expected and button.flat and button.expand_icon)
-		s.check("%s: %s is inside the screen" % [tag, button_name.trim_prefix("%")], SCREEN.encloses(_rect(button)), str(_rect(button)))
-	s.check("%s: no placeholder gray rectangle buttons (no text on the buttons)" % tag, (over.get_node("%ReplayButton") as Button).text == "" and (over.get_node("%CharactersButton") as Button).text == "")
-	var captions: Array[String] = []
-	for button_name in buttons:
-		captions.append((over.get_node(button_name).get_node("Caption") as Label).text)
-	s.check("%s: captions Rematch / Characters / Main Menu" % tag, captions == ["Rematch", "Characters", "Main Menu"], str(captions))
+	var button: Button = over.get_node("%CharactersButton")
+	s.check("%s: the main button keeps the leftmost button's art" % tag, button.icon == load(BUTTON_CHARACTERS) and button.flat and button.expand_icon and button.text == "")
+	s.check("%s: the main button is inside the screen" % tag, SCREEN.encloses(_rect(button)), str(_rect(button)))
+	s.check("%s: it is captioned Characters" % tag, (button.get_node("Caption") as Label).text == "Characters")
+	s.check("%s: it is the only button of the row (no Rematch, no Main Menu)" % tag, over.get_node("Buttons").get_child_count() == 1 and over.get_node_or_null("%ReplayButton") == null and over.get_node_or_null("%MainMenuButton") == null)
+	var back: Button = over.get_node("BackButton")
+	s.check("%s: the standard Back arrow is there (same scene as the other screens)" % tag, back.scene_file_path == BACK_SCENE and back.visible)
+	s.check("%s: the Back arrow is at the bottom left, inside the screen, clear of the main button" % tag, SCREEN.encloses(_rect(back)) and _rect(back).position.x < 20.0 and _rect(back).end.y >= 560.0 and not _rect(back).intersects(_rect(button)), str(_rect(back)))
 
 	s.check("%s: the winner panel wears the winner's color" % tag, panel.color == winner.character_ui.color)
 	s.check("%s: the winner art is the illustration, cropped as a bust" % tag, panel.texture == over.call("winner_texture", winner.character_ui) and panel.texture.get_height() > panel.texture.get_width() and panel.crop < 1.0, "crop=%.2f" % panel.crop)
@@ -88,7 +82,7 @@ func _check_screen(game: Node2D, tag: String, winner_name: String, loser_name: S
 	for point in panel.outline():
 		outline_inside = outline_inside and bounds.grow(0.01).has_point(point)
 	s.check("%s: the panel outline stays inside its own bounds" % tag, outline_inside)
-	s.check("%s: the winner panel is on screen, apart from the buttons" % tag, SCREEN.encloses(_rect(panel)) and not _rect(panel).intersects((_rect(over.get_node("%ReplayButton")))))
+	s.check("%s: the winner panel is on screen, apart from the buttons" % tag, SCREEN.encloses(_rect(panel)) and not _rect(panel).intersects(_rect(button)))
 	var cut_height := panel.art_rect().size.y * panel.crop
 	s.check("%s: the visible part of the art ends exactly at the panel bottom (intentional chest cut)" % tag, absf(cut_height - panel.size.y) < 1.0 or panel.art_rect().size.y * panel.crop > panel.size.y, "cut=%.1f panel=%.1f" % [cut_height, panel.size.y])
 	_check_art_meets_border(tag + " winner", panel)
@@ -103,19 +97,15 @@ func _check_screen(game: Node2D, tag: String, winner_name: String, loser_name: S
 	s.check("%s: the winner has stocks left in the stats" % tag, stats.contains("Stocks left  %d" % winner.stocks))
 	s.check("%s: the pause-proof tree is paused with the results up" % tag, paused)
 
-	# Focus navigation (keyboard / gamepad share the ui_* actions).
-	var replay: Button = over.get_node("%ReplayButton")
-	var characters: Button = over.get_node("%CharactersButton")
-	var main_menu: Button = over.get_node("%MainMenuButton")
-	s.check("%s: Rematch has the focus when the results open" % tag, replay.has_focus())
+	# Focus (keyboard / gamepad share the ui_* actions): the only focusable control
+	# is the main button; arrows keep it, accept opens the character select.
+	s.check("%s: Characters has the focus when the results open" % tag, button.has_focus())
 	await _tap(KEY_RIGHT)
-	s.check("%s: Right moves the focus to Characters" % tag, characters.has_focus())
-	await _tap(KEY_RIGHT)
-	s.check("%s: Right again moves the focus to Main Menu" % tag, main_menu.has_focus())
 	await _tap(KEY_LEFT)
-	s.check("%s: Left comes back to Characters" % tag, characters.has_focus())
-	s.check("%s: the focused button is highlighted (grown)" % tag, characters.scale.x > 1.05, "scale=%.2f" % characters.scale.x)
-	await _tap(KEY_LEFT)
+	await _tap(KEY_DOWN)
+	await _tap(KEY_UP)
+	s.check("%s: the arrow keys never move the focus off the main button" % tag, button.has_focus())
+	s.check("%s: the focused button is highlighted (grown)" % tag, button.scale.x > 1.05, "scale=%.2f" % button.scale.x)
 	await s.frames(8)
 	await s.screenshot("results_%s" % tag)
 
@@ -133,4 +123,5 @@ func _run() -> void:
 	reached = await _to_results(game, "Fighter1")
 	s.check("p2 wins: the match ends in the results", reached and game.winner == game.get_node("Fighter2"))
 	await _check_screen(game, "p2win", "Fighter2", "Fighter1")
+	# The Back arrow and Characters navigation are clicked for real in navigation.gd.
 	s.finish()

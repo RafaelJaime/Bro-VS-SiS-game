@@ -294,10 +294,8 @@ func _game_and_results() -> void:
 	var result_name: Label = game.game_over.get_node("%WinnerNameLabel")
 	var result_wins: Label = game.game_over.get_node("%WinnerLabel")
 	s.check("the results read '<NAME> WINS!' in big letters", (result_name.text + " " + result_wins.text).strip_edges() == fighter_1.character_ui.name.to_upper() + " WINS!" and result_name.get_theme_font_size("font_size") >= 56, "text=%s size=%d" % [result_name.text + " " + result_wins.text, result_name.get_theme_font_size("font_size")])
-	var captions: Array[String] = []
-	for button_name in ["%ReplayButton", "%CharactersButton", "%MainMenuButton"]:
-		captions.append((game.game_over.get_node(button_name).get_node("Caption") as Label).text)
-	s.check("the results buttons are captioned Rematch, Characters, Main Menu", captions == ["Rematch", "Characters", "Main Menu"], str(captions))
+	var caption: String = (game.game_over.get_node("%CharactersButton").get_node("Caption") as Label).text
+	s.check("the only results button is captioned Characters, with the Back arrow beside it", caption == "Characters" and game.game_over.get_node("Buttons").get_child_count() == 1 and _is_back_arrow(game.game_over.get_node_or_null("BackButton")), caption)
 	var timer_hidden: bool = not game.timer_label.visible
 	var huds_hidden := true
 	for fighter in [fighter_1, fighter_2]:
@@ -308,6 +306,10 @@ func _game_and_results() -> void:
 	await _press_escape()
 	s.check("pause stays closed on the results screen", paused and not _pause_menu(game).visible)
 	await _leave(game)
+
+# The shared Back arrow scene (credits, character select, instructions).
+func _is_back_arrow(node: Node) -> bool:
+	return node != null and node.scene_file_path == "res://ui/global/back_button/back_button.tscn"
 
 func _rematch() -> void:
 	var characters := await _real_characters()
@@ -325,11 +327,13 @@ func _rematch() -> void:
 	await s.frames(4)
 	s.check("rematch: the first match ends", first.phase == Game.Phase.OVER)
 	var reached := await _wait_results(first)
-	s.check("rematch: the results offer the three buttons", reached and first.game_over.get_node("%ReplayButton") != null and first.game_over.get_node("%CharactersButton") != null and first.game_over.get_node("%MainMenuButton") != null)
+	s.check("rematch: the results offer Characters and the Back arrow only", reached and first.game_over.get_node("%CharactersButton") != null and first.game_over.get_node("BackButton") != null and first.game_over.get_node_or_null("%ReplayButton") == null and first.game_over.get_node_or_null("%MainMenuButton") == null)
 	var winner_art: Texture2D = first.game_over.get_node("%WinnerPanel").texture
 	s.check("rematch: a real character's illustration is shown", winner_art != null and winner_art == characters[0].illustration)
 
-	first.game_over.get_node("%ReplayButton").pressed.emit()
+	# No results button rematches any more; SceneManager.rematch() is still the API.
+	paused = false  # the old Rematch button unpaused before restarting
+	scene_manager.rematch()
 	await s.frames(4)
 	var second: Game = scene_manager.current_scene
 	s.check("rematch: a new Game replaces the old one", second != first and is_instance_valid(second))

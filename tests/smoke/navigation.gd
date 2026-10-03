@@ -46,6 +46,10 @@ func _scene_path() -> String:
 	return scene_manager.current_scene_path
 
 ## Starts a match through the SceneManager and ends it, returning the results.
+# The shared Back arrow scene (credits, character select, instructions).
+func _is_back_arrow(node: Node) -> bool:
+	return node != null and node.scene_file_path == "res://ui/global/back_button/back_button.tscn"
+
 func _match_to_results() -> Game:
 	scene_manager.play_game(characters[0], characters[1], ControllerConfig.human(), ControllerConfig.cpu(Level.HARD))
 	await s.frames(3)
@@ -96,11 +100,17 @@ func _run() -> void:
 	s.check("nav: Back from the character select (after the results) goes to the main menu, not the match", _scene_path() == MENU_SCENE, _scene_path())
 	s.check("nav: no match is left running behind the menu", scene_manager.current_scene is MainMenu and not (scene_manager.current_scene is Game))
 
-	# --- match -> results -> Rematch -> results -> Characters -> Back
+	# --- the results screen has only Characters and the Back arrow (no Rematch, no Main Menu button)
 	game = await _match_to_results()
-	await click(game.game_over.get_node(RESULTS_BUTTONS + "ReplayButton"))
+	var results_buttons := game.game_over.get_node("Buttons")
+	s.check("nav: the results offer exactly one button, Characters", results_buttons.get_child_count() == 1 and results_buttons.get_child(0).name == "CharactersButton" and game.game_over.get_node_or_null("%ReplayButton") == null and game.game_over.get_node_or_null("%MainMenuButton") == null)
+	s.check("nav: the results carry the standard Back arrow", _is_back_arrow(game.game_over.get_node_or_null("BackButton")))
+	# SceneManager.rematch() stays as an API (no button reaches it): a match started
+	# through it must still lead results -> Characters -> Back to the main menu.
+	paused = false  # the old Rematch button unpaused before restarting
+	scene_manager.rematch()
 	await s.frames(5)
-	s.check("nav: Rematch starts the match again", _scene_path() == GAME_SCENE)
+	s.check("nav: a match restarted through SceneManager.rematch() runs the game scene", _scene_path() == GAME_SCENE)
 	game = scene_manager.current_scene
 	game.skip_countdown()
 	var loser: Fighter = game.get_node("Fighter2")
@@ -114,13 +124,14 @@ func _run() -> void:
 	await s.frames(5)
 	await click(scene_manager.current_scene.get_node("BackButton"))
 	await s.frames(5)
-	s.check("nav: Back after a rematch and the results also goes to the main menu", _scene_path() == MENU_SCENE, _scene_path())
+	s.check("nav: Back after a restarted match and the results also goes to the main menu", _scene_path() == MENU_SCENE, _scene_path())
 
-	# --- results -> Main Menu button
+	# --- results -> Back arrow always goes to the main menu
 	game = await _match_to_results()
-	await click(game.game_over.get_node(RESULTS_BUTTONS + "MainMenuButton"))
+	await click(game.game_over.get_node("BackButton"))
 	await s.frames(5)
-	s.check("nav: results -> Main Menu opens the main menu", _scene_path() == MENU_SCENE, _scene_path())
+	s.check("nav: results -> Back arrow opens the main menu", _scene_path() == MENU_SCENE, _scene_path())
+	s.check("nav: the results Back arrow unpauses the tree", not paused)
 
 	# --- pause -> Back leaves the match for the main menu and unpauses
 	scene_manager.play_game(characters[0], characters[1], ControllerConfig.human(), ControllerConfig.cpu(Level.NORMAL))

@@ -762,12 +762,14 @@ func _results_rematch_characters() -> void:
 	s.check("KB results: GAME! leads to the results screen with a winner", shown and game.winner != null, "visible=%s winner=%s" % [shown, game.winner])
 	await s.real_wait(0.8)
 	await s.screenshot("kb_13_results")
-	var replay: Button = game.game_over.get_node("%ReplayButton")
 	var characters_button: Button = game.game_over.get_node("%CharactersButton")
+	s.check("KB results: the main button has the focus and the Back arrow is there", characters_button.has_focus() and game.game_over.get_node_or_null("BackButton") != null)
 	var first_game := game
-	await click(replay)
+	# No results button rematches any more; SceneManager.rematch() is still the API.
+	paused = false  # the old Rematch button unpaused before restarting
+	scene_manager.rematch()
 	await s.frames(10)
-	s.check("KB rematch: clicking Rematch starts a fresh match with the same controllers", scene_manager.current_scene is Game and scene_manager.current_scene != first_game and scene_manager.current_scene.phase == Game.Phase.COUNTDOWN and not paused)
+	s.check("KB rematch: a restart starts a fresh match with the same controllers", scene_manager.current_scene is Game and scene_manager.current_scene != first_game and scene_manager.current_scene.phase == Game.Phase.COUNTDOWN and not paused)
 	_bind(scene_manager.current_scene)
 	s.check("KB rematch: P1 is still the human and P2 the CPU", p1.controller is HumanController and p2.controller is ScriptedController)
 	await wait_until(func(): return game.phase == Game.Phase.PLAYING, 400)
