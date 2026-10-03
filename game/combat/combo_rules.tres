@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ComboRules" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://4pvb1p2hsyny" path="res://game/combat/combo_rules.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+hard_cap_hits = 6
+decay_from_hit = 4
+hitstun_decay = 0.8
+knockback_growth = 1.1
+time_cap = 1.5
+min_combo_stun_ticks = 4
+cap_launch_knockback = Vector2(260, -360)

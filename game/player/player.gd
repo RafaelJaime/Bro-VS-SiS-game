@@ -13,6 +13,11 @@ signal hit_received(hit: Hit, outcome: int)
 signal shield_broken(cause: Hit)
 signal food_picked_up(food_name: String)
 signal food_thrown(food_name: String)
+## The combo this fighter is taking (a victim-side signal): every FULL hit counted in
+## it, then the end. `attacker` dealt it; the attacker's HUD, the match metrics and
+## the training reward read these, never the state machine.
+signal combo_updated(hits: int, damage: float, attacker: Fighter)
+signal combo_ended(hits: int, damage: float, attacker: Fighter)
 ## The fighter finished a reset_player (a training episode restart).
 signal reset_done
 
@@ -99,6 +104,9 @@ var held_food: String = ""
 ## The shield meter. Ticked once per physics frame (see _tick_combat), so it
 ## regenerates in every state; Protect only holds and drains it.
 var shield: ShieldMeter
+## The combo this fighter is taking (hit count, damage, attacker), ticked in
+## _tick_combat; Combat registers every FULL hit on it.
+var combo: ComboTracker
 ## How many times the shield has been raised (Protect entered); the shield-spam
 ## metric reads it.
 var shield_raises: int = 0
@@ -157,6 +165,8 @@ func _enter_tree() -> void:
 		profile = FighterProfile.new()
 	shield = ShieldMeter.new()
 	shield.setup(profile)
+	combo = ComboTracker.new()
+	combo.setup(self)
 
 func _ready():
 	initial_position = position
@@ -230,6 +240,7 @@ func _tick_combat() -> void:
 		air_dodge_cooldown_left -= 1
 	if attack_cooldown_ticks > 0:
 		attack_cooldown_ticks -= 1
+	combo.tick(state)
 
 # Remembers a punch press made in an actionable state (or in Punch itself) for
 # `attack_buffer_ticks`; only the press edge arms it, so holding the key never
@@ -255,6 +266,8 @@ func clear_attack_buffer() -> void:
 func _clear_attack_state() -> void:
 	attack_buffer_ticks = 0
 	attack_cooldown_ticks = 0
+	# A combo the victim was in ends with it (its HUD counter and metrics hear it).
+	combo.end()
 
 ## The shield ran out (a hold or a blocked hit): the fighter goes dizzy. `cause` is
 ## the hit that did it, or null for the hold drain.

@@ -155,6 +155,9 @@ func _tag_effects(s: RefCounted) -> void:
 	var hot_speed: float = target.state_machine.velocity.length()
 	var hot_damage := target.damage_percent
 	target.set_damage_percent(0.0)
+	# Back to neutral first: a second hit during hitstun would be the 2nd hit of a
+	# combo and carry its x1.1 knockback growth, which is not what this compares.
+	target.state_machine._change_state("Idle")
 	Combat.resolve(Hit.food(attacker, "pizza", attacker.global_position), target)
 	var plain_speed: float = target.state_machine.velocity.length()
 	s.check("a hot food launches 1.25 times harder than an untagged one at the same damage", is_equal_approx(hot_damage, target.damage_percent) and is_equal_approx(hot_speed, plain_speed * 1.25), "hot=%.1f plain=%.1f" % [hot_speed, plain_speed])

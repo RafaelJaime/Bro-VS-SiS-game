@@ -16,6 +16,11 @@ const PERCENT_FONT_SIZE := 48
 const SHIELD_BAR_HEIGHT := 6.0
 const SHIELD_BAR_Y := 68.0
 const SHIELD_IDLE_ALPHA := 0.45
+const COMBO_FONT_SIZE := 22
+## The combo counter holds for COMBO_HOLD seconds after the last hit, then fades out
+## over COMBO_FADE (about 1 s in all).
+const COMBO_HOLD := 0.35
+const COMBO_FADE := 0.65
 
 # Damage % at which the number reaches each colour of the ramp.
 const COLOR_STOPS: Array[Dictionary] = [
@@ -35,8 +40,15 @@ var stock_icons: HBoxContainer
 var shield_bar: Panel
 var shield_fill: Panel
 var break_label: Label
+## "N HIT COMBO  D%" above the card, for the combo this fighter is dealing (2 hits or
+## more). Driven by the opponent's combo signals; absent in training.
+var combo_label: Label
 
 var _pop_tween: Tween
+var _combo_pop_tween: Tween
+var _combo_fade_tween: Tween
+## A combo of 2+ hits is on screen and has not ended yet.
+var _combo_live: bool = false
 var _stock_texture: Texture2D
 
 ## White at 0%, yellow near 60%, red near 120% and dark red from 200% on.
@@ -61,10 +73,12 @@ func _ready() -> void:
 		return
 	_build()
 	_refresh_character()
+	_connect_combo()
 
 # The shield bar follows the meter every frame (within one frame of any change);
 # at a full meter and no shield it sits idle and dim. "BREAK!" pulses while dizzy.
 func _process(_delta: float) -> void:
+	_poll_combo()
 	if shield_fill == null or owner == null or owner.shield == null:
 		return
 	var ratio: float = owner.shield.ratio()
@@ -147,6 +161,7 @@ func _build() -> void:
 	stock_icons.size = Vector2(text_width, STOCK_SIZE)
 	panel.add_child(stock_icons)
 	_build_shield_bar(text_x, text_width)
+	_build_combo_label()
 	for i in Fighter.MAX_STOCKS:
 		var icon := TextureRect.new()
 		icon.name = "Stock%d" % i
@@ -185,6 +200,23 @@ func _build_shield_bar(x: float, width: float) -> void:
 	break_label.text = "BREAK!"
 	break_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.15))
 	break_label.visible = false
+
+# The counter sits above the card, on the card's side of the screen.
+func _build_combo_label() -> void:
+	var left := _is_left()
+	combo_label = Label.new()
+	combo_label.name = "ComboLabel"
+	combo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	combo_label.position = Vector2(0.0, -(COMBO_FONT_SIZE + 14.0))
+	combo_label.size = Vector2(PANEL_SIZE.x, COMBO_FONT_SIZE + 12.0)
+	combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if left else HORIZONTAL_ALIGNMENT_RIGHT
+	combo_label.add_theme_font_size_override("font_size", COMBO_FONT_SIZE)
+	combo_label.add_theme_color_override("font_color", Color.WHITE)
+	combo_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	combo_label.add_theme_constant_override("outline_size", 6)
+	combo_label.pivot_offset = Vector2(0.0 if left else PANEL_SIZE.x, (COMBO_FONT_SIZE + 12.0) / 2.0)
+	combo_label.visible = false
+	panel.add_child(combo_label)
 
 func _make_label(label_name: String, font_size: int, x: float, y: float, width: float, left: bool) -> Label:
 	var label := Label.new()
@@ -272,3 +304,58 @@ func _on_stocks_changed(_player_instance: Fighter, stocks_left: int) -> void:
 
 func _on_player_updated_character_ui() -> void:
 	_refresh_character()
+
+# --------------------------------------------------------------------- combo
+
+# The opponent is the victim of the combo this fighter deals, so its signals carry
+# the counter. Only hits dealt by this fighter count (a bomb or the other side's
+# own combo never show here).
+func _connect_combo() -> void:
+	var enemy := owner.enemy as Fighter if owner else null
+	if enemy == null or combo_label == null:
+		return
+	enemy.combo_updated.connect(_on_combo_updated)
+	enemy.combo_ended.connect(_on_combo_ended)
+
+func _on_combo_updated(hits: int, damage: float, attacker: Fighter) -> void:
+	if attacker != owner or hits < 2:
+		return
+	# A newer combo (or one more hit) takes the counter back from the fade.
+	if _combo_fade_tween:
+		_combo_fade_tween.kill()
+	_combo_live = true
+	combo_label.text = combo_text(hits, damage)
+	combo_label.modulate.a = 1.0
+	combo_label.visible = true
+	if _combo_pop_tween:
+		_combo_pop_tween.kill()
+	combo_label.scale = Vector2.ONE * 1.35
+	_combo_pop_tween = create_tween()
+	_combo_pop_tween.tween_property(combo_label, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _on_combo_ended(hits: int, damage: float, attacker: Fighter) -> void:
+	if attacker != owner or hits < 2:
+		return
+	combo_label.text = combo_text(hits, damage)
+	_fade_combo()
+
+# A hazard (a bomb) clears the victim's combo without ending it: the counter must
+# still go away, so it also follows the opponent's tracker.
+func _poll_combo() -> void:
+	if not _combo_live or owner == null or not (owner.enemy is Fighter):
+		return
+	if not owner.enemy.combo.is_active():
+		_fade_combo()
+
+func _fade_combo() -> void:
+	_combo_live = false
+	if _combo_fade_tween:
+		_combo_fade_tween.kill()
+	_combo_fade_tween = create_tween()
+	_combo_fade_tween.tween_interval(COMBO_HOLD)
+	_combo_fade_tween.tween_property(combo_label, "modulate:a", 0.0, COMBO_FADE)
+	_combo_fade_tween.tween_callback(func() -> void: combo_label.visible = false)
+
+## "3 HIT COMBO  17%": the hits and the damage the combo dealt.
+static func combo_text(hits: int, damage: float) -> String:
+	return "%d HIT COMBO  %d%%" % [hits, roundi(damage)]
