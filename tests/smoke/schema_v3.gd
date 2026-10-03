@@ -10,6 +10,8 @@ extends SceneTree
 const Smoke := preload("res://tests/smoke/smoke_util.gd")
 const MODEL_PATH := "res://tests/fixtures/onnx/random_policy_v3.onnx"
 const SIDECAR_PATH := "res://tests/fixtures/onnx/random_policy_v3.bvs.json"
+const LAYOUT_FIXTURE := "res://tests/fixtures/schema/v3_layout.json"
+const OBS_FIXTURE := "res://tests/fixtures/schema/v3_obs_golden.json"
 
 # Layout offsets this test pins (they are part of the v3 contract).
 const OPP := 43
@@ -50,6 +52,7 @@ func _run() -> void:
 	var s := Smoke.new(self)
 	_check_observation(s)
 	_check_bombs_and_sudden_death(s)
+	_check_fixtures(s)
 	_check_registry(s)
 	await _check_real_game(s)
 	await _check_training_equals_inference(s)
@@ -370,6 +373,78 @@ func _check_bombs_and_sudden_death(s: RefCounted) -> void:
 	swarm.append(_bomb(NAN, INF))
 	var crowded := BvsSchemaV3.build_obs(_snapshot(me, foe, {"sudden_death": true, "sudden_death_phase": 2, "bombs": swarm}), 0)
 	s.check("41 bombs keep the length and stay finite and bounded", crowded.size() == 136 and _all_finite_and_bounded(crowded))
+
+# ------------------------------------------------------------------ fixtures
+
+func _read_json(path: String) -> Variant:
+	if not FileAccess.file_exists(path):
+		return null
+	return JSON.parse_string(FileAccess.get_file_as_string(path))
+
+func _vec(value: Variant) -> Vector2:
+	return Vector2(float(value[0]), float(value[1]))
+
+## Fixture snapshots are JSON: vectors are [x, y] arrays and names are strings.
+func _snapshot_from_json(raw: Dictionary) -> Dictionary:
+	var snapshot: Dictionary = raw.duplicate(true)
+	for fighter: Dictionary in snapshot["fighters"]:
+		fighter["position"] = _vec(fighter["position"])
+		fighter["velocity"] = _vec(fighter["velocity"])
+		fighter["facing"] = int(fighter["facing"])
+		fighter["stocks"] = int(fighter["stocks"])
+		fighter["jumps_left"] = int(fighter["jumps_left"])
+		fighter["ledge_side"] = int(fighter["ledge_side"])
+	for food: Dictionary in snapshot["foods"]:
+		food["position"] = _vec(food["position"])
+	for shot: Dictionary in snapshot["projectiles"]:
+		shot["position"] = _vec(shot["position"])
+		shot["velocity"] = _vec(shot["velocity"])
+		shot["shooter"] = int(shot["shooter"])
+	for bomb: Dictionary in snapshot["bombs"]:
+		bomb["position"] = _vec(bomb["position"])
+		bomb["velocity"] = _vec(bomb["velocity"])
+	for ledge: Dictionary in snapshot["ledges"]:
+		ledge["side"] = int(ledge["side"])
+	snapshot["sudden_death_phase"] = int(snapshot["sudden_death_phase"])
+	return snapshot
+
+func _check_fixtures(s: RefCounted) -> void:
+	var layout: Variant = _read_json(LAYOUT_FIXTURE)
+	var frozen: bool = layout is Array and layout.size() == BvsSchemaV3.FIELD_NAMES.size()
+	if frozen:
+		for i in layout.size():
+			frozen = frozen and String(layout[i]) == BvsSchemaV3.FIELD_NAMES[i]
+	s.check("the layout fixture equals FIELD_NAMES name by name (the v3 freeze)", frozen)
+
+	var golden: Variant = _read_json(OBS_FIXTURE)
+	s.check("the observation golden fixture holds recorded cases (shield, dizzy, bombs, both views)", golden is Dictionary and golden.get("cases", []).size() >= 8)
+	if not (golden is Dictionary):
+		return
+	var matched := 0
+	var worst := 0.0
+	var with_bombs := 0
+	var with_dizzy := 0
+	for entry: Dictionary in golden["cases"]:
+		var snapshot := _snapshot_from_json(entry["snapshot"])
+		var built := BvsSchemaV3.build_obs(snapshot, int(entry["my_index"]))
+		var expected: Array = entry["expected"]
+		with_bombs += 1 if not snapshot["bombs"].is_empty() else 0
+		for fighter: Dictionary in snapshot["fighters"]:
+			with_dizzy += 1 if bool(fighter["dizzy"]) else 0
+		if built.size() != expected.size():
+			continue
+		var ok := true
+		for i in expected.size():
+			var diff := absf(built[i] - float(expected[i]))
+			worst = maxf(worst, diff)
+			ok = ok and diff <= 1e-6
+		matched += 1 if ok else 0
+	s.check("every golden case rebuilds within 1e-6", matched == golden["cases"].size(), "matched=%d/%d worst=%s" % [matched, golden["cases"].size(), str(worst)])
+	s.check("the golden cases cover bombs and a dizzy fighter", with_bombs >= 3 and with_dizzy >= 1, "bombs=%d dizzy=%d" % [with_bombs, with_dizzy])
+	var players := {}
+	for entry: Dictionary in golden["cases"]:
+		players[int(entry["my_index"])] = true
+	s.check("the golden cases include the player 2 view", players.has(0) and players.has(1))
 
 # ------------------------------------------------------------------ registry
 
