@@ -144,9 +144,9 @@ Satisfies specs: `rl-training-pipeline` "Evaluation", "Default model artifacts";
 
 Satisfies spec: `rl-training-pipeline` "Remote upload authorization gate".
 
-- [ ] 6.1 STOP. Present to the user, in one message: destination repo id (proposed `RafaelJaime/BVS-<name>`) and license (open question 2, for example MIT); operation (create repo if missing, then upload `model.onnx`, `bvs.json`, `README.md`); tags `BVS`, `bvs-schema-2`, `reinforcement-learning`; visibility public; credential (the user's `hf` CLI login); the evaluation results. Do NOT run `hf auth whoami` or any hf/network command before the user explicitly confirms destination, operation and credential. Partial confirmation keeps everything local.
-- [ ] 6.2 After explicit confirmation only: `cd training && uv run python -m bvs_training.prepare_upload --repo <id> --license <spdx>` (local), check CLI syntax locally with `hf upload --help` (local, read-only), then run the printed `hf repo create` and `hf upload` commands exactly as confirmed.
-- [ ] 6.3 Read-only verification: `GET https://huggingface.co/api/models?author=<owner>&filter=BVS` lists the model with `bvs-schema-2`, and the in-game picker (`ONLY="hf_picker"` plus a manual run) shows it as Compatible. Record the repo URL in `training/reports/bvs_default-eval.md` in a follow-up docs commit if requested.
+- [x] 6.1 STOP. Present to the user, in one message: destination repo id (proposed `RafaelJaime/BVS-<name>`) and license (open question 2, for example MIT); operation (create repo if missing, then upload `model.onnx`, `bvs.json`, `README.md`); tags `BVS`, `bvs-schema-2`, `reinforcement-learning`; visibility public; credential (the user's `hf` CLI login); the evaluation results. Do NOT run `hf auth whoami` or any hf/network command before the user explicitly confirms destination, operation and credential. Partial confirmation keeps everything local.
+- [x] 6.2 After explicit confirmation only: `cd training && uv run python -m bvs_training.prepare_upload --repo <id> --license <spdx>` (local), check CLI syntax locally with `hf upload --help` (local, read-only), then run the printed `hf repo create` and `hf upload` commands exactly as confirmed.
+- [x] 6.3 Read-only verification: `GET https://huggingface.co/api/models?author=<owner>&filter=BVS` lists the model with `bvs-schema-2`, and the in-game picker (`ONLY="hf_picker"` plus a manual run) shows it as Compatible. Record the repo URL in `training/reports/bvs_default-eval.md` in a follow-up docs commit if requested.
 
 ## Phase R: Root folder restructure (user-approved, after S6)
 
@@ -166,7 +166,7 @@ One `refactor:` commit; behavior unchanged; full `tests/smoke/run_all.sh` must s
 - [ ] A.4 Default model at least 60% vs CPU Easy over at least 20 matches, non-trivial play, report committed (5.5, 5.6).
 - [ ] A.5 HF model download once per revision, validated, plays on desktop and web without Sync (4.3, 4.7-4.9, 4.14).
 - [ ] A.6 Mismatched model rejected with a visible reason; no silent CPU swap (4.5, 4.7, 4.9).
-- [ ] A.7 After explicit authorization, the model is published and appears as Compatible (6.1-6.3).
+- [x] A.7 After explicit authorization, the model is published and appears as Compatible (6.1-6.3).
 
 ## Future / Backlog (not in this change)
 

@@ -27,6 +27,9 @@ BUNDLED_DIR = schema.REPO_ROOT / "game" / "ai" / "models" / "bvs_default"
 TEMPLATE = Path(__file__).resolve().parents[1] / "templates" / "model_card.md"
 STAGE_ROOT = Path(__file__).resolve().parents[1] / "out" / "upload"
 FILES = ("model.onnx", "bvs.json")
+# `hf` alone can resolve to an unrelated CLI (for example the Higgsfield one), so the printed
+# commands run the Hugging Face CLI through uvx. `hf upload` also creates a missing repo.
+HF = "uvx --from huggingface_hub hf"
 TAGS = ("BVS", "bvs-schema-2", "reinforcement-learning")
 
 
@@ -127,8 +130,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"staged {target}")
     print("sha256 of the staged files matches their source.")
     print("\nNothing was uploaded. After the user confirms destination, operation and credential, run:\n")
-    print(f"  hf repo create {shlex.quote(args.repo)} --repo-type model --exist-ok")
-    print(f"  hf upload {shlex.quote(args.repo)} {shlex.quote(str(shown))} . --repo-type model --commit-message {shlex.quote(message)}")
+    print(f"  {HF} repos create {shlex.quote(args.repo)} --repo-type model --exist-ok")
+    print(f"  {HF} upload {shlex.quote(args.repo)} {shlex.quote(str(shown))} . --repo-type model --commit-message {shlex.quote(message)}")
     print(f"\nExpected tags on the Hub: {', '.join(TAGS)} (from the README front matter).")
     return 0
 

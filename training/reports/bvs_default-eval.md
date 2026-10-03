@@ -64,3 +64,7 @@ Played in Godot with the shipped GDScript ONNX interpreter, full matches versus 
 | a7_dash | 0.82, 0.18 | 0.67 |
 
 Gate: win rate versus CPU Easy at least 0.60 over at least 20 matches: **PASS** (1.00 over 40).
+
+## Publication
+
+Published (public, MIT) at https://huggingface.co/RafaelJaime/BVS-default, commit `8229490c7c1b5925b8353a80ae0295eda25fa589`, tags `BVS`, `bvs-schema-2`, `reinforcement-learning`. Verified read-only via `GET /api/models?author=RafaelJaime&filter=BVS`.
