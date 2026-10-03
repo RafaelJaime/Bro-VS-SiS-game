@@ -1,12 +1,17 @@
 """Golden vectors for the GDScript ONNX interpreter (design D12).
 
     uv run python -m bvs_training.golden --check-ops
+    uv run python -m bvs_training.golden --check-schema
     uv run python -m bvs_training.golden --model ../game/ai/models/bvs_default/model.onnx \
         --obs-dump out/obs_dump.json --out ../tests/fixtures/onnx/bvs_default_golden.json
 
 `--check-ops` regenerates the per-op fixtures (via `gen_op_fixtures`) and fails when
-git sees any difference. `--model` runs onnxruntime on 32 seeded random observations
-plus up to 32 recorded ones (`BVS_EVAL_OBS_DUMP`) and writes a deterministic JSON.
+git sees any difference. `--check-schema` checks the committed schema fixtures
+against the Python mirror: the layout lists exactly `obs_dim` unique names in the
+documented block order, and every recorded golden observation has that length and
+stays finite and inside the [-5, 5] clip range. `--model` runs onnxruntime on 32
+seeded random observations plus up to 32 recorded ones (`BVS_EVAL_OBS_DUMP`) and
+writes a deterministic JSON.
 """
 
 from __future__ import annotations
@@ -90,6 +95,57 @@ def build_golden(model_path: Path, dump: Path | None, repo_relative: str, seed: 
     }
 
 
+# Block order of the schema 3 layout: (first index, last index + 1, name prefix). The self and
+# opponent blocks mirror each other field by field; the shared blocks follow in this order.
+V3_FIGHTER_BLOCK = 43
+V3_SHARED_PREFIXES: list[tuple[int, str]] = [
+    (86, "rel_x"),
+    (92, "food0_present"),
+    (100, "food1_present"),
+    (108, "proj0_present"),
+    (114, "proj1_present"),
+    (120, "bomb0_present"),
+    (126, "bomb1_present"),
+    (132, "timer_left"),
+    (133, "sudden_death"),
+    (134, "sudden_death_phase"),
+    (135, "sudden_death_elapsed"),
+]
+
+
+def check_schema_fixtures(version: int = schema.TRAIN_VERSION) -> list[str]:
+    """Problems (empty when none) between the committed fixtures of a schema and its Python mirror."""
+    spec = schema.SCHEMAS[version]
+    problems: list[str] = []
+    names = schema.layout_names(version)
+    if len(names) != spec.obs_dim:
+        problems.append(f"layout has {len(names)} names, expected {spec.obs_dim}")
+    if len(set(names)) != len(names):
+        problems.append("layout has duplicate names")
+    if version == 3 and len(names) == spec.obs_dim:
+        block = V3_FIGHTER_BLOCK
+        for index in range(block):
+            mine, theirs = names[index], names[block + index]
+            if not mine.startswith("self_") or not theirs.startswith("opp_") or mine[len("self_") :] != theirs[len("opp_") :]:
+                problems.append(f"fighter blocks differ at {index}: {mine} / {theirs}")
+                break
+        for index, expected in V3_SHARED_PREFIXES:
+            if names[index] != expected:
+                problems.append(f"layout[{index}] is {names[index]}, expected {expected}")
+    golden = json.loads(spec.obs_fixture.read_text())
+    for case in golden["cases"]:
+        values = case["expected"]
+        label = case.get("name", "?")
+        if len(values) != spec.obs_dim:
+            problems.append(f"case '{label}' has {len(values)} values, expected {spec.obs_dim}")
+            continue
+        if not all(np.isfinite(values)):
+            problems.append(f"case '{label}' has a non-finite value")
+        if any(abs(v) > 5.0 for v in values):
+            problems.append(f"case '{label}' leaves the [-5, 5] clip range")
+    return problems
+
+
 def check_ops() -> int:
     gen_op_fixtures.generate()
     ops_dir = gen_op_fixtures.OUT_DIR
@@ -110,6 +166,7 @@ def check_ops() -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check-ops", action="store_true", help="regenerate op fixtures and require no git diff")
+    parser.add_argument("--check-schema", action="store_true", help="check the committed schema fixtures against the Python mirror")
     parser.add_argument("--model", type=Path, help="model.onnx to write goldens for")
     parser.add_argument("--obs-dump", type=Path, help="BVS_EVAL_OBS_DUMP JSON with recorded observations")
     parser.add_argument("--out", type=Path, help="golden JSON path")
@@ -117,8 +174,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.check_ops:
         return check_ops()
+    if args.check_schema:
+        problems = check_schema_fixtures()
+        for problem in problems:
+            print(f"schema fixture: {problem}", file=sys.stderr)
+        if not problems:
+            print(f"schema {schema.TRAIN_VERSION} fixtures agree with the Python mirror ({schema.OBS_DIM} fields)")
+        return 1 if problems else 0
     if not args.model or not args.out:
-        parser.error("pass --check-ops, or --model and --out")
+        parser.error("pass --check-ops, --check-schema, or --model and --out")
     model = args.model.resolve()
     try:
         relative = str(model.relative_to(schema.REPO_ROOT))

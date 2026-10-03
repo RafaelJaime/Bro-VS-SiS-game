@@ -1,7 +1,7 @@
 [project]
 name = "bvs-training"
 version = "0.1.0"
-description = "Training, export and fixture tooling for Bro vs Sis AI opponents (bvs-schema-2)"
+description = "Training, export and fixture tooling for Bro vs Sis AI opponents (bvs-schema-2 and bvs-schema-3)"
 requires-python = "==3.12.*"
 dependencies = [
     "godot-rl==0.8.2",
@@ -14,3 +14,11 @@ dependencies = [
 
 [tool.uv]
 package = false
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -25,9 +25,33 @@ clip_range = 0.2
 net_arch_pi = [64, 64]
 net_arch_vf = [64, 64]
 
+# Episode rules of every training row (BVS_TRAIN_CONFIG.match): a tied timer expiry goes to
+# sudden death instead of ending the episode, and an episode whose sudden death lasts
+# `sd_safety_cap` seconds is truncated as a draw (reason sd_cap, no win/loss/timeout reward).
+[match]
+sudden_death = true
+sd_safety_cap = 60.0
+
 # Reward overrides (data only). Keys are RewardConfig fields; see
-# game/ai/training/reward_config.gd for the defaults.
+# game/ai/training/reward_config.gd for the defaults. The combat-depth terms are signal-driven
+# (pickups, food hits, shield breaks, a long shield hold); the last two keys are parameters.
 [reward]
+pickup = 0.05
+food_hit = 0.15
+shield_break_dealt = 0.4
+shield_break_taken = -0.4
+shield_hold = -0.003
+shield_hold_threshold = 1.5   # seconds of continuous shielding before shield_hold applies
+pickup_cap = 20               # rewarded pickups per episode
+
+# Acceptance gates of the combat-depth harness (training/bvs_training/harness.py). A retrained
+# model only replaces the bundled one, and the playable schema only moves, when every gate passes.
+[acceptance]
+max_mean_sd_seconds = 45             # forced sudden death, model vs model
+min_pickups_per_fighter_minute = 1.0 # regulation matches with the model
+max_blocked_share = 0.70             # (blocked + broke) / (full + blocked + broke), bombs excluded
+min_ko_win_rate_easy = 0.60          # model vs CPU Easy, won by KO
+min_matches = 20                     # per matchup
 
 [[phase]]
 name = "P1"
@@ -38,8 +62,10 @@ mix = { cpu_easy = 1.0 }
 name = "P2"
 steps = 3_000_000
 mix = { cpu_easy = 0.5, cpu_normal = 0.5 }
+sd_start = 0.125   # share of rows that begin every episode in sudden death
 
 [[phase]]
 name = "P3"
 steps = 4_000_000
 mix = { cpu_normal = 0.3, cpu_easy = 0.2, self = 0.2, snapshot = 0.3 }
+sd_start = 0.25

@@ -37,10 +37,12 @@ var sd_ticks := 0
 var _fighters: Array[Fighter] = []
 var _running := false
 
-## Connects to both fighters of `match_game` and starts counting ticks.
+## Connects to both fighters of `match_game` and starts counting ticks. The fighters
+## are found by node name, so it also works on a Game that is not ready yet (its
+## `fighter_1` / `fighter_2` are @onready).
 func setup(match_game: Game) -> void:
 	game = match_game
-	_fighters = [game.fighter_1, game.fighter_2]
+	_fighters = [game.get_node("Fighter1") as Fighter, game.get_node("Fighter2") as Fighter]
 	for index in 2:
 		var fighter := _fighters[index]
 		fighter.hit_received.connect(_on_hit_received.bind(index))

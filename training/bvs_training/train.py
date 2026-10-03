@@ -3,9 +3,11 @@
     uv run python -m bvs_training.train --phase P1 --steps 4096 --seed 1      # smoke run
     uv run python -m bvs_training.train --config configs/default.toml          # full curriculum
 
-Per phase it writes a BVS_TRAIN_CONFIG JSON (rows and reward overrides), opens a
-fresh Godot env, trains, checkpoints, and closes the env. Stop early with
-`touch training/out/STOP`; the run also ends at the time box.
+Per phase it writes a BVS_TRAIN_CONFIG JSON (schema version, rows, the `match`
+block and reward overrides), opens a fresh Godot env, trains, checkpoints, and
+closes the env. Stop early with `touch training/out/STOP`; the run also ends at the
+time box. Phases may set `sd_start`, the share of rows that begin every episode in
+sudden death.
 """
 
 from __future__ import annotations
@@ -56,6 +58,12 @@ def allocate_rows(mix: dict[str, float], rows: int) -> list[str]:
     return result
 
 
+def sd_start_indices(count: int, rows: int) -> list[int]:
+    """`count` row indices spread evenly over `rows`, so sudden-death starts mix with every opponent kind."""
+    count = max(0, min(count, rows))
+    return [int((j + 0.5) * rows / count) for j in range(count)] if count else []
+
+
 def build_rows(phase: dict, run: dict, seed: int, snapshots: list[Path]) -> list[dict]:
     mix = dict(phase["mix"])
     if "snapshot" in mix and not (run.get("snapshot_opponents", False) and snapshots):
@@ -70,11 +78,30 @@ def build_rows(phase: dict, run: dict, seed: int, snapshots: list[Path]) -> list
         if kind == "snapshot":
             spec["model"] = str(rng.choice(snapshots))
         rows.append(spec)
+    share = float(phase.get("sd_start", 0.0))
+    for index in sd_start_indices(round(share * len(rows)), len(rows)):
+        rows[index]["start"] = "sudden_death"
     return rows
 
 
-def write_phase_config(out_dir: Path, phase: dict, run: dict, reward: dict, seed: int, snapshots: list[Path]) -> Path:
-    config = {"rows": build_rows(phase, run, seed, snapshots), "reward": reward, "episode_log": True}
+def match_block(match: dict) -> dict:
+    """The `match` block of BVS_TRAIN_CONFIG: sudden death on a tie and the SD safety cap."""
+    return {
+        "sudden_death": bool(match.get("sudden_death", True)),
+        "sd_safety_cap": float(match.get("sd_safety_cap", 60.0)),
+    }
+
+
+def write_phase_config(
+    out_dir: Path, phase: dict, run: dict, reward: dict, seed: int, snapshots: list[Path], match: dict | None = None
+) -> Path:
+    config = {
+        "schema_version": schema.TRAIN_VERSION,
+        "rows": build_rows(phase, run, seed, snapshots),
+        "match": match_block(match or {}),
+        "reward": reward,
+        "episode_log": True,
+    }
     path = out_dir / f"train_config_{phase['name']}.json"
     path.write_text(json.dumps(config, indent=2))
     return path
@@ -181,6 +208,7 @@ def main(argv: list[str] | None = None) -> int:
 
     config = load_config(args.config)
     run, ppo, reward = config["run"], config["ppo"], config.get("reward", {})
+    match = config.get("match", {})
     phases = [p for p in config["phase"] if args.phase in ("all", p["name"])]
     if not phases:
         parser.error(f"no phase named {args.phase}")
@@ -207,7 +235,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"stopping before {phase['name']}: time box or stop file")
             break
         steps = args.steps if args.steps is not None else int(phase["steps"])
-        config_path = write_phase_config(out_dir, phase, run, reward, seed, snapshots)
+        config_path = write_phase_config(out_dir, phase, run, reward, seed, snapshots, match)
         print(f"=== phase {phase['name']}: {steps} steps, config {config_path}")
         env = make_env(config_path, run, seed, n_parallel, speedup)
         try:
