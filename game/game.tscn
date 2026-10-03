@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3 uid="uid://yiftnbibw2tl"]
+[gd_scene format=3 uid="uid://yiftnbibw2tl"]
 
 [ext_resource type="PackedScene" uid="uid://d3qpn1km0xxr0" path="res://game/player/player.tscn" id="1_80nbo"]
 [ext_resource type="Script" uid="uid://c542k2ar2mpjw" path="res://game/game.gd" id="1_dxrkv"]
@@ -29,16 +29,18 @@
 [ext_resource type="Texture2D" uid="uid://djmy8tt5666dk" path="res://assets/images/game/characters/matilde/run/m_008.png" id="26_4jymc"]
 [ext_resource type="Texture2D" uid="uid://dm7irmeq4hf4h" path="res://assets/images/game/characters/matilde/run/m_009.png" id="27_0lgry"]
 [ext_resource type="Texture2D" uid="uid://qe1fijvk47v4" path="res://assets/images/game/characters/matilde/shoot/m_006.png" id="28_h7iu2"]
-[ext_resource type="Script" path="res://game/food/food_spawner.gd" id="29_food1"]
+[ext_resource type="Script" uid="uid://dabb7v1eb1s6h" path="res://game/food/food_spawner.gd" id="29_food1"]
+[ext_resource type="Script" path="res://game/hazards/sudden_death_hazards.gd" id="40_hazards"]
+[ext_resource type="PackedScene" path="res://game/hazards/bomb.tscn" id="41_bomb"]
 [ext_resource type="PackedScene" path="res://game/food/food_pickup.tscn" id="30_food2"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/fondo_cocina.png" id="31_backdrop"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/cocina.png" id="36_cocina"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/fondo_nubes.png" id="37_clouds"]
-[ext_resource type="Script" path="res://game/stage/window_clouds.gd" id="38_window_clouds"]
-[ext_resource type="Script" path="res://game/camera/match_camera.gd" id="32_camera"]
-[ext_resource type="Script" path="res://game/stage/table_stage.gd" id="33_table"]
-[ext_resource type="Script" path="res://game/stage/fighter_shadows.gd" id="34_shadows"]
-[ext_resource type="Script" path="res://game/stage/backdrop_extension.gd" id="35_ext"]
+[ext_resource type="Texture2D" uid="uid://bnibj42bhbq8d" path="res://assets/backgrounds/fondo_cocina.png" id="31_backdrop"]
+[ext_resource type="Script" uid="uid://57ttfuilneov" path="res://game/camera/match_camera.gd" id="32_camera"]
+[ext_resource type="Script" uid="uid://bncohlkrd2lpk" path="res://game/stage/table_stage.gd" id="33_table"]
+[ext_resource type="Script" uid="uid://dkglpjvfwt5pu" path="res://game/stage/fighter_shadows.gd" id="34_shadows"]
+[ext_resource type="Script" uid="uid://dr0gksn8o6r28" path="res://game/stage/backdrop_extension.gd" id="35_ext"]
+[ext_resource type="Texture2D" uid="uid://b6g6tiuqnbv3u" path="res://assets/backgrounds/cocina.png" id="36_cocina"]
+[ext_resource type="Texture2D" uid="uid://bk6lipxljwl8n" path="res://assets/backgrounds/fondo_nubes.png" id="37_clouds"]
+[ext_resource type="Script" uid="uid://bvqpd068i3soh" path="res://game/stage/window_clouds.gd" id="38_window_clouds"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_feb5d"]
 size = Vector2(800, 60)
@@ -49,7 +51,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("6_fegy3")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Defeated",
 "speed": 5.0
 }, {
@@ -57,7 +59,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("7_pvdu1")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Fall",
 "speed": 5.0
 }, {
@@ -65,7 +67,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("8_cf130")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Hurt",
 "speed": 5.0
 }, {
@@ -76,7 +78,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("10_gvtgv")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Idle",
 "speed": 5.0
 }, {
@@ -84,7 +86,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("11_5ywmu")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Jump",
 "speed": 5.0
 }, {
@@ -92,7 +94,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("12_mhp6k")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Protect",
 "speed": 5.0
 }, {
@@ -100,7 +102,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("13_vkvnp")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Punch",
 "speed": 5.0
 }, {
@@ -111,7 +113,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("15_cieqw")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Run",
 "speed": 5.0
 }, {
@@ -119,7 +121,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("16_ta815")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Shoot",
 "speed": 5.0
 }]
@@ -131,7 +133,7 @@ color = Color(0, 0, 1, 1)
 sprite_frames = SubResource("SpriteFrames_8sg4y")
 metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_l8g03"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_urpib"]
 resource_local_to_scene = true
 shader = ExtResource("4_y36n6")
 shader_parameter/blink_color = Color(1, 1, 1, 1)
@@ -143,7 +145,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("18_64wtb")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Defeated",
 "speed": 5.0
 }, {
@@ -151,7 +153,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("19_0rekh")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Fall",
 "speed": 5.0
 }, {
@@ -159,7 +161,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("20_281ou")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Hurt",
 "speed": 5.0
 }, {
@@ -170,7 +172,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("22_iswgq")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Idle",
 "speed": 5.0
 }, {
@@ -178,7 +180,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("23_7tmf6")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Jump",
 "speed": 5.0
 }, {
@@ -186,7 +188,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("24_sisia")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Protect",
 "speed": 5.0
 }, {
@@ -194,7 +196,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("25_xorak")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Punch",
 "speed": 5.0
 }, {
@@ -205,7 +207,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("27_0lgry")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Run",
 "speed": 5.0
 }, {
@@ -213,7 +215,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("28_h7iu2")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Shoot",
 "speed": 5.0
 }]
@@ -225,86 +227,89 @@ color = Color(1, 0, 0, 1)
 sprite_frames = SubResource("SpriteFrames_ohnrv")
 metadata/_custom_type_script = "uid://cl6rxr5bmjdts"
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_j8tme"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cieqw"]
 resource_local_to_scene = true
 shader = ExtResource("4_y36n6")
 shader_parameter/blink_color = Color(1, 1, 1, 1)
 shader_parameter/blink_intensity = 0.0
 
-[node name="Game" type="Node2D"]
+[node name="Game" type="Node2D" unique_id=329368785]
 script = ExtResource("1_dxrkv")
 
-[node name="Clouds" type="Sprite2D" parent="."]
+[node name="Clouds" type="Sprite2D" parent="." unique_id=351544568]
 modulate = Color(0.74, 0.68, 0.72, 1)
 texture_filter = 6
 texture_repeat = 2
 position = Vector2(246, 31)
-centered = false
 texture = ExtResource("37_clouds")
+centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 433, 367)
 script = ExtResource("38_window_clouds")
 
-[node name="Backdrop" type="Sprite2D" parent="."]
+[node name="Backdrop" type="Sprite2D" parent="." unique_id=1495158300]
 modulate = Color(0.74, 0.68, 0.72, 1)
 texture_filter = 6
 position = Vector2(-158, 0)
-centered = false
 texture = ExtResource("31_backdrop")
+centered = false
 
-[node name="Cocina" type="Sprite2D" parent="."]
+[node name="Cocina" type="Sprite2D" parent="." unique_id=447490263]
 modulate = Color(0.74, 0.68, 0.72, 1)
 texture_filter = 6
 position = Vector2(-158, 0)
-centered = false
 texture = ExtResource("36_cocina")
+centered = false
 
-[node name="BackdropExtension" type="Node2D" parent="."]
+[node name="BackdropExtension" type="Node2D" parent="." unique_id=2142043408]
 script = ExtResource("35_ext")
 
-[node name="TableStage" type="Node2D" parent="."]
+[node name="TableStage" type="Node2D" parent="." unique_id=437850202]
 script = ExtResource("33_table")
 
-[node name="FighterShadows" type="Node2D" parent="TableStage"]
+[node name="FighterShadows" type="Node2D" parent="TableStage" unique_id=52839851]
 script = ExtResource("34_shadows")
 
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=375027380]
 
-[node name="Floor" type="CollisionShape2D" parent="StaticBody2D"]
+[node name="Floor" type="CollisionShape2D" parent="StaticBody2D" unique_id=320799034]
 position = Vector2(430, 510)
 shape = SubResource("RectangleShape2D_feb5d")
 
-[node name="Fighter1" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
+[node name="Fighter1" parent="." unique_id=2046645622 node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
 position = Vector2(280, 380)
 character_ui = SubResource("Resource_vktc5")
 enemy = NodePath("../Fighter2")
 control_scheme = 0
 
-[node name="AnimatedSprite2D" parent="Fighter1" index="1"]
-material = SubResource("ShaderMaterial_l8g03")
+[node name="AnimatedSprite2D" parent="Fighter1" index="1" unique_id=1671102877]
+material = SubResource("ShaderMaterial_urpib")
 
-[node name="Fighter2" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
+[node name="Fighter2" parent="." unique_id=403248541 node_paths=PackedStringArray("enemy") instance=ExtResource("1_80nbo")]
 position = Vector2(580, 380)
 character_ui = SubResource("Resource_kaw54")
 enemy = NodePath("../Fighter1")
 
-[node name="AnimatedSprite2D" parent="Fighter2" index="1"]
-material = SubResource("ShaderMaterial_j8tme")
+[node name="AnimatedSprite2D" parent="Fighter2" index="1" unique_id=1671102877]
+material = SubResource("ShaderMaterial_cieqw")
 
-[node name="FoodSpawner" type="Node2D" parent="."]
+[node name="FoodSpawner" type="Node2D" parent="." unique_id=96202625]
 script = ExtResource("29_food1")
 food_pickup_scene = ExtResource("30_food2")
 
-[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
-autoplay = false
+[node name="SuddenDeathHazards" type="Node2D" parent="."]
+script = ExtResource("40_hazards")
+bomb_scene = ExtResource("41_bomb")
 
-[node name="Timer" type="Timer" parent="."]
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=450155499]
+
+[node name="Timer" type="Timer" parent="." unique_id=1414136742]
 wait_time = 99.0
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=1245929953]
 layer = 2
 
-[node name="TimerLabel" type="Label" parent="UI" node_paths=PackedStringArray("timer")]
+[node name="TimerLabel" type="Label" parent="UI" unique_id=338552396 node_paths=PackedStringArray("timer")]
 anchors_preset = 10
 anchor_right = 1.0
 offset_top = 8.0
@@ -319,36 +324,35 @@ horizontal_alignment = 1
 script = ExtResource("4_4fuuu")
 timer = NodePath("../../Timer")
 
-[node name="CountdownLabel" type="Label" parent="UI"]
+[node name="CountdownLabel" type="Label" parent="UI" unique_id=1245386668]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 18
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 8
+theme_override_constants/outline_size = 18
 theme_override_font_sizes/font_size = 96
 text = "3"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="GameOver" parent="UI" node_paths=PackedStringArray("player1", "player2") instance=ExtResource("7_u5opy")]
+[node name="GameOver" parent="UI" unique_id=389684169 node_paths=PackedStringArray("player1", "player2") instance=ExtResource("7_u5opy")]
 process_mode = 2
 visible = false
 player1 = NodePath("../../Fighter1")
 player2 = NodePath("../../Fighter2")
 
-[node name="Pause" parent="UI" node_paths=PackedStringArray("game_over_scene", "game") instance=ExtResource("7_y36n6")]
+[node name="Pause" parent="UI" unique_id=1210786543 node_paths=PackedStringArray("game_over_scene", "game") instance=ExtResource("7_y36n6")]
 visible = false
 game_over_scene = NodePath("../GameOver")
 game = NodePath("../..")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=28085735]
 anchor_mode = 0
 script = ExtResource("32_camera")
 

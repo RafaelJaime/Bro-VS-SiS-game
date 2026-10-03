@@ -211,6 +211,9 @@ func _run() -> void:
 	var timed_ended: Array = []
 	timed.training_episode_ended.connect(func(winner: Fighter) -> void: timed_ended.append(winner))
 	var timed_agent := _agent_of(timed)
+	# A tied expiry now enters sudden death by default; this row turns it off to keep
+	# checking the plain timeout (the draw) path.
+	timed.training_sudden_death = false
 	timed.timer.start(0.05)
 	timed.timer.wait_time = 99.0 # start(t) sets wait_time; the restart must not stay at 0.05 s
 	await s.sim(0.3)

@@ -17,6 +17,16 @@ signal training_episode_ended(winner: Fighter)
 
 @export var training: bool = false
 
+## Training only (`BVS_TRAIN_CONFIG.match` overrides them): a tied timer expiry
+## enters sudden death instead of ending the episode, and a row can begin straight
+## in sudden death. The training sudden death has no intro.
+var training_sudden_death: bool = true
+var training_start_in_sudden_death: bool = false
+var training_sd_intro: float = 0.0
+## Why the last training episode ended: &"ko", &"timeout" or &"sd_cap" (the safety
+## cap of a sudden death that never produced a KO, a truncation).
+var last_episode_end_reason: StringName = &"ko"
+
 # Match flow timings (seconds), all tunable.
 @export_group("Match flow")
 @export var countdown_step: float = 0.9
@@ -50,6 +60,7 @@ signal training_episode_ended(winner: Fighter)
 @onready var timer: Timer = $Timer
 @onready var music_player: AudioStreamPlayer = $MusicPlayer
 @onready var food_spawner: FoodSpawner = get_node_or_null("FoodSpawner")
+@onready var hazards: SuddenDeathHazards = get_node_or_null("SuddenDeathHazards")
 @onready var countdown_label: Label = get_node_or_null("UI/CountdownLabel")
 @onready var timer_label: Control = get_node_or_null("UI/TimerLabel")
 
@@ -78,6 +89,9 @@ var _ledges: Array = []
 # Physics frame of the last training episode end, so a defeat and a timeout (or two
 # defeats) on the same frame end it once.
 var _episode_end_frame: int = -1
+# Fighters that still have to finish their reset before a training row may start in
+# sudden death (see _end_training_episode).
+var _pending_resets: int = 0
 
 # Loaded via load() at runtime, not preload()/ext_resource: this freesound
 # asset has no .import file yet (same caveat as T0's food sprites).
@@ -99,6 +113,8 @@ func _ready() -> void:
 	_flow_timer.one_shot = true
 	add_child(_flow_timer)
 	_flow_timer.timeout.connect(_on_flow_timeout)
+	if hazards:
+		hazards.training_cap_reached.connect(_on_training_cap_reached)
 	if countdown_label:
 		countdown_label.visible = false
 		countdown_label.resized.connect(_center_banner_pivot)
@@ -162,6 +178,10 @@ func get_state_snapshot() -> Dictionary:
 		"timer_left": timer.time_left if timer else 0.0,
 		"timer_running": timer != null and not timer.is_stopped(),
 		"sudden_death": phase == Phase.SUDDEN_DEATH,
+		# 0 outside sudden death, 1 while it waits (intro and grace), 2 once bombs fall.
+		"sudden_death_phase": 0 if phase != Phase.SUDDEN_DEATH else maxi(1, hazards.phase() if hazards else 1),
+		"sudden_death_elapsed": hazards.elapsed_seconds() if hazards and phase == Phase.SUDDEN_DEATH else 0.0,
+		"bombs": hazards.snapshot_bombs() if hazards and phase == Phase.SUDDEN_DEATH else [],
 		"stage": _shape_bounds(floor_shape) if floor_shape else {},
 		"platforms": [], # The counter is the only surface.
 		"blast_zone": {
@@ -207,6 +227,11 @@ func get_ledges() -> Array:
 			})
 	return _ledges
 
+## Top surface and horizontal extent of the table, Game-local ({} without a floor).
+func get_stage_bounds() -> Dictionary:
+	var floor_shape := get_node_or_null("StaticBody2D/Floor") as CollisionShape2D
+	return _shape_bounds(floor_shape) if floor_shape else {}
+
 # Top surface and horizontal extent of a rectangle collider, Game-local.
 func _shape_bounds(shape_node: CollisionShape2D) -> Dictionary:
 	var rect_shape := shape_node.shape as RectangleShape2D
@@ -242,6 +267,8 @@ func _begin_match(announce: bool) -> void:
 	timer.start()
 	if food_spawner:
 		food_spawner.start()
+	if training and training_start_in_sudden_death:
+		force_sudden_death()
 	if announce:
 		_show_banner("GO!", GO_COLOR, 190, go_hold)
 		countdown_tick.emit("GO!")
@@ -300,11 +327,15 @@ func _resolve_defeat() -> void:
 
 func _on_timer_timeout() -> void:
 	if training:
-		# Time up: the fighter with more stocks wins the episode, a tie is a draw.
+		# Time up: the fighter with more stocks wins the episode. A tie goes to
+		# sudden death (no `done` yet) unless the row turned that off, then it is a draw.
 		var leader: Fighter = null
 		if fighter_1.stocks != fighter_2.stocks:
 			leader = fighter_1 if fighter_1.stocks > fighter_2.stocks else fighter_2
-		_end_training_episode(leader)
+		elif training_sudden_death:
+			_start_sudden_death()
+			return
+		_end_training_episode(leader, &"timeout")
 		return
 	if phase != Phase.PLAYING:
 		return
@@ -313,9 +344,13 @@ func _on_timer_timeout() -> void:
 	else:
 		_start_sudden_death()
 
+## Starts (or restarts, after a double KO) sudden death: both fighters at one
+## stock and 300%, any bomb gone. The bombs begin once the intro is over.
 func _start_sudden_death() -> void:
 	phase = Phase.SUDDEN_DEATH
 	timer.stop()
+	if hazards:
+		hazards.stop_and_clear()
 	if timer_label:
 		timer_label.visible = false
 	for fighter in [fighter_1, fighter_2]:
@@ -323,13 +358,26 @@ func _start_sudden_death() -> void:
 	_lock_fighters(true)
 	_show_banner("SUDDEN DEATH", SUDDEN_DEATH_COLOR, 84)
 	Sfx.play_event(&"ko", self)
-	_after(sudden_death_intro, _release_sudden_death)
+	var intro := training_sd_intro if training else sudden_death_intro
+	if intro <= 0.0:
+		_release_sudden_death()
+	else:
+		_after(intro, _release_sudden_death)
+
+## Enters sudden death from the current match at once (tests, the harness and
+## training rows that start in sudden death).
+func force_sudden_death() -> void:
+	if phase == Phase.OVER:
+		return
+	_start_sudden_death()
 
 func _release_sudden_death() -> void:
 	if phase != Phase.SUDDEN_DEATH:
 		return
 	_lock_fighters(false)
 	_fade_banner()
+	if hazards:
+		hazards.begin()
 
 ## "GAME!" in slow motion, then the results.
 func _end_match(winning_fighter: Fighter) -> void:
@@ -341,6 +389,8 @@ func _end_match(winning_fighter: Fighter) -> void:
 	timer.stop()
 	if food_spawner:
 		food_spawner.stop()
+	if hazards:
+		hazards.stop_and_clear()
 	_lock_fighters(true)
 	if game_over:
 		game_over.set_forced_winner(winner)
@@ -374,17 +424,33 @@ func _resolve_training_defeat() -> void:
 	var survivor: Fighter = null
 	if alive_1 != alive_2:
 		survivor = fighter_1 if alive_1 else fighter_2
-	_end_training_episode(survivor)
+	elif phase == Phase.SUDDEN_DEATH:
+		# A double KO inside sudden death restarts it (no `done`).
+		_start_sudden_death()
+		return
+	_end_training_episode(survivor, &"ko")
+
+# The hazards' safety cap: a sudden death that never produced a KO ends the episode
+# as a draw (the reward tracker reads the reason and flags the log as truncated).
+func _on_training_cap_reached() -> void:
+	if training and phase == Phase.SUDDEN_DEATH:
+		_end_training_episode(null, &"sd_cap")
 
 ## Ends a training row's episode, exactly once per frame: tells the reward
 ## trackers, flags `done` on both fighters through Fighter.game_over() (each resets
 ## itself on its next physics frame, after Sync has seen `done`), clears the stage
-## and restarts the timer and the food spawner for the next episode.
-func _end_training_episode(winning_fighter: Fighter) -> void:
+## (food, bombs, sudden death) and restarts the timer and the food spawner for the
+## next episode. `reason` is kept in `last_episode_end_reason` before the unchanged
+## one-argument `training_episode_ended` signal is emitted.
+func _end_training_episode(winning_fighter: Fighter, reason: StringName = &"ko") -> void:
 	var frame := Engine.get_physics_frames()
 	if _episode_end_frame == frame:
 		return
 	_episode_end_frame = frame
+	last_episode_end_reason = reason
+	phase = Phase.PLAYING
+	if hazards:
+		hazards.stop_and_clear()
 	training_episode_ended.emit(winning_fighter)
 	fighter_1.game_over()
 	fighter_2.game_over()
@@ -397,6 +463,17 @@ func _end_training_episode(winning_fighter: Fighter) -> void:
 	if food_spawner:
 		food_spawner.stop()
 		food_spawner.start()
+	if training_start_in_sudden_death:
+		# Each fighter resets itself on its next physics frame and would overwrite the
+		# sudden-death damage and stocks, so wait for both before entering it.
+		_pending_resets = 2
+		for fighter in [fighter_1, fighter_2]:
+			fighter.reset_done.connect(_on_fighter_reset_done, CONNECT_ONE_SHOT)
+
+func _on_fighter_reset_done() -> void:
+	_pending_resets -= 1
+	if _pending_resets == 0 and training and training_start_in_sudden_death:
+		force_sudden_death()
 
 # ------------------------------------------------------------------- banner
 

@@ -11,6 +11,8 @@ func _initialize() -> void:
 func _run() -> void:
 	var s := Smoke.new(self)
 	await _shield_and_dizzy(s)
+	await _bombs(s)
+	await _hot_food(s)
 	s.finish()
 
 func _shield_and_dizzy(s: RefCounted) -> void:
@@ -36,4 +38,58 @@ func _shield_and_dizzy(s: RefCounted) -> void:
 	await s.frames(14)
 	await s.screenshot("cd_dizzy")
 	s.check("the dizzy stars are on screen", stars.visible)
+	await s.despawn(game)
+
+# Sudden-death bombs: three falling above the table (the shadows grow on the table
+# top), then one going off beside a fighter.
+func _bombs(s: RefCounted) -> void:
+	var game: Game = s.spawn_game(300.0, 560.0)
+	s.attach_controllers(game)
+	await s.frames(60)
+	game.food_spawner.stop()
+	game.sudden_death_intro = 0.0
+	game.hazards.grace_time = 600.0
+	game.hazards.bomb_damage = 0.0
+	game.hazards.bomb_knockback = Vector2.ZERO
+	game.force_sudden_death()
+	await s.frames(5)
+	var top: float = game.get_stage_bounds()["top"]
+	game.hazards.spawn_bomb(430.0, top - 330.0)
+	game.hazards.spawn_bomb(720.0, top - 230.0)
+	game.hazards.spawn_bomb(190.0, top - 280.0)
+	await s.frames(6)
+	await s.screenshot("cd_bombs_falling")
+	s.check("three bombs are falling", game.hazards.alive_count() == 3, "alive=%d" % game.hazards.alive_count())
+	await s.screenshot("cd_bombs_falling_2")
+	var blast_x: float = game.get_node("Fighter2").position.x + 70.0
+	game.hazards.spawn_bomb(blast_x, top - 60.0)
+	var seen_burst := false
+	for i in 14:
+		await s.frames(1)
+		seen_burst = seen_burst or game.hazards.get_children().any(func(n): return n is CPUParticles2D)
+	await s.screenshot("cd_bomb_explosion")
+	s.check("an explosion burst was on screen", seen_burst)
+	await s.despawn(game)
+
+# A hot food in flight (fire trail) and the fire puff on impact.
+func _hot_food(s: RefCounted) -> void:
+	var game: Game = s.spawn_game(300.0, 620.0)
+	var controllers: Array = s.attach_controllers(game)
+	await s.frames(60)
+	game.food_spawner.stop()
+	var thrower: Fighter = game.get_node("Fighter1")
+	thrower.held_food = "soup"
+	thrower.held_food_sprite.texture = FoodCatalog.get_texture("soup")
+	thrower.held_food_sprite.visible = true
+	controllers[0].press_throw()
+	await s.frames(12)
+	await s.screenshot("cd_hot_food_flight")
+	var puff := false
+	for i in 40:
+		await s.frames(1)
+		puff = puff or game.get_children().any(func(n): return n is CPUParticles2D)
+		if puff:
+			break
+	await s.screenshot("cd_hot_food_impact")
+	s.check("a hot food leaves a fire puff where it hits", puff)
 	await s.despawn(game)
