@@ -27,7 +27,7 @@ strict_tdd=false; smoke checks first where feasible; full suite green per task.
 - [x] T1 Shield drop lag + minimum hold (+ CPU respects it) with smoke checks — route: delegated
 - [x] T2 Aerial punch keeps jump momentum with smoke checks — route: delegated (same writer)
 - [x] T3 Shield bubble uses the player's color — route: delegated (same writer)
-- [ ] T4 Harness metric + gate: shield raises per fighter-minute; retrain default model; gates; bundle — route: delegated
+- [~] T4 Harness metric + gate: shield raises per fighter-minute; retrain default model; gates; bundle — route: delegated. FOLDED into SDD change `character-kits-combos` (slice S6: single retrain covering shield fixes and kits; baseline measurement in S5)
 - [ ] T5 PR; after merge and user confirmation: upload model (replay.mp4) and Space
 
 ## Progress / Evidence
