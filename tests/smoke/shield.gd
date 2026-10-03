@@ -12,7 +12,7 @@ func _initialize() -> void:
 	_run()
 
 func _run() -> void:
-	var s := Smoke.new(self, 240.0)
+	var s := Smoke.new(self, 900.0)
 	_clock_and_hit_units(s)
 	_meter_units(s)
 	await _hold_to_break(s)
@@ -28,6 +28,7 @@ func _run() -> void:
 	await _air_dodge_resets(s)
 	await _time_scale_independence(s)
 	await _hit_stop_serialized(s)
+	await _cues(s)
 	s.finish()
 
 func _setup(s: RefCounted, p1_x: float = 330.0, p2_x: float = 700.0) -> Array:
@@ -496,4 +497,45 @@ func _hit_stop_serialized(s: RefCounted) -> void:
 	s.check("a shield break triggers a hit-stop", Engine.time_scale < 1.0, "scale=%.2f" % Engine.time_scale)
 	await s.real_wait(0.6)
 	s.check("overlapping break and punch hit-stops end at exactly 1.0", is_equal_approx(Engine.time_scale, 1.0), "scale=%.2f" % Engine.time_scale)
+	await s.despawn(game)
+
+# The bubble and the dizzy stars are only on the fighter while their state lasts,
+# and neither touches the sprite's visibility (Fighter._apply_visibility owns it).
+func _cues(s: RefCounted) -> void:
+	var setup := await _setup(s, 330.0, 700.0)
+	var game: Node2D = setup[0]
+	var fighter: Fighter = game.get_node("Fighter1")
+	var ctrl = setup[1][0]
+	var bubble: ShieldBubble = fighter.get_node("ShieldBubble")
+	var stars: DizzyStars = fighter.get_node("DizzyStars")
+	s.check("no bubble and no stars while idle", not bubble.visible and not stars.visible)
+	ctrl.block_held_level = true
+	ctrl.press_block()
+	await s.frames(4)
+	s.check("the bubble shows while shielding, near its full size", bubble.visible and absf(bubble.scale.x - bubble.scale_full) < 0.01, "scale=%.3f" % bubble.scale.x)
+	fighter.shield.set_ratio(0.5)
+	await s.frames(2)
+	var half := lerpf(bubble.scale_empty, bubble.scale_full, fighter.shield.ratio())
+	s.check("the bubble shrinks with the meter", bubble.visible and absf(bubble.scale.x - half) < 0.01 and bubble.scale.x < bubble.scale_full, "scale=%.3f half=%.3f" % [bubble.scale.x, half])
+	s.check("the bubble never hides the fighter sprite", fighter.animated_sprite_2d.visible)
+	fighter.shield.set_ratio(0.18)
+	await s.frames(2)
+	ctrl.block_held_level = false
+	await s.frames(3)
+	s.check("the bubble hides when the shield drops", not bubble.visible)
+
+	fighter.break_shield(null)
+	await s.frames(6)
+	s.check("the stars show while dizzy", stars.visible and fighter.is_dizzy())
+	var wobbled := false
+	for i in 20:
+		wobbled = wobbled or fighter.animated_sprite_2d.offset.x != 0.0
+		await s.frames(1)
+	s.check("the sprite wobbles while dizzy and stays visible", wobbled and fighter.animated_sprite_2d.visible)
+	var guard := 0
+	while fighter.is_dizzy() and guard < 400:
+		await s.frames(1)
+		guard += 1
+	await s.frames(3)
+	s.check("the stars and the wobble end with the dizzy", not stars.visible and fighter.animated_sprite_2d.offset == Vector2.ZERO)
 	await s.despawn(game)

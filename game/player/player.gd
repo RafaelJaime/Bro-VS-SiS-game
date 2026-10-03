@@ -206,6 +206,10 @@ func break_shield(cause: Hit) -> void:
 func is_dizzy() -> bool:
 	return _state_name() == "Dizzy"
 
+## True while the ground shield is up (the Protect state).
+func is_shielding() -> bool:
+	return _state_name() == "Protect"
+
 ## Seconds of dizzy left (0 when not dizzy).
 func dizzy_seconds_left() -> float:
 	if not is_dizzy():

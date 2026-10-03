@@ -25,6 +25,9 @@
 [ext_resource type="Texture2D" path="res://assets/textures/2D Fire  - Tutorial/T_VFX_Glow_1.PNG" id="27_glow"]
 [ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/dizzy.gd" id="28_dizzy"]
 [ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/air_dodge.gd" id="29_air_dodge"]
+[ext_resource type="Script" path="res://game/player/shield_bubble.gd" id="30_bubble"]
+[ext_resource type="Script" path="res://game/player/dizzy_stars.gd" id="31_stars"]
+[ext_resource type="Texture2D" path="res://assets/textures/2D Fire  - Tutorial/T_LeLuStar11.jpg" id="32_star"]
 
 [sub_resource type="Resource" id="Resource_usp30"]
 script = ExtResource("2_gh012")
@@ -177,6 +180,21 @@ material = SubResource("CanvasItemMaterial_glow")
 texture_filter = 6
 position = Vector2(0, 10)
 texture = ExtResource("27_glow")
+
+[node name="ShieldBubble" type="Sprite2D" parent="."]
+visible = false
+z_index = 1
+material = SubResource("CanvasItemMaterial_glow")
+texture_filter = 6
+position = Vector2(0, 10)
+texture = ExtResource("27_glow")
+script = ExtResource("30_bubble")
+
+[node name="DizzyStars" type="Node2D" parent="."]
+visible = false
+z_index = 1
+script = ExtResource("31_stars")
+star_texture = ExtResource("32_star")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=489426174]
 position = Vector2(0, 19)

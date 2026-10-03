@@ -13,6 +13,9 @@ const PANEL_MARGIN := 10.0
 const PORTRAIT_SIZE := 70.0
 const STOCK_SIZE := 20.0
 const PERCENT_FONT_SIZE := 48
+const SHIELD_BAR_HEIGHT := 6.0
+const SHIELD_BAR_Y := 68.0
+const SHIELD_IDLE_ALPHA := 0.45
 
 # Damage % at which the number reaches each colour of the ramp.
 const COLOR_STOPS: Array[Dictionary] = [
@@ -27,6 +30,11 @@ var portrait: TextureRect
 var name_label: Label
 var percent_label: Label
 var stock_icons: HBoxContainer
+## Shield meter bar under the percent: a track and its fill (plain panels, no
+## assets, and not a ProgressBar), and the "BREAK!" cue shown while dizzy.
+var shield_bar: Panel
+var shield_fill: Panel
+var break_label: Label
 
 var _pop_tween: Tween
 var _stock_texture: Texture2D
@@ -49,9 +57,32 @@ func _ready() -> void:
 	var game := owner.get_parent() if owner else null
 	if game and game.get("training") == true:
 		visible = false
+		set_process(false)
 		return
 	_build()
 	_refresh_character()
+
+# The shield bar follows the meter every frame (within one frame of any change);
+# at a full meter and no shield it sits idle and dim. "BREAK!" pulses while dizzy.
+func _process(_delta: float) -> void:
+	if shield_fill == null or owner == null or owner.shield == null:
+		return
+	var ratio: float = owner.shield.ratio()
+	shield_fill.anchor_right = ratio
+	var in_use: bool = owner.is_shielding() or owner.is_dizzy() or ratio < 0.999
+	var base := Color(0.4, 0.8, 1.0)
+	var fill_style := shield_fill.get_theme_stylebox("panel") as StyleBoxFlat
+	fill_style.bg_color = base.lerp(Color(1.0, 0.15, 0.1), 1.0 - ratio)
+	shield_bar.modulate.a = 1.0 if in_use else SHIELD_IDLE_ALPHA
+	var dizzy: bool = owner.is_dizzy()
+	break_label.visible = dizzy
+	name_label.visible = not dizzy
+	if dizzy:
+		break_label.modulate.a = 0.75 + 0.25 * sin(Time.get_ticks_msec() / 1000.0 * TAU * 3.0)
+
+## The meter ratio the bar shows right now (0..1).
+func shown_shield_ratio() -> float:
+	return shield_fill.anchor_right if shield_fill else 0.0
 
 func _is_left() -> bool:
 	return owner.control_scheme == Fighter.PlayerNumber.JUGADOR1
@@ -112,9 +143,10 @@ func _build() -> void:
 	stock_icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stock_icons.alignment = BoxContainer.ALIGNMENT_BEGIN if left else BoxContainer.ALIGNMENT_END
 	stock_icons.add_theme_constant_override("separation", 5)
-	stock_icons.position = Vector2(text_x, PANEL_SIZE.y - STOCK_SIZE - 6.0)
+	stock_icons.position = Vector2(text_x, PANEL_SIZE.y - STOCK_SIZE - 4.0)
 	stock_icons.size = Vector2(text_width, STOCK_SIZE)
 	panel.add_child(stock_icons)
+	_build_shield_bar(text_x, text_width)
 	for i in Fighter.MAX_STOCKS:
 		var icon := TextureRect.new()
 		icon.name = "Stock%d" % i
@@ -124,6 +156,35 @@ func _build() -> void:
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 		stock_icons.add_child(icon)
+
+func _build_shield_bar(x: float, width: float) -> void:
+	shield_bar = Panel.new()
+	shield_bar.name = "ShieldBar"
+	shield_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shield_bar.position = Vector2(x, SHIELD_BAR_Y)
+	shield_bar.size = Vector2(width, SHIELD_BAR_HEIGHT)
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(0.0, 0.0, 0.0, 0.55)
+	track.set_corner_radius_all(3)
+	shield_bar.add_theme_stylebox_override("panel", track)
+	panel.add_child(shield_bar)
+
+	shield_fill = Panel.new()
+	shield_fill.name = "ShieldFill"
+	shield_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shield_fill.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shield_fill.anchor_right = 1.0
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.4, 0.8, 1.0)
+	fill.set_corner_radius_all(3)
+	shield_fill.add_theme_stylebox_override("panel", fill)
+	shield_bar.add_child(shield_fill)
+
+	# Over the name row: the panel's dark background keeps the red readable.
+	break_label = _make_label("BreakLabel", 22, x, 0.0, width, _is_left())
+	break_label.text = "BREAK!"
+	break_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.15))
+	break_label.visible = false
 
 func _make_label(label_name: String, font_size: int, x: float, y: float, width: float, left: bool) -> Label:
 	var label := Label.new()
