@@ -29,6 +29,7 @@ func _run() -> void:
 	await _time_scale_independence(s)
 	await _hit_stop_serialized(s)
 	await _cues(s)
+	await _snapshot_keys(s)
 	s.finish()
 
 func _setup(s: RefCounted, p1_x: float = 330.0, p2_x: float = 700.0) -> Array:
@@ -538,4 +539,57 @@ func _cues(s: RefCounted) -> void:
 		guard += 1
 	await s.frames(3)
 	s.check("the stars and the wobble end with the dizzy", not stars.visible and fighter.animated_sprite_2d.offset == Vector2.ZERO)
+	await s.despawn(game)
+
+# The fighter snapshot carries the shield state, additively and read-only.
+func _snapshot_keys(s: RefCounted) -> void:
+	var setup := await _setup(s, 400.0, 700.0)
+	var game: Node2D = setup[0]
+	var fighter: Fighter = game.get_node("Fighter1")
+	var snap: Dictionary = fighter.get_state_snapshot()
+	var new_keys := ["shield", "shield_max", "dizzy", "dizzy_left", "air_dodge_available", "intangible"]
+	s.check("the fighter snapshot has every shield key", new_keys.all(func(key): return snap.has(key)), "keys=%s" % [snap.keys()])
+	s.check("a healthy fighter: full meter, not dizzy, 0 s left, dodge available, tangible", is_equal_approx(snap["shield"], snap["shield_max"]) and is_equal_approx(snap["shield_max"], 100.0) and snap["dizzy"] == false and snap["dizzy_left"] == 0.0 and snap["air_dodge_available"] == true and snap["intangible"] == false, "snap=%s" % [snap])
+
+	# Every key the frozen schema 2 reads is still there, with its type.
+	var v2_ok := true
+	var v2_missing: Array = []
+	for key in BvsSchemaV2.FIGHTER_KEYS:
+		if not snap.has(key):
+			v2_ok = false
+			v2_missing.append(key)
+	for key in BvsSchemaV2.COOLDOWN_KEYS:
+		if not (snap["cooldowns"] as Dictionary).has(key):
+			v2_ok = false
+			v2_missing.append(key)
+	s.check("every key schema 2 reads is still present on the fighter", v2_ok, "missing=%s" % [v2_missing])
+	var game_snap: Dictionary = (game as Game).get_state_snapshot()
+	var game_missing: Array = []
+	for key in BvsSchemaV2.GAME_KEYS:
+		if not game_snap.has(key):
+			game_missing.append(key)
+	s.check("every Game key schema 2 reads is still present", game_missing.is_empty(), "missing=%s" % [game_missing])
+	s.check("the existing values are untouched (position, damage, stocks, state)", snap["position"] == fighter.position and snap["damage_percent"] == fighter.damage_percent and snap["stocks"] == fighter.stocks and snap["state"] == StringName(s.state_of(fighter)) and snap["on_floor"] == fighter.is_on_floor())
+
+	# A dizzy fighter with an empty meter.
+	fighter.break_shield(null)
+	await s.frames(3)
+	var dizzy: Dictionary = fighter.get_state_snapshot()
+	s.check("a dizzy fighter reports dizzy, time left and an empty meter", dizzy["dizzy"] == true and dizzy["dizzy_left"] > 1.5 and dizzy["dizzy_left"] <= 2.0 and dizzy["shield"] == 0.0, "snap=%s" % [dizzy])
+	s.check("taking the snapshot twice with no frame between gives the same result", fighter.get_state_snapshot() == fighter.get_state_snapshot())
+	await _leave_game(s, game)
+
+	# An air dodge shows as intangible.
+	var air_setup := await _setup(s, 330.0, 700.0)
+	var air_game: Node2D = air_setup[0]
+	var dodger: Fighter = air_game.get_node("Fighter1")
+	await _airborne(s, dodger, 600.0)
+	air_setup[1][0].press_block()
+	await s.frames(3)
+	var dodging: Dictionary = dodger.get_state_snapshot()
+	s.check("an air-dodging fighter reports intangible and a spent dodge", dodging["intangible"] == true and dodging["air_dodge_available"] == false and dodging["state"] == &"AirDodge", "snap=%s" % [dodging])
+	await _leave_game(s, air_game)
+
+func _leave_game(s: RefCounted, game: Node) -> void:
+	Combat.cancel_hit_stop()
 	await s.despawn(game)

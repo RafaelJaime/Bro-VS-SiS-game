@@ -212,6 +212,9 @@ func _tick_combat() -> void:
 ## The shield ran out (a hold or a blocked hit): the fighter goes dizzy. `cause` is
 ## the hit that did it, or null for the hold drain.
 func break_shield(cause: Hit) -> void:
+	# A broken shield is an empty one (a hold or a hit usually got it there; this
+	# keeps the meter consistent for any other caller).
+	shield.set_ratio(0.0)
 	shield_broken.emit(cause)
 	if state_machine and state_machine.state_map.has("Dizzy"):
 		state_machine._change_state("Dizzy")
@@ -451,6 +454,13 @@ func get_state_snapshot() -> Dictionary:
 		"ledge_grabs": ledge_grabs,
 		"is_invulnerable": is_invulnerable,
 		"controller": controller.kind_name() if controller else "none",
+		# Shield and dodge state (additive keys; read-only).
+		"shield": shield.value,
+		"shield_max": shield.max_value,
+		"dizzy": is_dizzy(),
+		"dizzy_left": dizzy_seconds_left(),
+		"air_dodge_available": air_dodge_available,
+		"intangible": is_intangible(),
 	}
 
 func _cooldown_left(state_name: String) -> float:
