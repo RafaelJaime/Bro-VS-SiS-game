@@ -1,6 +1,6 @@
 extends SceneTree
-## Evaluates a bvs-schema-2 ONNX policy against the scripted CPU in full,
-## non-training matches of game.tscn. The model runs through the shipped GDScript
+## Evaluates a bvs-schema ONNX policy (the schema its sidecar declares: 2 or 3) against
+## the scripted CPU in full, non-training matches of game.tscn. The model runs through the shipped GDScript
 ## interpreter, so the numbers describe exactly what players get. Not part of
 ## run_all.sh (long-running): `training/bvs_training/evaluate.py` launches it.
 ##
@@ -11,7 +11,9 @@ extends SceneTree
 ## The model fighter alternates sides every match. Prints one `BVS_EVAL {json}`
 ## line, writes the report to BVS_EVAL_OUT and exits non-zero on a setup error.
 ## BVS_EVAL_OBS_DUMP receives a sample of real observations (`{"observations": [...]}`)
-## for the golden parity fixtures.
+## for the golden parity fixtures. The report also carries the combat-depth metrics
+## (MatchMetrics.aggregate): pickups and throws per fighter-minute, blocked share,
+## damage by source, shield breaks and the sudden-death lengths.
 
 const Smoke := preload("res://tests/smoke/smoke_util.gd")
 const LEVELS := {"easy": CpuDifficulty.Level.EASY, "normal": CpuDifficulty.Level.NORMAL, "hard": CpuDifficulty.Level.HARD}
@@ -57,7 +59,7 @@ class EvalPolicyController extends PolicyController:
 
 	func _count_action() -> void:
 		if histogram.is_empty():
-			for branch in BvsSchemaV2.BRANCHES:
+			for branch in _schema.BRANCHES:
 				var counts: Array = []
 				counts.resize(int(branch["size"]))
 				counts.fill(0)
@@ -71,6 +73,9 @@ class EvalPolicyController extends PolicyController:
 			and not intent.throw_pressed and not intent.block_held and not intent.dash_pressed
 			and not intent.special_pressed and intent.aim == FighterIntent.Aim.NEUTRAL
 		)
+
+## The schema of the model under evaluation (set by _load_model).
+var _model_schema: Object = BvsSchemaV3
 
 func _initialize() -> void:
 	_run()
@@ -109,19 +114,21 @@ func _run() -> void:
 		"off_stage_events": 0, "special_presses": 0, "distance_sum": 0.0,
 	}
 	var histogram: Array = []
-	for branch in BvsSchemaV2.BRANCHES:
+	for branch in _model_schema.BRANCHES:
 		var counts: Array = []
 		counts.resize(int(branch["size"]))
 		counts.fill(0)
 		histogram.append(counts)
 	var observations: Array = []
 	var per_match: Array = []
+	var match_metrics: Array = []
 	for i in matches:
 		var record := await _play_match(s, model, LEVELS[level_name], i)
 		if record.has("error"):
 			_fail(String(record["error"]))
 			return
 		per_match.append(record["summary"])
+		match_metrics.append(record["metrics"])
 		for key in totals.keys():
 			totals[key] += record["totals"][key]
 		observations.append_array(record["observations"])
@@ -157,7 +164,9 @@ func _run() -> void:
 		"mean_distance": totals["distance_sum"] / maxf(float(totals["frames"]), 1.0),
 		"action_distribution": _distribution(histogram),
 		"per_match": per_match,
+		"schema_version": int(_model_schema.VERSION),
 	}
+	report.merge(MatchMetrics.aggregate(match_metrics))
 	var json := JSON.stringify(report)
 	print("BVS_EVAL %s" % json)
 	if out_path != "":
@@ -177,17 +186,25 @@ func _load_model(model_path: String) -> OnnxPolicyModel:
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(sidecar_path))
 		if parsed is Dictionary:
 			sidecar = parsed
-			var problem := BvsSchema.validate_sidecar(sidecar)
-			if problem != "":
-				_fail("sidecar %s rejected: %s" % [sidecar_path, problem])
-				return null
 	var result := OnnxPolicyModel.load_bytes(FileAccess.get_file_as_bytes(model_path), sidecar)
 	if result.model == null:
 		_fail("model rejected: %s" % result.error)
 		return null
-	var problem := (result.model as OnnxPolicyModel).validate(BvsSchemaV2)
+	# The model plays the schema its sidecar declares (any registered one), not only the
+	# current one: a schema-3 model is evaluated before the playable version moves.
+	var version := (result.model as OnnxPolicyModel).schema_version()
+	_model_schema = BvsSchema.get_schema(version)
+	if _model_schema == null:
+		_fail("model declares the unregistered schema %d" % version)
+		return null
+	if not sidecar.is_empty():
+		var sidecar_problem := BvsSchema.validate_sidecar_for(sidecar, version)
+		if sidecar_problem != "":
+			_fail("sidecar rejected: %s" % sidecar_problem)
+			return null
+	var problem := (result.model as OnnxPolicyModel).validate(_model_schema)
 	if problem != "":
-		_fail("model does not fit schema 2: %s" % problem)
+		_fail("model does not fit schema %d: %s" % [version, problem])
 		return null
 	return result.model
 
@@ -211,6 +228,8 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 	me.set_controller(controller)
 	s.set_cpu(foe, level, 1000 + index)
 	var mlog = Smoke.MatchLog.new(game, false)
+	var metrics := MatchMetrics.new()
+	metrics.setup(game as Game)
 	var stage: Dictionary = game.get_state_snapshot()["stage"]
 	var done := {"over": false, "winner": null}
 	game.match_over.connect(func(winner: Fighter) -> void:
@@ -246,6 +265,7 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 	var seconds: float = mlog.now()
 	# A win by elimination leaves the loser at zero stocks; otherwise the clock decided it.
 	var by_ko: bool = fighters[0].stocks <= 0 or fighters[1].stocks <= 0
+	metrics.stop()
 	var observations := controller.observations
 	var error := controller.error
 	paused = false
@@ -280,6 +300,7 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 		"totals": totals,
 		"observations": observations,
 		"histogram": controller.histogram,
+		"metrics": metrics.to_dict(),
 	}
 
 ## Per branch: the share of each index and the Shannon entropy in bits (0 = always the same choice).
@@ -297,7 +318,7 @@ func _distribution(histogram: Array) -> Array:
 			shares.append(share)
 			if share > 0.0:
 				entropy -= share * log(share) / log(2.0)
-		result.append({"name": BvsSchemaV2.BRANCHES[branch]["name"], "shares": shares, "entropy_bits": entropy})
+		result.append({"name": _model_schema.BRANCHES[branch]["name"], "shares": shares, "entropy_bits": entropy})
 	return result
 
 ## Airborne and outside the table top (same test as ScriptedController._is_off_stage).

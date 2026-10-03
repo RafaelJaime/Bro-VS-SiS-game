@@ -1,10 +1,17 @@
 class_name RewardTracker
 extends RefCounted
 
-## Reward terms of one training agent, driven by the damage, stock and episode
-## signals (not by observation reads) plus a few per-decision shaping terms.
+## Reward terms of one training agent, driven by the damage, stock, combat and
+## episode signals (not by observation reads) plus a few per-decision shaping terms.
 ## Only a damage increase and a stock decrease count, so a reset that clears
 ## damage or refills stocks is never rewarded. Weights come from a RewardConfig.
+##
+## Combat-depth terms: `pickup` (food_picked_up, capped per episode), `food_hit`
+## (the foe's hit_received with a FOOD hit of mine that was not ignored),
+## `shield_break_dealt` / `shield_break_taken` (shield_broken of the foe / of me) and
+## `shield_hold` (my shield held past a threshold, read per decision). An episode
+## that the sudden-death safety cap ended (`sd_cap`) is a draw: outcome "draw",
+## `"truncated": true` in the record, and no win, loss or timeout reward.
 ##
 ## Every episode ends with one `BVS_EPISODE {json}` line on stdout (and the
 ## `episode_logged` signal): the totals per term, the outcome, the winner and the
@@ -30,6 +37,7 @@ var _last_damage_foe := 0.0
 var _last_stocks_me := 0
 var _last_stocks_foe := 0
 var _previous_distance := -1.0
+var _pickups := 0
 var _stage_left := 0.0
 var _stage_right := 0.0
 var _stage_top := 0.0
@@ -46,9 +54,13 @@ func setup(agent: AIController2D, me: Fighter, reward_config: RewardConfig = nul
 	_begin_episode()
 	me.damage_changed.connect(_on_my_damage)
 	me.stocks_changed.connect(_on_my_stocks)
+	me.food_picked_up.connect(_on_food_picked_up)
+	me.shield_broken.connect(_on_my_shield_broken)
 	if _foe != null:
 		_foe.damage_changed.connect(_on_foe_damage)
 		_foe.stocks_changed.connect(_on_foe_stocks)
+		_foe.hit_received.connect(_on_foe_hit_received)
+		_foe.shield_broken.connect(_on_foe_shield_broken)
 	if _game != null:
 		_game.training_episode_ended.connect(_on_episode_ended)
 
@@ -57,6 +69,8 @@ func setup(agent: AIController2D, me: Fighter, reward_config: RewardConfig = nul
 func on_decision() -> void:
 	_decisions += 1
 	_add("time", config.time)
+	if _me.shield.held_ticks > CombatClock.ticks(config.shield_hold_threshold):
+		_add("shield_hold", config.shield_hold)
 	_read_stage()
 	if not _stage_known or _foe == null:
 		return
@@ -72,6 +86,7 @@ func _begin_episode() -> void:
 	for term in RewardConfig.TERMS:
 		totals[term] = 0.0
 	_decisions = 0
+	_pickups = 0
 	_previous_distance = -1.0
 	_last_damage_me = _me.damage_percent
 	_last_stocks_me = _me.stocks
@@ -104,12 +119,35 @@ func _on_foe_stocks(_fighter: Fighter, stocks_left: int) -> void:
 		_add("ko_given", config.ko_given)
 	_last_stocks_foe = stocks_left
 
+func _on_food_picked_up(_food_name: String) -> void:
+	if _pickups < config.pickup_cap:
+		_pickups += 1
+		_add("pickup", config.pickup)
+
+## My thrown food reached the opponent (a blocked one counts, an ignored one does not).
+func _on_foe_hit_received(hit: Hit, outcome: int) -> void:
+	if hit.source == Hit.Source.FOOD and hit.attacker == _me and outcome != Combat.Outcome.IGNORED:
+		_add("food_hit", config.food_hit)
+
+## The opponent's shield broke: rewarded only when one of my hits broke it.
+func _on_foe_shield_broken(cause: Hit) -> void:
+	if cause != null and cause.attacker == _me:
+		_add("shield_break_dealt", config.shield_break_dealt)
+
+## My shield broke (a hit or the hold drain).
+func _on_my_shield_broken(_cause: Hit) -> void:
+	_add("shield_break_taken", config.shield_break_taken)
+
 ## The match was decided (or time ran out): the win, loss or timeout term, then the
 ## episode record. Fighters are not reset yet, so their stocks tell the outcome.
 func _on_episode_ended(winner: Fighter) -> void:
 	var outcome := "draw"
-	var timed_out := _me.stocks > 0 and (_foe == null or _foe.stocks > 0)
-	if timed_out:
+	# The sudden-death safety cap truncates the episode: a draw with no outcome reward.
+	var truncated := _game != null and _game.last_episode_end_reason == &"sd_cap"
+	var timed_out := not truncated and _me.stocks > 0 and (_foe == null or _foe.stocks > 0)
+	if truncated:
+		pass
+	elif timed_out:
 		var lead := _me.stocks - (_foe.stocks if _foe != null else 0)
 		outcome = "timeout"
 		_add("timeout", config.timeout * signf(float(lead)))
@@ -126,6 +164,8 @@ func _on_episode_ended(winner: Fighter) -> void:
 		"terms": totals.duplicate(),
 		"total": _sum(totals),
 	}
+	if truncated:
+		record["truncated"] = true
 	if print_log:
 		print("BVS_EPISODE ", JSON.stringify(record))
 	episode_logged.emit(record)
