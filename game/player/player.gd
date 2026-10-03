@@ -73,6 +73,9 @@ var blast_zone: Rect2 = Rect2(-100.0, -400.0, 1376.0, 1210.0)
 ## Y (Game-local) of the room floor a defeated fighter lies on; negative when the
 ## stage has none (training rows), and the body then just falls.
 var defeat_floor_y: float = -1.0
+## Tabletop (Game-local `left`/`right`/`top`) a defeated fighter rests on when it
+## goes down over the table; empty when the stage has none.
+var defeat_table: Dictionary = {}
 # Damage % (Smash-style ring-out combat). Starts at 0 and has no upper cap;
 # it never kills by itself, it only scales knockback (see get_knockback_scale).
 var damage_percent: float = 0.0

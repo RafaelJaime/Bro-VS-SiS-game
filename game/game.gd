@@ -105,6 +105,9 @@ func _ready() -> void:
 	if table != null and not training:
 		fighter_1.defeat_floor_y = table.floor_y
 		fighter_2.defeat_floor_y = table.floor_y
+		var tabletop := get_stage_bounds()
+		fighter_1.defeat_table = tabletop
+		fighter_2.defeat_table = tabletop
 
 	# The kitchen art and the table are only for human matches: train.tscn runs
 	# 25 Game instances and would just pay for 25 copies of a 1176x902 texture.

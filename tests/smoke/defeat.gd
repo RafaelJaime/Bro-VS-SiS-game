@@ -42,7 +42,15 @@ func _case(case_name: String, shoot: bool) -> void:
 	var winner: Fighter = game.get_node("Fighter1")
 	loser.stocks_changed.connect(_on_stocks)
 	_stock_events = 0
-	var floor_line: float = table.floor_y - (s.body_bottom(loser) - loser.position.y)
+	if case_name == "table":
+		# Let the Game finish _ready and the fighter land on the table, then KO it there.
+		await s.frames(40)
+		loser._lose_stock()
+	var feet: float = s.body_bottom(loser) - loser.position.y
+	var floor_line: float = table.floor_y - feet
+	var tabletop: Dictionary = game.get_stage_bounds()
+	var surface := "room floor"
+	var surface_chosen := false
 	var min_vy := 0.0
 	var reached_at := -1.0
 	var saw_state := false
@@ -53,6 +61,13 @@ func _case(case_name: String, shoot: bool) -> void:
 		if game.game_over.visible:
 			break
 		saw_state = saw_state or s.state_of(loser) == "Defeated"
+		if saw_state and not surface_chosen:
+			# Over the table the body rests on the tabletop; elsewhere on the room floor.
+			surface_chosen = true
+			var x: float = loser.position.x
+			if x >= float(tabletop["left"]) and x <= float(tabletop["right"]) and loser.position.y <= float(tabletop["top"]) - feet + 1.0:
+				surface = "tabletop"
+				floor_line = float(tabletop["top"]) - feet
 		min_vy = minf(min_vy, loser.velocity.y)
 		if reached_at < 0.0 and absf(loser.position.y - floor_line) <= FLOOR_TOLERANCE:
 			reached_at = t
@@ -62,7 +77,9 @@ func _case(case_name: String, shoot: bool) -> void:
 	var tag := "KO through the %s" % case_name
 	s.check("%s: the loser is in the Defeated state with the defeated sprite" % tag, saw_state and loser.animated_sprite_2d.animation == &"Defeated", loser.animated_sprite_2d.animation)
 	s.check("%s: it never rises while it falls" % tag, min_vy >= -0.01, "min vy=%.1f" % min_vy)
-	s.check("%s: it reaches the room floor line (y=%.1f, got %.1f)" % [tag, floor_line, loser.position.y], reached_at >= 0.0, "t=%.2f" % reached_at)
+	s.check("%s: it reaches the %s line (y=%.1f, got %.1f)" % [tag, surface, floor_line, loser.position.y], reached_at >= 0.0, "t=%.2f" % reached_at)
+	if case_name == "table":
+		s.check("%s: a body over the table rests on the tabletop, not the room floor" % tag, surface == "tabletop", surface)
 	s.check("%s: and stays there" % tag, absf(loser.position.y - floor_line) <= FLOOR_TOLERANCE and absf(loser.velocity.y) < 1.0)
 	var view := _view_rect(game)
 	s.check("%s: its body is inside the camera view" % tag, view.has_point(Vector2(loser.position.x, floor_line)) and view.has_point(loser.position), "pos=%s view=%s" % [loser.position, view])
@@ -82,4 +99,5 @@ func _run() -> void:
 	await _case("left", true)
 	await _case("right", true)
 	await _case("bottom", true)
+	await _case("table", true)
 	s.finish()
