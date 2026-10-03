@@ -151,9 +151,9 @@ bvs/
 │   ├── player/                 # Fighter characters and AI
 │   ├── projectile/             # Combat projectiles
 │   └── ui/                     # Game UI elements
-├── 🧠 scripts/                 # AI and management scripts
+├── 🧠 autoload/                # Autoloads and scene manager
 │   ├── model_manager.gd        # HuggingFace integration
-│   └── AIController/           # RL agent controllers
+│   └── scene_manager.gd        # Scene transitions
 ├── 🎨 assets/                  # Game assets
 │   ├── images/characters/      # Character sprites
 │   └── backgrounds/            # Environment art

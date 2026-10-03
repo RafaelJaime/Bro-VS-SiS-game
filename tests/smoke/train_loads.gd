@@ -33,7 +33,7 @@ func _agent_count(game: Game) -> int:
 
 func _run() -> void:
 	var s := Smoke.new(self)
-	var train: Node = load("res://train.tscn").instantiate()
+	var train: Node = load("res://game/ai/training/train.tscn").instantiate()
 	var sync := train.get_node_or_null("Sync")
 	if sync:
 		train.remove_child(sync)

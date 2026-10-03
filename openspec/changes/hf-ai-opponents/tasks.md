@@ -152,11 +152,11 @@ Satisfies spec: `rl-training-pipeline` "Remote upload authorization gate".
 
 One `refactor:` commit; behavior unchanged; full `tests/smoke/run_all.sh` must stay SMOKE PASSED. Moves keep UIDs (scenes reference scripts by `uid://`), but path-based references must be updated.
 
-- [ ] R.1 Move `scripts/AIController/player_ai_controller.gd` and `scripts/hub_model.gd` (+ `.uid`) into `game/ai/`.
-- [ ] R.2 Move `scripts/SceneManager/*` and `scripts/model_manager.gd` (+ `.uid`) into `autoload/`; move `main.tscn` next to the SceneManager; update `[autoload]` paths in `project.godot` (stage only these hunks; the user's `folder_colors` hunk stays unstaged). `run/main_scene` stays by UID.
-- [ ] R.3 Move `train.tscn` into `game/ai/training/`; update the Python launcher path in `training/` and any `res://train.tscn` references (`rg 'train\.tscn'`).
-- [ ] R.4 Add empty `.gdignore` to `odd/` and `openspec/`; delete the now-empty `scripts/`.
-- [ ] R.5 Verify: `rg 'res://scripts/'` returns nothing; `--headless --import` prints no missing-resource errors; full smoke suite SMOKE PASSED; `uv run` launcher still finds the training scene.
+- [x] R.1 Move `scripts/AIController/player_ai_controller.gd` and `scripts/hub_model.gd` (+ `.uid`) into `game/ai/`.
+- [x] R.2 Move `scripts/SceneManager/*` and `scripts/model_manager.gd` (+ `.uid`) into `autoload/`; move `main.tscn` next to the SceneManager; update `[autoload]` paths in `project.godot` (stage only these hunks; the user's `folder_colors` hunk stays unstaged). `run/main_scene` stays by UID.
+- [x] R.3 Move `train.tscn` into `game/ai/training/`; update the Python launcher path in `training/` and any `res://train.tscn` references (`rg 'train\.tscn'`).
+- [x] R.4 Add empty `.gdignore` to `odd/` and `openspec/`; delete the now-empty `scripts/`.
+- [x] R.5 Verify: `rg 'res://scripts/'` returns nothing; `--headless --import` prints no missing-resource errors; full smoke suite SMOKE PASSED; `uv run` launcher still finds the training scene.
 
 ## Cross-cutting acceptance (maps to proposal Success Criteria)
 

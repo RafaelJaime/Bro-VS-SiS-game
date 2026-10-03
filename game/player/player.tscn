@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bflj2q7xcedk6" path="res://game/player/player.gd" id="1_0e4oy"]
 [ext_resource type="Script" uid="uid://cl6rxr5bmjdts" path="res://ui/character_select/character_item/character_ui.gd" id="2_gh012"]
-[ext_resource type="Script" uid="uid://nybh6q1rplfm" path="res://scripts/AIController/player_ai_controller.gd" id="3_8soms"]
+[ext_resource type="Script" uid="uid://nybh6q1rplfm" path="res://game/ai/player_ai_controller.gd" id="3_8soms"]
 [ext_resource type="Script" uid="uid://bqro544thrttt" path="res://game/player/StateMachine/PlayerStateMachine/player_state_machine.gd" id="5_5fytw"]
 [ext_resource type="Script" uid="uid://cgl7efydtvwnn" path="res://game/player/StateMachine/PlayerStateMachine/States/idle.gd" id="6_5ghna"]
 [ext_resource type="Script" uid="uid://s1s48xh0wvx8" path="res://game/player/StateMachine/PlayerStateMachine/States/run.gd" id="7_j0mij"]
