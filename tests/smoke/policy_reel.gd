@@ -5,6 +5,9 @@ extends SceneTree
 ##   godot --path . --resolution 800x600 --fixed-fps 60 --script res://tests/smoke/policy_reel.gd \
 ##     -- model=res://game/ai/models/bvs_default/model.onnx level=easy out=/some/dir [seconds=45] [seed=1000] [side=0]
 ##
+## `opponent=model` plays the same model on both sides (model versus model) instead of a
+## scripted CPU of `level`. Add `--write-movie out.avi` to the engine arguments to record a movie.
+##
 ## User arguments after `--` are used instead of environment variables because a
 ## macOS `open -g` launch (see run_all.sh) does not forward the shell environment.
 
@@ -29,8 +32,9 @@ func _run() -> void:
 	var seconds := int(_arg(args, "seconds", "45"))
 	var cpu_seed := int(_arg(args, "seed", "1000"))
 	var side := int(_arg(args, "side", "0"))
+	var mirror := _arg(args, "opponent", "cpu") == "model"
 	var s := Smoke.new(self, float(seconds) + 60.0)
-	if not LEVELS.has(level_name):
+	if not mirror and not LEVELS.has(level_name):
 		s.check("level is easy, normal or hard", false, level_name)
 		s.finish()
 		return
@@ -48,7 +52,12 @@ func _run() -> void:
 	var fighters: Array[Fighter] = [game.get_node("Fighter1"), game.get_node("Fighter2")]
 	var controller := PolicyController.new(loaded.model)
 	fighters[side].set_controller(controller)
-	s.set_cpu(fighters[1 - side], LEVELS[level_name], cpu_seed)
+	var other_controller: PolicyController = null
+	if mirror:
+		other_controller = PolicyController.new(loaded.model)
+		fighters[1 - side].set_controller(other_controller)
+	else:
+		s.set_cpu(fighters[1 - side], LEVELS[level_name], cpu_seed)
 	var over := {"done": false}
 	game.match_over.connect(func(_winner: Fighter) -> void: over["done"] = true)
 	var shots := 0
@@ -62,5 +71,5 @@ func _run() -> void:
 		shots += 1
 	print("INFO reel: %d frames in %s (match over: %s, stocks policy %d, cpu %d)" % [shots, out_dir, str(over["done"]), fighters[side].stocks, fighters[1 - side].stocks])
 	s.check("the reel recorded frames", shots > 0)
-	s.check("the policy never failed", controller.error == "", controller.error)
+	s.check("the policy never failed", controller.error == "" and (other_controller == null or other_controller.error == ""), controller.error)
 	s.finish()

@@ -217,7 +217,7 @@ def main(argv: list[str] | None = None) -> int:
     speedup = args.speedup or int(run["speedup"])
     every = args.checkpoint_every or int(run["checkpoint_every"])
 
-    out_dir = args.out
+    out_dir = args.out.resolve()  # Godot reads BVS_TRAIN_CONFIG from its own working directory
     out_dir.mkdir(parents=True, exist_ok=True)
     stop_file = out_dir / "STOP"
     stop_file.unlink(missing_ok=True)
