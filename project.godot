@@ -26,8 +26,8 @@ config/icon="uid://doobw4xavcbfd"
 
 [autoload]
 
-ModelManager="*res://scripts/model_manager.gd"
-SceneManager="*res://scripts/SceneManager/scene_manager.gd"
+ModelManager="*res://autoload/model_manager.gd"
+SceneManager="*res://autoload/scene_manager.gd"
 
 [display]
 

@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://bml7gn5xty2ky"]
+
+[ext_resource type="Script" path="res://game/ai/training/train_arena.gd" id="1_arena"]
+[ext_resource type="Script" uid="uid://88snckwgqte5" path="res://addons/godot_rl_agents/sync.gd" id="2_sync"]
+
+[node name="Train" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="Sync" type="Node" parent="."]
+script = ExtResource("2_sync")
+action_repeat = 4
+metadata/_custom_type_script = "uid://88snckwgqte5"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="CanvasLayer"]
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 252.0
+offset_bottom = 34.0
+text = "Training"

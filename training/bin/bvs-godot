@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Headless launcher for the BVS training scene.
+# godot-rl appends --port, --env_seed, --speedup and --action_repeat; they pass through "$@".
+# GODOT_BIN defaults to the Steam install used on the maintainer machine.
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+GODOT_BIN="${GODOT_BIN:-$HOME/Library/Application Support/Steam/steamapps/common/Godot Engine/Godot.app/Contents/MacOS/Godot}"
+
+exec "$GODOT_BIN" --headless --path "$REPO" res://game/ai/training/train.tscn "$@"

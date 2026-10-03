@@ -283,7 +283,7 @@ offset_top = -50.0
 offset_right = 200.0
 offset_bottom = -10.0
 selected = 0
-item_count = 4
+item_count = 5
 popup/item_0/text = "Human"
 popup/item_0/id = 0
 popup/item_1/text = "CPU Easy"
@@ -292,6 +292,25 @@ popup/item_2/text = "CPU Normal"
 popup/item_2/id = 2
 popup/item_3/text = "CPU Hard"
 popup/item_3/id = 3
+popup/item_4/text = "AI: BVS default"
+popup/item_4/id = 4
+
+[node name="StatusLabel" type="Label" parent="AIController/ControlP1"]
+visible = false
+layout_mode = 0
+offset_top = 42.0
+offset_right = 240.0
+offset_bottom = 78.0
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+
+[node name="CancelButton" type="Button" parent="AIController/ControlP1"]
+visible = false
+layout_mode = 0
+offset_top = 80.0
+offset_right = 100.0
+offset_bottom = 108.0
+text = "Cancel"
 
 [node name="ControlP2" type="Control" parent="AIController" unique_id=476611909]
 anchors_preset = 0
@@ -328,7 +347,7 @@ offset_top = -50.0
 offset_right = 200.0
 offset_bottom = -10.0
 selected = 2
-item_count = 4
+item_count = 5
 popup/item_0/text = "Human"
 popup/item_0/id = 0
 popup/item_1/text = "CPU Easy"
@@ -337,6 +356,25 @@ popup/item_2/text = "CPU Normal"
 popup/item_2/id = 2
 popup/item_3/text = "CPU Hard"
 popup/item_3/id = 3
+popup/item_4/text = "AI: BVS default"
+popup/item_4/id = 4
+
+[node name="StatusLabel" type="Label" parent="AIController/ControlP2"]
+visible = false
+layout_mode = 0
+offset_top = 42.0
+offset_right = 240.0
+offset_bottom = 78.0
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+
+[node name="CancelButton" type="Button" parent="AIController/ControlP2"]
+visible = false
+layout_mode = 0
+offset_top = 80.0
+offset_right = 100.0
+offset_bottom = 108.0
+text = "Cancel"
 
 [node name="ModelPicker" type="Control" parent="."]
 visible = false

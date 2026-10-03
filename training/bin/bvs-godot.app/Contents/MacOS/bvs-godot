@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# macOS shim: godot-rl rewrites env_path "X" to "X.app/Contents/MacOS/X" on darwin.
+# It forwards everything to the real launcher one level up.
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/bvs-godot" "$@"
