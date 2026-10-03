@@ -11,11 +11,11 @@ cd training
 uv sync
 uv run python -m bvs_training.train --phase P1 --steps 4096 --seed 1                  # smoke run
 mkdir -p out && uv run python -m bvs_training.train --config configs/default.toml > out/train.log 2>&1   # full run
-uv run python -m bvs_training.export --checkpoint out/final.zip --out out/bvs_default/model.onnx
-uv run python -m bvs_training.evaluate --model out/bvs_default/model.onnx --level easy --level normal --matches 20 --min-win-rate 0.60
+uv run python -m bvs_training.export --checkpoint out/final.zip --out out/my_fighter/model.onnx
+uv run python -m bvs_training.evaluate --model out/my_fighter/model.onnx --level easy --level normal --matches 20 --min-win-rate 0.60
 ```
 
-Then [publish](#7-publish-to-hugging-face) the folder `out/bvs_default/` (`model.onnx` + `bvs.json` + `README.md`) with tags `BVS` and `bvs-schema-2`.
+Then [publish](#7-publish-to-hugging-face) the folder `out/my_fighter/` (`model.onnx` + `bvs.json` + `README.md`) with tags `BVS` and `bvs-schema-2`.
 
 ## Contents
 
@@ -127,7 +127,7 @@ At 4 processes, the 10M-step curriculum is roughly 40 minutes of pure simulation
 ## 4. Export to ONNX
 
 ```sh
-uv run python -m bvs_training.export --checkpoint out/final.zip --out out/bvs_default/model.onnx --label "My fighter"
+uv run python -m bvs_training.export --checkpoint out/final.zip --out out/my_fighter/model.onnx --label "My fighter"
 ```
 
 `--label` is the name stored in the sidecar (default `BVS default`) and `--difficulty-hint` sets `difficulty_hint` (default `easy`).
@@ -161,8 +161,8 @@ Recurrent cells, convolutions, `Gather`, `Shape`, `ArgMax` and similar ops are r
 This confirms the game's interpreter produces the same numbers as onnxruntime for your file.
 
 ```sh
-uv run python -m bvs_training.evaluate --model out/bvs_default/model.onnx --level easy --matches 20 --obs-dump out/obs.json
-uv run python -m bvs_training.golden --model out/bvs_default/model.onnx --obs-dump out/obs.json --out out/golden.json
+uv run python -m bvs_training.evaluate --model out/my_fighter/model.onnx --level easy --matches 20 --obs-dump out/obs.json
+uv run python -m bvs_training.golden --model out/my_fighter/model.onnx --obs-dump out/obs.json --out out/golden.json
 ```
 
 From the repository root, run the check in Godot (use your Godot executable for `godot`):
@@ -178,7 +178,7 @@ This step is optional but recommended; `evaluate` in the next section already ru
 ## 6. Evaluate
 
 ```sh
-uv run python -m bvs_training.evaluate --model out/bvs_default/model.onnx --level easy --level normal --level hard --matches 20 --min-win-rate 0.60
+uv run python -m bvs_training.evaluate --model out/my_fighter/model.onnx --level easy --level normal --level hard --matches 20 --min-win-rate 0.60
 ```
 
 Full non-training matches, sides alternating, using the interpreter players use. It writes `reports/<name>-eval.md` and `.json` and exits non-zero if the win rate versus CPU Easy is below `--min-win-rate`. At least 20 matches are required unless you pass `--smoke` (pipeline checks only).
@@ -199,10 +199,10 @@ A model that wins by timeout, idles most of the match, or loses stocks to its ow
 ### Embed the results in the sidecar
 
 ```sh
-uv run python -m bvs_training.sidecar --model-dir out/bvs_default --label "My fighter" --difficulty-hint hard --eval-report reports/bvs_default-eval.json
+uv run python -m bvs_training.sidecar --model-dir out/my_fighter --label "My fighter" --difficulty-hint hard --eval-report reports/my_fighter-eval.json
 ```
 
-The report name follows the model folder, so `out/bvs_default/` gives `reports/bvs_default-eval.json`. Rewriting `bvs.json` is safe to repeat.
+The report name follows the model folder, so `out/my_fighter/` gives `reports/my_fighter-eval.json`. Rewriting `bvs.json` is safe to repeat.
 
 ## 7. Publish to Hugging Face
 
@@ -211,7 +211,7 @@ Publishing is a remote action on your account. Nothing in this repo uploads for 
 ### Stage and render the model card
 
 ```sh
-uv run python -m bvs_training.prepare_upload --repo <your-username>/<model-name> --license mit --confirm <your-username>/<model-name> --source out/bvs_default --allow-unbundled
+uv run python -m bvs_training.prepare_upload --repo <your-username>/<model-name> --license mit --confirm <your-username>/<model-name> --source out/my_fighter --allow-unbundled
 ```
 
 - `--confirm` must repeat `--repo` exactly, otherwise the script exits with status 2.
