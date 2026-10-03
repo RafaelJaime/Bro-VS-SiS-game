@@ -107,7 +107,10 @@ var _ledge_lockout: float = 0.0
 var _feet_offset: float = 94.0
 
 var _invuln_timer: Timer
-var _blink_tween: Tween
+## Single owner of the sprite's blink visibility: `_apply_visibility` is the only
+## code that hides the sprite, and it derives that from these two fields.
+var _blinking: bool = false
+var _blink_clock: float = 0.0
 
 # Runs parent-first, before the state machine children use `profile`.
 func _enter_tree() -> void:
@@ -144,6 +147,9 @@ func _physics_process(delta: float) -> void:
 	# The only controller sample per frame; parent-first physics order makes
 	# this intent visible to the state machine child in the same frame.
 	intent = FighterIntent.new() if (controls_locked or controller == null) else controller.sample(delta)
+	if _blinking:
+		_blink_clock += delta
+	_apply_visibility()
 	_tick_movement(delta)
 
 	if ai_controller_2d.needs_reset:
@@ -485,20 +491,16 @@ func _respawn() -> void:
 
 ## Makes the fighter immune to hits for `duration` seconds. A newer grant never
 ## shortens a running one (the longer remaining time wins), and an older timer
-## can never end a newer grant because there is only one timer. The blink tween
-## is owned by this node, so it pauses with the game and dies with the fighter.
+## can never end a newer grant because there is only one timer. The blink is plain
+## state (`_blinking`) that `_apply_visibility` turns into visibility: there is no
+## tween that could be killed while the sprite is hidden.
 func grant_invulnerability(duration: float, blink: bool = true) -> void:
 	is_invulnerable = true
 	_invuln_timer.start(maxf(_invuln_timer.time_left, duration))
-	if _blink_tween:
-		_blink_tween.kill()
-		_blink_tween = null
-	if blink:
-		_blink_tween = create_tween().set_loops()
-		_blink_tween.tween_property(animated_sprite_2d, "visible", false, 0.0)
-		_blink_tween.tween_interval(INVULNERABILITY_BLINK_INTERVAL / 2.0)
-		_blink_tween.tween_property(animated_sprite_2d, "visible", true, 0.0)
-		_blink_tween.tween_interval(INVULNERABILITY_BLINK_INTERVAL / 2.0)
+	if blink and not _blinking:
+		_blink_clock = 0.0
+	_blinking = blink
+	_apply_visibility()
 
 func _on_invulnerability_timeout() -> void:
 	_stop_invulnerability()
@@ -506,11 +508,15 @@ func _on_invulnerability_timeout() -> void:
 func _stop_invulnerability() -> void:
 	if _invuln_timer:
 		_invuln_timer.stop()
-	if _blink_tween:
-		_blink_tween.kill()
-		_blink_tween = null
+	_blinking = false
 	is_invulnerable = false
-	animated_sprite_2d.visible = true
+	_apply_visibility()
+
+## The only place that sets the sprite's visibility: hidden in the off half of the
+## blink while blinking and invulnerable, visible in every other case.
+func _apply_visibility() -> void:
+	var hidden := _blinking and is_invulnerable and fmod(_blink_clock, INVULNERABILITY_BLINK_INTERVAL) < INVULNERABILITY_BLINK_INTERVAL / 2.0
+	animated_sprite_2d.visible = not hidden
 
 func is_holding_food() -> bool:
 	return held_food != ""
