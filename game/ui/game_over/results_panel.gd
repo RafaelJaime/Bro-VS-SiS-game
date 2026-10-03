@@ -21,6 +21,13 @@ extends Control
 		queue_redraw()
 ## Horizontal lean of the panel sides, in pixels.
 @export var slant: float = 36.0
+## Portrait framing for a head-and-hair face art: instead of cropping a bust, the
+## visible head is scaled to fit the panel (centered, its center-column bottom on
+## the panel's bottom border) so the face, not the top of the hair, is what shows.
+@export var portrait: bool = false:
+	set(value):
+		portrait = value
+		queue_redraw()
 ## A greyed panel (the loser): the base color and the art lose their saturation.
 @export var greyed: bool = false:
 	set(value):
@@ -32,6 +39,33 @@ const STRIPE_GAP := 46.0
 const DOT_SPACING := 13.0
 ## The art is lowered this many pixels so it reaches the bottom border (no strip of panel background between the character and the edge).
 const ART_DROP := 12.0
+## Portrait framing: breathing room above the head, and how far the bottom of the head overlaps the border (hidden under it).
+const PORTRAIT_TOP := 6.0
+const PORTRAIT_OVERLAP := 4.0
+## Share of the art's width, around its center, that decides where the head's bottom is.
+const PORTRAIT_CENTER_BAND := 0.4
+
+static var _bounds_cache: Dictionary = {}
+
+## The visible part of a face art, in texture pixels: where it starts at the top,
+## where it ends at the bottom of its center band, and its horizontal extent.
+## Returns Rect2(left, top, width, center_bottom - top).
+static func head_bounds(art: Texture2D) -> Rect2:
+	if _bounds_cache.has(art):
+		return _bounds_cache[art]
+	var image := art.get_image()
+	var used := image.get_used_rect()
+	var band_from := int(float(image.get_width()) * (0.5 - PORTRAIT_CENTER_BAND / 2.0))
+	var band_to := int(float(image.get_width()) * (0.5 + PORTRAIT_CENTER_BAND / 2.0))
+	var bottom := used.position.y
+	for x in range(band_from, band_to):
+		var y := used.end.y - 1
+		while y > bottom and image.get_pixel(x, y).a < 0.1:
+			y -= 1
+		bottom = maxi(bottom, y)
+	var bounds := Rect2(float(used.position.x), float(used.position.y), float(used.size.x), float(bottom + 1 - used.position.y))
+	_bounds_cache[art] = bounds
+	return bounds
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
@@ -46,10 +80,17 @@ func outline() -> PackedVector2Array:
 
 ## Where the art is placed (local coordinates): it is centered horizontally and
 ## lowered by ART_DROP (never past the point where its bottom leaves the panel).
+## In portrait mode the head is fitted instead (see `portrait`).
 func art_rect() -> Rect2:
 	if texture == null:
 		return Rect2()
 	var tex_size := texture.get_size()
+	if portrait:
+		var head := head_bounds(texture)
+		var fit := minf((size.y - PORTRAIT_TOP + PORTRAIT_OVERLAP) / head.size.y, (size.x - slant) / head.size.x)
+		var head_center_x := (head.position.x + head.size.x / 2.0) * fit
+		var head_bottom := (head.position.y + head.size.y) * fit
+		return Rect2(Vector2(size.x / 2.0 - head_center_x, size.y + PORTRAIT_OVERLAP - head_bottom), tex_size * fit)
 	var scale_to_fit := maxf(size.y / (tex_size.y * crop), size.x / tex_size.x)
 	var drawn := tex_size * scale_to_fit
 	var drop := clampf(ART_DROP, 0.0, maxf(drawn.y - size.y, 0.0))
@@ -58,7 +99,7 @@ func art_rect() -> Rect2:
 ## True when the art covers the panel's flat bottom edge and its sides: the crop
 ## is the panel's own edge. The top may start a few pixels lower (the drop).
 func art_covers_panel() -> bool:
-	if texture == null:
+	if texture == null or portrait:
 		return true
 	var rect := art_rect().grow(0.5)
 	for point in outline():
@@ -109,13 +150,19 @@ func _draw() -> void:
 	# The bust: the art as a textured polygon, so the panel cuts it.
 	if texture != null:
 		var rect := art_rect()
-		var uvs := PackedVector2Array()
-		for point in poly:
-			uvs.append((point - rect.position) / rect.size)
 		var tint := Color.WHITE
 		if greyed:
 			tint = Color(0.62, 0.62, 0.62)
-		draw_colored_polygon(poly, tint, uvs, texture)
+		var pieces: Array[PackedVector2Array] = [poly]
+		if portrait:
+			# Clipped to the art's own rectangle so an edge pixel is never smeared.
+			var art_poly := PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)])
+			pieces = Geometry2D.intersect_polygons(poly, art_poly)
+		for clipped in pieces:
+			var uvs := PackedVector2Array()
+			for point in clipped:
+				uvs.append((point - rect.position) / rect.size)
+			draw_colored_polygon(clipped, tint, uvs, texture)
 	var closed := poly.duplicate()
 	closed.append(poly[0])
 	draw_polyline(closed, Color(0, 0, 0, 0.9), 9.0, true)
