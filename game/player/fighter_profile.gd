@@ -169,6 +169,13 @@ extends Resource
 @export var dizzy_duration: float = 2.0
 ## Upward pop at the moment the shield breaks (negative is up).
 @export var shield_break_pop_velocity: float = -450.0
+## Smash-style shield drop lag: letting go of the shield leaves the fighter unable
+## to act (attack, run, dash, re-shield, throw) for this long. 11 frames at 60 fps.
+@export var shield_drop_lag: float = 11.0 / 60.0
+## A shield is held at least this long, so a one-frame tap still pays the drop lag.
+@export var shield_min_hold: float = 4.0 / 60.0
+## Meter points spent each time the shield is raised (0 disables the cost).
+@export var shield_raise_cost: float = 4.0
 
 @export_group("Air dodge")
 ## In the air the block key dodges instead of shielding: intangible for

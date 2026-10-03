@@ -5,8 +5,9 @@ extends SceneTree
 ## SHOT_DIR, and checks the whole run:
 ##   - no script error (run_all.sh also greps the engine output),
 ##   - while a fighter is inside the blast zones it is on screen (center, and its
-##     head with a margin), sampled every physics frame; only a launched (Hurt)
-##     fighter that the camera shows with its off-screen bubble may be out of view,
+##     head with a margin), sampled every physics frame; only a launched fighter
+##     (Hurt, or still flying up in Fall right after the hitstun) that the camera
+##     shows with its off-screen bubble may be out of view,
 ##   - no stray pixels: no saturated blue specks in the top band of any gameplay
 ##     frame, and no particle emitter running during play except the hit sparks,
 ##   - the match flow reaches the results with a winner.
@@ -23,6 +24,8 @@ const SCREEN_MARGIN := 4.0
 const HEAD_HEIGHT := 70.0
 ## The top band of the screen that holds nothing but the timer.
 const TOP_BAND := 70
+## A launched fighter in Fall counts as flying until it is falling faster than this (px/s).
+const APEX_SLACK := 60.0
 
 var s: RefCounted
 var shot_index: int = 0
@@ -93,19 +96,25 @@ func _sample(game: Game) -> void:
 		samples += 1
 		var screen := canvas * fighter.position
 		var inside := screen.x >= -SCREEN_MARGIN and screen.x <= size.x + SCREEN_MARGIN and screen.y >= -SCREEN_MARGIN and screen.y <= size.y + SCREEN_MARGIN
-		var bubble: bool = fighter.state_machine.current_state.name == &"Hurt" and (game.get_node("Camera2D") as MatchCamera).is_indicating(fighter)
+		# A launch outlives the hitstun: the fighter leaves Hurt into Fall while it
+		# is still flying up (or hanging at the apex), and the camera keeps pointing at it with the bubble.
+		var state: StringName = fighter.state_machine.current_state.name
+		var launched := state == &"Hurt" or (state == &"Fall" and fighter.velocity.y < APEX_SLACK)
+		var bubble: bool = launched and (game.get_node("Camera2D") as MatchCamera).is_indicating(fighter)
 		if bubble:
 			bubbled += 1
 		if not inside and not bubble:
 			off_screen += 1
 			if first_off == "":
-				first_off = "fighter %d at t=%.1f pos=%s screen=%s" % [index + 1, game.timer.wait_time - game.timer.time_left, fighter.position, screen]
+				first_off = "fighter %d at t=%.1f pos=%s screen=%s state=%s" % [index + 1, game.timer.wait_time - game.timer.time_left, fighter.position, screen, str(fighter.state_machine.current_state.name) + " indicated=" + str((game.get_node("Camera2D") as MatchCamera).is_indicating(fighter)) + " vel=" + str(fighter.velocity)]
 		var head: float = (canvas * (fighter.position + Vector2(0.0, -HEAD_HEIGHT))).y
-		if head < 0.0:
+		# The camera cannot frame a launch above its widest zoom, so a fighter still
+		# flying up from a hit may have its head above the view for a moment.
+		if head < 0.0 and not launched:
 			head_clipped += 1
 			worst_clip = maxf(worst_clip, -head)
 			if first_clipped == "":
-				first_clipped = "fighter %d pos=%s head screen y=%.0f zoom=%.2f" % [index + 1, fighter.position, head, game.get_node("Camera2D").zoom.x]
+				first_clipped = "fighter %d pos=%s head screen y=%.0f state=%s zoom=%.2f" % [index + 1, fighter.position, head, fighter.state_machine.current_state.name, game.get_node("Camera2D").zoom.x]
 
 func _run() -> void:
 	s = Smoke.new(self, 600.0)

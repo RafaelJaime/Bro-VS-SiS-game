@@ -107,10 +107,12 @@ func _hits_and_shields(s: RefCounted) -> void:
 	shield_setup[1][1].press_block()
 	await s.frames(3)
 	var outcomes: Array = []
+	# Raising the shield spent shield_raise_cost meter before the hit landed.
+	var cost := shielder.profile.shield_raise_cost
 	shielder.hit_received.connect(func(hit: Hit, outcome: int) -> void: outcomes.append([hit.source, outcome]))
 	var first := Combat.resolve(Hit.food(thrower, "turkey", thrower.global_position), shielder)
 	s.check("one heavy food does not break a full shield", first == Combat.Outcome.BLOCKED and shielder.shield.value > 0.0 and s.state_of(shielder) == "Protect", "outcome=%d meter=%.1f" % [first, shielder.shield.value])
-	s.check("food does not pierce the shield: chip damage only, meter drained by its shield damage", shielder.damage_percent > 0.0 and shielder.damage_percent < 18.0 and shielder.shield.value <= 45.0 and shielder.shield.value > 42.0, "damage=%.2f meter=%.1f" % [shielder.damage_percent, shielder.shield.value])
+	s.check("food does not pierce the shield: chip damage only, meter drained by its shield damage", shielder.damage_percent > 0.0 and shielder.damage_percent < 18.0 and shielder.shield.value <= 45.0 - cost and shielder.shield.value > 42.0 - cost, "damage=%.2f meter=%.1f" % [shielder.damage_percent, shielder.shield.value])
 	var second := Combat.resolve(Hit.food(thrower, "turkey", thrower.global_position), shielder)
 	s.check("two heavy foods in a row break a full shield", second == Combat.Outcome.BROKE and s.state_of(shielder) == "Dizzy", "outcome=%d" % second)
 	s.check("the signal reports a FOOD source with the outcome", outcomes.size() == 2 and outcomes[0] == [Hit.Source.FOOD, Combat.Outcome.BLOCKED] and outcomes[1] == [Hit.Source.FOOD, Combat.Outcome.BROKE], "outcomes=%s" % [outcomes])

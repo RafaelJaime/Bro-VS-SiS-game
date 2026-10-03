@@ -2,7 +2,7 @@ extends Sprite2D
 class_name ShieldBubble
 
 ## The shield bubble around a fighter: visible only while it is shielding (the
-## Protect state), it shrinks as the meter drains and goes from the character's
+## Protect state, and shrinking away during the shield drop lag), it shrinks as the meter drains and goes from the character's
 ## colour to red as the shield gets weak. It reuses the glow texture of the charge
 ## effect with an additive material, so it needs no new asset, and it never touches
 ## the fighter sprite. Training rows keep it hidden with processing off.
@@ -21,11 +21,20 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var fighter := owner as Fighter
-	if fighter == null or fighter.shield == null or not fighter.is_shielding():
+	if fighter == null or fighter.shield == null:
+		visible = false
+		return
+	var drop := fighter.shield_drop_progress()
+	if not fighter.is_shielding() and drop < 0.0:
 		visible = false
 		return
 	var ratio := fighter.shield.ratio()
 	var base: Color = fighter.character_ui.color if fighter.character_ui else Color.WHITE
-	scale = Vector2.ONE * lerpf(scale_empty, scale_full, ratio)
-	modulate = Color(base.lightened(0.35).lerp(Color(1.0, 0.15, 0.1), 1.0 - ratio), alpha)
+	var size := lerpf(scale_empty, scale_full, ratio)
+	var tint := Color(base.lightened(0.35).lerp(Color(1.0, 0.15, 0.1), 1.0 - ratio), alpha)
+	if drop >= 0.0:
+		size *= 1.0 - drop
+		tint.a *= 1.0 - drop
+	scale = Vector2.ONE * size
+	modulate = tint
 	visible = true

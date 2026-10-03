@@ -5,10 +5,22 @@ class_name Protect
 ## ShieldMeter lasts: the meter (owned by the Fighter, ticked every frame) drains
 ## while this state is active and `absorb` drains it further for every blocked hit.
 ## A hit that empties the meter breaks the shield (Fighter.break_shield -> Dizzy).
-## Tuning is in the FighterProfile "Shield" group.
+## Releasing it is never free: the shield is held at least `shield_min_hold`, every
+## raise costs `shield_raise_cost` meter, and leaving it enters ShieldDrop (the drop
+## lag), so tapping the shield between other inputs does not work. Jumping out of
+## the shield is allowed (Smash) and skips the lag. Tuning is in the FighterProfile
+## "Shield" group.
+
+var _ticks_held: int = 0
 
 func can_enter() -> bool:
 	return owner.is_on_floor() and not owner.shield.is_empty() and not owner.is_dizzy()
+
+func _enter() -> void:
+	super._enter()
+	_ticks_held = 0
+	owner.shield_raises += 1
+	owner.shield.pay_raise(profile.shield_raise_cost)
 
 func _update(delta: float) -> void:
 	super._update(delta)
@@ -20,8 +32,11 @@ func _update(delta: float) -> void:
 	if not is_on_floor():
 		finished.emit("Fall")
 		return
-	if not owner.intent.block_held:
-		exit_to_neutral()
+	_ticks_held += 1
+	if handle_actions():
+		return
+	if not owner.intent.block_held and _ticks_held >= CombatClock.ticks(profile.shield_min_hold):
+		finished.emit("ShieldDrop")
 
 ## Called by Combat.resolve when a blockable hit lands on this shielding fighter.
 ## Drains the meter by the hit's shield damage, applies the chip damage and the

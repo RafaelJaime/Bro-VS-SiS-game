@@ -154,9 +154,12 @@ func _regen_after_release(s: RefCounted) -> void:
 	var held_value := fighter.shield.value
 	ctrl.block_held_level = false
 	await s.frames(3)
-	s.check("released: back in a neutral state", s.state_of(fighter) == "Idle", "state=%s" % s.state_of(fighter))
+	# Intentional change (shield drop lag): letting go enters ShieldDrop, and the
+	# fighter is neutral again once the lag is over.
+	s.check("released: in the drop lag", s.state_of(fighter) == "ShieldDrop", "state=%s" % s.state_of(fighter))
 	var at_release := fighter.shield.value
 	await s.frames(25)
+	s.check("released: back in a neutral state after the lag", s.state_of(fighter) == "Idle", "state=%s" % s.state_of(fighter))
 	s.check("no regeneration inside the 30-tick delay", is_equal_approx(fighter.shield.value, at_release) and at_release < 100.0, "value=%.2f at_release=%.2f held=%.2f" % [fighter.shield.value, at_release, held_value])
 	await s.frames(120)
 	s.check("after the delay the meter regenerates but never exceeds the maximum", fighter.shield.value > at_release and fighter.shield.value <= fighter.shield.max_value, "value=%.2f" % fighter.shield.value)
@@ -513,7 +516,9 @@ func _cues(s: RefCounted) -> void:
 	ctrl.block_held_level = true
 	ctrl.press_block()
 	await s.frames(4)
-	s.check("the bubble shows while shielding, near its full size", bubble.visible and absf(bubble.scale.x - bubble.scale_full) < 0.01, "scale=%.3f" % bubble.scale.x)
+	# The raise cost (shield_raise_cost) takes a few meter points, so the bubble is
+	# a hair under its full size.
+	s.check("the bubble shows while shielding, near its full size", bubble.visible and absf(bubble.scale.x - bubble.scale_full) < 0.03, "scale=%.3f" % bubble.scale.x)
 	fighter.shield.set_ratio(0.5)
 	await s.frames(2)
 	var half := lerpf(bubble.scale_empty, bubble.scale_full, fighter.shield.ratio())
@@ -523,6 +528,10 @@ func _cues(s: RefCounted) -> void:
 	await s.frames(2)
 	ctrl.block_held_level = false
 	await s.frames(3)
+	# Intentional change (shield drop lag): the bubble shrinks away during the lag
+	# and is hidden once it is over (the shrink itself is checked in shield_look).
+	s.check("the bubble is still shrinking in the drop lag", bubble.visible and fighter.shield_drop_progress() >= 0.0)
+	await s.frames(12)
 	s.check("the bubble hides when the shield drops", not bubble.visible)
 
 	fighter.break_shield(null)

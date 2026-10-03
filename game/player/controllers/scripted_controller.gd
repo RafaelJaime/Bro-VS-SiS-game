@@ -36,7 +36,7 @@ extends FighterController
 enum Plan { IDLE, LEDGE, RECOVER, DODGE_BOMB, PUNISH, DEFEND, THROW, PICKUP, ATTACK, APPROACH }
 
 ## States in which the fighter cannot act; presses would only be swallowed.
-const NO_ACTION_STATES: Array[String] = ["Hurt", "Defeated", "Dizzy"]
+const NO_ACTION_STATES: Array[String] = ["Hurt", "Defeated", "Dizzy", "ShieldDrop"]
 ## After releasing the shield at its release ratio the bot waits for the meter to
 ## climb this far above it before shielding again.
 const SHIELD_HYSTERESIS := 0.15

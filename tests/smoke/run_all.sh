@@ -81,14 +81,14 @@ fi
 # class_names resolve when the scripts run outside the editor.
 "$GODOT" --headless --path . --import >/dev/null 2>&1
 
-SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots cpu_combat cpu_recovery cpu_match cpu_select cpu_shots table_stage hud_framing match_flow match_e2e smash_moves ledge cpu_smash match_reel keyboard_playtest backdrop navigation results_screen visibility hf_picker credits menu_background schema_v2 schema_v3 onnx_golden policy_match policy_select shield combat_shots food_balance hazards cpu_shield defeat)
+SCRIPTS=(stage_floor combat movement movement_feel hit_rules hud food_size camera train_loads screenshots cpu_combat cpu_recovery cpu_match cpu_select cpu_shots table_stage hud_framing match_flow match_e2e smash_moves ledge cpu_smash match_reel keyboard_playtest backdrop navigation results_screen visibility hf_picker credits menu_background schema_v2 schema_v3 onnx_golden policy_match policy_select shield shield_spam combat_shots food_balance hazards cpu_shield defeat)
 # ONLY="hud navigation" tests/smoke/run_all.sh runs just those scripts.
 if [ -n "${ONLY:-}" ]; then
 	read -r -a SCRIPTS <<<"$ONLY"
 fi
 # Scripts that simulate minutes of game time and take no screenshots: headless
 # runs are not paced to the display, so they finish in seconds.
-HEADLESS=" cpu_combat cpu_recovery cpu_match cpu_select hud_framing  match_e2e cpu_smash schema_v2 schema_v3 onnx_golden policy_match shield food_balance hazards cpu_shield "
+HEADLESS=" cpu_combat cpu_recovery cpu_match cpu_select hud_framing  match_e2e cpu_smash schema_v2 schema_v3 onnx_golden policy_match shield shield_spam food_balance hazards cpu_shield "
 
 # Runs one windowed script and prints its combined output. Without the
 # background launcher the exit code is the script's; with it, `open` hides the

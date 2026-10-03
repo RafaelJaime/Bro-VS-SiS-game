@@ -55,7 +55,7 @@ const PUSH_HEIGHT: float = 120.0
 const PUSH_SPEED: float = 90.0
 # Smash: you face the way you move. No turning while an action owns the body.
 const TURN_DEADZONE: float = 0.1
-const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated", "LedgeHang", "Dizzy", "AirDodge"]
+const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "ShieldDrop", "Defeated", "LedgeHang", "Dizzy", "AirDodge"]
 # Air states a fighter can grab a table leg from. Punches, throws and blocks in the
 # air finish first (Smash), a hit never grabs.
 const LEDGE_GRAB_STATES: Array[String] = ["Jump", "Fall", "Recovery", "Helpless", "Dash", "AirDodge"]
@@ -95,6 +95,9 @@ var held_food: String = ""
 ## The shield meter. Ticked once per physics frame (see _tick_combat), so it
 ## regenerates in every state; Protect only holds and drains it.
 var shield: ShieldMeter
+## How many times the shield has been raised (Protect entered); the shield-spam
+## metric reads it.
+var shield_raises: int = 0
 ## Once per airtime: spent by AirDodge, refilled with the other air actions. The
 ## cooldown counts physics ticks down from the start of a dodge.
 var air_dodge_available: bool = true
@@ -231,6 +234,12 @@ func is_dizzy() -> bool:
 ## True while the ground shield is up (the Protect state).
 func is_shielding() -> bool:
 	return _state_name() == "Protect"
+
+## Progress (0..1) of the shield drop lag, or -1 when the fighter is not in it.
+func shield_drop_progress() -> float:
+	if _state_name() != "ShieldDrop":
+		return -1.0
+	return (state_machine.current_state as ShieldDrop).progress()
 
 ## Seconds of dizzy left (0 when not dizzy).
 func dizzy_seconds_left() -> float:
