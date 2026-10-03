@@ -11,26 +11,52 @@ enum WeightClass { LIGHT, MEDIUM, HEAVY }
 
 const FOOD_DIR := "res://assets/images/game/food/"
 
-# Design doc weight classes (damage %, throw speed, knockback, arc gravity scale).
+# Weight classes (damage %, throw speed, knockback, arc gravity scale, meter damage
+# against a shield). Every class out-damages and out-launches a neutral punch
+# (8 damage, 220 knockback), so picking food up is always worth it. Heavy food
+# takes a full shield down in two hits (55 + 55 > 100) and a weakened one in one,
+# and the strongest tag multiplier keeps a full shield alive through one heavy
+# hit: 1.4 * 55 = 77 < 100 (food_balance.gd asserts it).
 const WEIGHT_STATS := {
 	WeightClass.LIGHT: {
-		"damage": 6.0,
-		"speed": 500.0,
-		"knockback": Vector2(160, -80),
+		"damage": 9.0,
+		"speed": 560.0,
+		"knockback": Vector2(240, -110),
 		"gravity_scale": 0.0, # fast, flat trajectory
+		"shield_damage": 20.0,
 	},
 	WeightClass.MEDIUM: {
-		"damage": 10.0,
-		"speed": 380.0,
-		"knockback": Vector2(230, -120),
+		"damage": 13.0,
+		"speed": 420.0,
+		"knockback": Vector2(290, -150),
 		"gravity_scale": 0.3,
+		"shield_damage": 35.0,
 	},
 	WeightClass.HEAVY: {
-		"damage": 16.0,
-		"speed": 260.0,
-		"knockback": Vector2(320, -160),
+		"damage": 18.0,
+		"speed": 300.0,
+		"knockback": Vector2(360, -190),
 		"gravity_scale": 0.6, # slow arc
+		"shield_damage": 55.0,
 	},
+}
+
+# Item identity: a food name maps to tags, and a tag only scales numbers the weight
+# class already defines (no new art or behaviour). Exactly two effects:
+#   hot   knockback x1.25, a fire trail while flying and a fire puff on impact
+#   hard  shield damage x1.4, and the item spins in flight
+const TAGS := {
+	"coffee": ["hot"],
+	"soup": ["hot"],
+	"stew": ["hot"],
+	"cheese": ["hard"],
+	"steak": ["hard"],
+	"grill": ["hard"],
+}
+
+const TAG_EFFECTS := {
+	"hot": {"knockback_mul": 1.25},
+	"hard": {"shield_mul": 1.4},
 }
 
 const FOOD_ITEMS := {
@@ -80,3 +106,29 @@ static func get_knockback(food_name: String) -> Vector2:
 
 static func get_gravity_scale(food_name: String) -> float:
 	return get_stats(food_name)["gravity_scale"]
+
+static func get_shield_damage_base(food_name: String) -> float:
+	return get_stats(food_name)["shield_damage"]
+
+## Tags of a food (empty for an untagged item).
+static func get_tags(food_name: String) -> Array:
+	return TAGS.get(food_name, [])
+
+static func has_tag(food_name: String, tag: String) -> bool:
+	return get_tags(food_name).has(tag)
+
+## Knockback of the hit a thrown food makes: the weight class value times every
+## tag's knockback multiplier (untagged food is exactly its class value).
+static func get_hit_knockback(food_name: String) -> Vector2:
+	var knockback := get_knockback(food_name)
+	for tag in get_tags(food_name):
+		knockback *= TAG_EFFECTS[tag].get("knockback_mul", 1.0)
+	return knockback
+
+## Meter damage a thrown food does to a shield: the class value times every tag's
+## shield multiplier.
+static func get_shield_damage(food_name: String) -> float:
+	var shield_damage := get_shield_damage_base(food_name)
+	for tag in get_tags(food_name):
+		shield_damage *= TAG_EFFECTS[tag].get("shield_mul", 1.0)
+	return shield_damage

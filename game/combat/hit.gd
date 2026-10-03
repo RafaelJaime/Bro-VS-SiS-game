@@ -33,6 +33,19 @@ static func punch(from: Fighter, hit_damage: float, hit_knockback: Vector2, hit_
 		hit.source_position = from.global_position
 	return hit
 
+## A thrown food that reached a fighter at `at` (global): the weight class and tag
+## values come from the FoodCatalog.
+static func food(from: Fighter, item: String, at: Vector2) -> Hit:
+	var hit := Hit.new()
+	hit.attacker = from
+	hit.damage = FoodCatalog.get_damage(item)
+	hit.knockback = FoodCatalog.get_hit_knockback(item)
+	hit.shield_damage = FoodCatalog.get_shield_damage(item)
+	hit.source = Source.FOOD
+	hit.source_position = at
+	hit.food_name = item
+	return hit
+
 ## A bomb: no attacker, never blocked.
 static func bomb(at: Vector2, hit_damage: float, hit_knockback: Vector2) -> Hit:
 	var hit := Hit.new()

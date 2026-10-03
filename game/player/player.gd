@@ -146,6 +146,7 @@ func _ready():
 		_feet_offset = body.position.y + (body.shape as RectangleShape2D).size.y / 2.0
 	jumps_left = profile.max_air_jumps if profile.can_double_jump else 0
 	air_dash_available = profile.can_dash
+	_build_pickup_area()
 
 	# One node-owned timer ends invulnerability, so it pauses with the game, dies
 	# with the fighter and a newer grant can never be cut short by an older one.
@@ -164,6 +165,18 @@ func _ready():
 	if enemy:
 		facing = 1 if enemy.global_position.x >= global_position.x else -1
 	animated_sprite_2d.flip_h = facing < 0
+
+# The pickup rectangle (`2 * pickup_reach_x` wide, `pickup_reach_height` tall) sits
+# on the floor under the fighter's feet, so food lying next to it is in reach. Each
+# fighter gets its own shape copy (the scene's is shared) sized from its profile.
+func _build_pickup_area() -> void:
+	var shape_node := pickup_area.get_node_or_null("CollisionShape2D") as CollisionShape2D if pickup_area else null
+	if shape_node == null:
+		return
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(2.0 * profile.pickup_reach_x, profile.pickup_reach_height)
+	shape_node.shape = rect
+	shape_node.position = Vector2(0.0, _feet_offset - profile.pickup_reach_height / 2.0)
 
 func _physics_process(delta: float) -> void:
 	# The only controller sample per frame; parent-first physics order makes
@@ -600,6 +613,7 @@ func pick_up_food(pickup: FoodPickup) -> void:
 	held_food_sprite.visible = true
 	Sfx.play_event(&"pickup", self)
 	pickup.queue_free()
+	food_picked_up.emit(held_food)
 
 func clear_held_food() -> void:
 	held_food = ""

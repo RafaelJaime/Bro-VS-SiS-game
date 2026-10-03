@@ -53,8 +53,8 @@ size = Vector2(120, 171)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8soms"]
 size = Vector2(110, 40)
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_food1"]
-radius = 70.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pickup"]
+size = Vector2(210, 100)
 
 [sub_resource type="Gradient" id="Gradient_usp30"]
 colors = PackedColorArray(1, 0, 0, 1, 1, 0, 0, 0)
@@ -229,7 +229,8 @@ collision_layer = 0
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea" unique_id=2100493298]
-shape = SubResource("CircleShape2D_food1")
+position = Vector2(0, 44)
+shape = SubResource("RectangleShape2D_pickup")
 
 [node name="HeldFoodSprite" type="Sprite2D" parent="." unique_id=547939449]
 texture_filter = 6

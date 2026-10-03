@@ -63,11 +63,17 @@ func _try_pickup() -> void:
 	if not owner.pickup_area:
 		return
 
-	var bodies = owner.pickup_area.get_overlapping_bodies()
-	for body in bodies:
+	# The nearest food inside the pickup rectangle wins.
+	var nearest: FoodPickup = null
+	var nearest_distance := INF
+	for body in owner.pickup_area.get_overlapping_bodies():
 		if body is FoodPickup and not body.picked_up:
-			owner.pick_up_food(body)
-			return
+			var distance: float = absf(body.global_position.x - owner.global_position.x)
+			if distance < nearest_distance:
+				nearest_distance = distance
+				nearest = body
+	if nearest != null:
+		owner.pick_up_food(nearest)
 
 func _throw_food() -> void:
 	if not food_projectile_scene:
@@ -80,6 +86,7 @@ func _throw_food() -> void:
 
 	var food_name = owner.held_food
 	owner.clear_held_food()
+	owner.food_thrown.emit(food_name)
 
 	# Smash: items are thrown the way the fighter faces.
 	var direction: int = owner.facing
