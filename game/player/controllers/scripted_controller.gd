@@ -15,9 +15,16 @@ extends FighterController
 ##            climb attack
 ##   RECOVER  off the stage or about to leave it: steer to the stage or a table leg,
 ##            double jump, up-recovery, air dash
-##   DEFEND   an incoming punch or thrown food: maybe block
-##   THROW    holding food with the opponent in line: maybe throw
-##   PICKUP   food closer than the opponent: walk over and grab it
+##   DODGE_BOMB (Hard) a sudden-death bomb about to land on it: step out of the
+##            impact column, or air dodge it
+##   PUNISH   the opponent is dizzy (its shield broke) and the roll succeeded: walk
+##            over and hit it
+##   DEFEND   an incoming punch or thrown food: maybe block (only while the shield
+##            meter is above the difficulty's release ratio)
+##   THROW    holding food with the opponent in line: maybe throw (more often at a
+##            shielding opponent, see food_pressure_chance)
+##   PICKUP   food closer than the opponent: walk over and grab it (from twice as far
+##            once the opponent has turtled behind its shield)
 ##   ATTACK   opponent in punch range: punch
 ##   APPROACH walk toward the opponent, never past the stage edge
 ## Between decisions the held flags (move, block, jump) persist. Pressed flags are
@@ -26,10 +33,19 @@ extends FighterController
 ## stays false. Normal and Hard also use directional punches and the up-recovery
 ## (CpuDifficulty.use_directional / use_up_recovery).
 
-enum Plan { IDLE, LEDGE, RECOVER, DEFEND, THROW, PICKUP, ATTACK, APPROACH }
+enum Plan { IDLE, LEDGE, RECOVER, DODGE_BOMB, PUNISH, DEFEND, THROW, PICKUP, ATTACK, APPROACH }
 
 ## States in which the fighter cannot act; presses would only be swallowed.
-const NO_ACTION_STATES: Array[String] = ["Hurt", "Defeated"]
+const NO_ACTION_STATES: Array[String] = ["Hurt", "Defeated", "Dizzy"]
+## After releasing the shield at its release ratio the bot waits for the meter to
+## climb this far above it before shielding again.
+const SHIELD_HYSTERESIS := 0.15
+## Half the hurtbox width, used to size the safe distance from a bomb's blast.
+const BOMB_HURTBOX_HALF_WIDTH := 60.0
+## A bomb lands on the bot's body this far above its position (its head).
+const BOMB_IMPACT_HEIGHT := 70.0
+## Air dodge a bomb that lands within this many seconds.
+const BOMB_AIR_DODGE_TIME := 0.3
 ## How long a queued press waits for its precondition before it is dropped.
 const PRESS_PATIENCE := 0.35
 ## Jump key hold after a press (a full hop, not a short hop).
@@ -77,6 +93,7 @@ var _enemy: Dictionary = {}
 var _ledges: Array = []
 var _foods: Array = []
 var _projectiles: Array = []
+var _bombs: Array = []
 var _my_number := 1
 
 # Body geometry, read once from the fighter's own colliders and profile.
@@ -110,6 +127,19 @@ var _release_frame := false
 var _threat_active := false
 var _pickup_tries := 0
 var _pickup_blocked_until := 0.0
+
+# Shield meter discipline: true while the meter is below the release ratio (and has
+# not climbed back above the hysteresis band), no shield is raised then.
+var _shield_locked := false
+# Punishing a dizzy opponent: decided once, when it goes dizzy.
+var _enemy_was_dizzy := false
+var _punishing := false
+# How long the opponent has been shielding (the clock when it started, -1 when not)
+# and whether the pressure roll for this stretch succeeded.
+var _enemy_shield_since := -1.0
+var _pressure_roll := false
+# Direction of the bomb dodge in progress (0 = none).
+var _dodge_dir := 0.0
 
 ## `rng_seed` makes a bot reproducible (tests); a negative value takes its seed
 ## from GameRng, which is random in real play and fixed once a test seeds it.
@@ -158,9 +188,9 @@ func _read_body_geometry() -> void:
 	if hurt_shape and hurt_shape.shape is RectangleShape2D and fighter.profile:
 		var hurt_h := (hurt_shape.shape as RectangleShape2D).size.y
 		_strike_height = (hurt_h + fighter.profile.punch_hitbox_size.y) * 0.5 * 0.8
-	var pickup_shape := fighter.get_node_or_null("PickupArea/CollisionShape2D") as CollisionShape2D
-	if pickup_shape and pickup_shape.shape is CircleShape2D:
-		_pickup_reach = (pickup_shape.shape as CircleShape2D).radius * 0.6
+	# Walk to within 80% of the fighter's own pickup reach before pressing the key.
+	if fighter.profile:
+		_pickup_reach = fighter.profile.pickup_reach_x * 0.8
 
 # ---------------------------------------------------------------------------
 # Decision tick
@@ -184,6 +214,7 @@ func _think() -> void:
 	_ledges = snap.get("ledges", [])
 	_foods = snap.get("foods", [])
 	_projectiles = snap.get("projectiles", [])
+	_bombs = snap.get("bombs", [])
 	var my_index := 0 if game.get("fighter_1") == fighter else 1
 	_my_number = my_index + 1
 	_me = fighters[my_index]
@@ -194,6 +225,7 @@ func _think() -> void:
 		_clear_flags()
 		return
 
+	_track_enemy()
 	plan = _choose_plan()
 	if plan == Plan.RECOVER:
 		_think_left = _recovery_interval()
@@ -218,6 +250,10 @@ func _choose_plan() -> Plan:
 		return Plan.LEDGE
 	if _plan_recover():
 		return Plan.RECOVER
+	if _plan_dodge_bomb():
+		return Plan.DODGE_BOMB
+	if _plan_punish():
+		return Plan.PUNISH
 	if _plan_defend():
 		return Plan.DEFEND
 	if _plan_throw():
@@ -240,6 +276,7 @@ func _clear_flags() -> void:
 	_want_block = 0.0
 	_want_special = 0.0
 	_ledge_decision = 0.0
+	_dodge_dir = 0.0
 
 # --- LEDGE -----------------------------------------------------------------
 
@@ -387,13 +424,124 @@ func _near_blast_side(x: float) -> bool:
 	var danger := _double_jump_rise() * 0.5
 	return x < _blast.left + danger or x > _blast.right - danger
 
+# --- Opponent tracking -------------------------------------------------------
+
+# Once per decision: notices when the opponent goes dizzy (and rolls whether to
+# punish it) and how long it has been shielding (and rolls the food pressure). The
+# dice are only thrown at those moments, so a match without shields or dizzies draws
+# exactly what it did before.
+func _track_enemy() -> void:
+	var enemy_state: StringName = _enemy.get("state", &"")
+	var dizzy := enemy_state == &"Dizzy"
+	if dizzy and not _enemy_was_dizzy:
+		_punishing = _rng.randf() < difficulty.punish_dizzy_chance
+	if not dizzy:
+		_punishing = false
+	_enemy_was_dizzy = dizzy
+	if enemy_state == &"Protect":
+		if _enemy_shield_since < 0.0:
+			_enemy_shield_since = _clock
+			_pressure_roll = _rng.randf() < difficulty.food_pressure_chance
+	else:
+		_enemy_shield_since = -1.0
+		_pressure_roll = false
+
+# The opponent has hidden behind its shield long enough to count as turtling.
+func _enemy_turtling() -> bool:
+	return _enemy_shield_since >= 0.0 and _clock - _enemy_shield_since >= difficulty.turtle_time
+
+# --- DODGE_BOMB ----------------------------------------------------------------
+
+# Hard only. A bomb that is above the bot and will go off within the lookahead and
+# within reach: walk out of its blast (the nearest side that is on the stage and can
+# be reached in time), or air dodge when airborne and it is about to land.
+func _plan_dodge_bomb() -> bool:
+	_dodge_dir = 0.0
+	if not difficulty.bomb_dodge or _bombs.is_empty() or _stage.is_empty():
+		return false
+	var me_x: float = _me.position.x
+	var me_y: float = _me.position.y
+	var table_top: float = _stage.top
+	var soonest := INF
+	var threat := {}
+	for bomb: Dictionary in _bombs:
+		var fall_speed: float = bomb.velocity.y
+		if fall_speed <= 0.0:
+			continue
+		var reach := float(bomb.radius) + BOMB_HURTBOX_HALF_WIDTH + difficulty.bomb_margin
+		var dx: float = bomb.position.x - me_x
+		if absf(dx) >= reach:
+			continue
+		# It goes off on the first thing it touches: this fighter's head if it falls
+		# onto it, otherwise the table top.
+		var impact_y := table_top - 22.0
+		if absf(dx) < BOMB_HURTBOX_HALF_WIDTH + 22.0:
+			impact_y = minf(impact_y, me_y - BOMB_IMPACT_HEIGHT)
+		var time_left: float = (impact_y - float(bomb.position.y)) / fall_speed
+		if time_left < 0.0 or time_left > difficulty.bomb_lookahead or time_left >= soonest:
+			continue
+		soonest = time_left
+		threat = bomb
+	if threat.is_empty():
+		return false
+
+	_block_left = 0.0
+	_want_attack = 0.0
+	_want_throw = 0.0
+	_want_block = 0.0
+	if not _me.on_floor and fighter.air_dodge_available and soonest <= BOMB_AIR_DODGE_TIME:
+		_want_block = PRESS_PATIENCE
+	var reach := float(threat.radius) + BOMB_HURTBOX_HALF_WIDTH + difficulty.bomb_margin
+	var edge_margin := _body_half_width + 12.0
+	var best_x := me_x
+	var best_travel := INF
+	for side in [-1.0, 1.0]:
+		var target_x: float = float(threat.position.x) + side * reach
+		if target_x < _stage.left + edge_margin or target_x > _stage.right - edge_margin:
+			continue
+		var travel := absf(target_x - me_x)
+		# Prefer a side that can be reached in time, then the shorter walk.
+		if travel / fighter.profile.run_speed > soonest:
+			travel += 10000.0
+		if travel < best_travel:
+			best_travel = travel
+			best_x = target_x
+	if is_inf(best_travel):
+		# No room on either side: at least move away from the bomb's column.
+		best_x = me_x + signf(me_x - float(threat.position.x)) * reach
+	_dodge_dir = signf(best_x - me_x)
+	_move_x = _dodge_dir
+	return true
+
+# --- PUNISH --------------------------------------------------------------------
+
+# The opponent's shield broke and the roll made when it went dizzy succeeded: walk
+# over and hit it, no accuracy roll (the opponent cannot move). Tap punches only,
+# neutral aim unless the difficulty uses directional punches.
+func _plan_punish() -> bool:
+	if not _punishing or _enemy.get("state", &"") != &"Dizzy":
+		return false
+	var dx: float = _enemy.position.x - _me.position.x
+	var dy: float = _enemy.position.y - _me.position.y
+	_face_dir = 1 if dx >= 0.0 else -1
+	if absf(dy) < _strike_height and absf(dx) <= _strike_range():
+		_move_x = 0.0
+		if _me.cooldowns.punch <= 0.15:
+			_want_attack = PRESS_PATIENCE
+			_attack_aim = _horizontal_aim()
+		return true
+	_move_x = signf(dx)
+	return true
+
 # --- DEFEND ------------------------------------------------------------------
 
 func _plan_defend() -> bool:
 	var threat := _threat_present()
 	var fresh := threat and not _threat_active
 	_threat_active = threat
-	if fresh and _rng.randf() < difficulty.block_chance:
+	# On the floor the shield must have meter left; in the air the dodge must be unspent.
+	var can_block: bool = (not _shield_locked) if _me.on_floor else fighter.air_dodge_available
+	if fresh and can_block and _rng.randf() < difficulty.block_chance:
 		_block_left = difficulty.block_hold
 		_want_block = PRESS_PATIENCE
 	if _block_left > 0.0:
@@ -426,7 +574,11 @@ func _plan_throw() -> bool:
 	var dy: float = _enemy.position.y - _me.position.y
 	if absf(dy) >= 80.0 or absf(dx) > difficulty.throw_range:
 		return false
-	if _rng.randf() >= difficulty.throw_chance:
+	# A shielding opponent is pressured with food more often than an open one.
+	var chance := difficulty.throw_chance
+	if _enemy.get("state", &"") == &"Protect":
+		chance = maxf(chance, difficulty.food_pressure_chance)
+	if _rng.randf() >= chance:
 		return false
 	_face_dir = 1 if dx >= 0.0 else -1
 	_want_throw = PRESS_PATIENCE
@@ -441,16 +593,23 @@ func _plan_pickup() -> bool:
 		return false
 	var x: float = _me.position.x
 	var enemy_distance := absf(_enemy.position.x - x)
+	# Against a turtle the bot looks twice as far, prefers heavy food (it takes a
+	# shield down fastest) and no longer needs the food to be closer than the opponent.
+	var pressuring := _enemy_turtling() and _pressure_roll
+	var seek := difficulty.pickup_seek_distance * (2.0 if pressuring else 1.0)
 	var best_dx := INF
+	var best_weight := -1
 	for food in _foods:
 		var fdx: float = food.position.x - x
 		var inside: bool = food.position.x >= _stage.left and food.position.x <= _stage.right
 		var reachable: bool = absf(food.position.y - _me.position.y) < 140.0
 		if not inside or not reachable:
 			continue
-		if absf(fdx) < absf(best_dx):
+		var weight: int = FoodCatalog.get_weight_class(food.get("name", "")) if pressuring else 0
+		if weight > best_weight or (weight == best_weight and absf(fdx) < absf(best_dx)):
+			best_weight = weight
 			best_dx = fdx
-	if is_inf(best_dx) or absf(best_dx) > difficulty.pickup_seek_distance or absf(best_dx) >= enemy_distance:
+	if is_inf(best_dx) or absf(best_dx) > seek or (not pressuring and absf(best_dx) >= enemy_distance):
 		return false
 	if absf(best_dx) > _pickup_reach:
 		_move_x = signf(best_dx)
@@ -558,11 +717,26 @@ func _state_name() -> String:
 		return ""
 	return String(machine.current_state.name)
 
+# The shield is released when the meter reaches the difficulty's release ratio and
+# only raised again once it has climbed back SHIELD_HYSTERESIS above it. Checked
+# every frame, not only at decisions: a hold drains the meter between them.
+func _update_shield_lock() -> void:
+	var ratio: float = fighter.shield.ratio()
+	if _shield_locked:
+		if ratio >= difficulty.shield_release_ratio + SHIELD_HYSTERESIS:
+			_shield_locked = false
+	elif ratio <= difficulty.shield_release_ratio:
+		_shield_locked = true
+
 func _fill_intent(intent: FighterIntent) -> void:
 	var state := _state_name()
 	var locked := NO_ACTION_STATES.has(state)
-	if locked:
+	_update_shield_lock()
+	var shield_off := _shield_locked and fighter.is_on_floor()
+	if locked or shield_off:
 		_block_left = 0.0
+	if shield_off:
+		_want_block = 0.0
 
 	var move := _move_x
 	if plan == Plan.RECOVER and not _stage.is_empty():
@@ -598,7 +772,7 @@ func _fill_intent(intent: FighterIntent) -> void:
 	elif _want_dash > 0.0 and _accepts("dash"):
 		intent.dash_pressed = true
 		_want_dash = 0.0
-	elif _want_block > 0.0 and _accepts("protect"):
+	elif _want_block > 0.0 and (_accepts("protect") or _accepts("air_dodge")):
 		intent.block_pressed = true
 		intent.block_held = true
 		_want_block = 0.0

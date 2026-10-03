@@ -109,6 +109,12 @@ func _run() -> void:
 	var blocker: Fighter = block_game.get_node("Fighter2")
 	s.set_cpu(blocker, Level.HARD, 8)
 	var blocked_frames := 0
+	# The block is limited by the shield meter: the bot lets go before its own hold
+	# could break the shield.
+	var hold_breaks := [0]
+	blocker.shield_broken.connect(func(cause: Hit) -> void:
+		if cause == null:
+			hold_breaks[0] += 1)
 	for i in 1200:
 		await s.frames(1)
 		if i % 50 == 0:
@@ -119,6 +125,7 @@ func _run() -> void:
 		if puncher.position.x > blocker.position.x - 30.0:
 			puncher.position.x = 430.0
 	s.check("CPU Hard blocks incoming punches", blocked_frames > 0, "frames in Protect=%d" % blocked_frames)
+	s.check("CPU Hard still blocks within the shield meter budget (its own hold never breaks the shield)", hold_breaks[0] == 0 and blocker.shield.value >= 0.0, "hold breaks=%d" % hold_breaks[0])
 	await s.despawn(block_game)
 
 	# (d) Easy deals clearly less damage per minute than Hard. An idle target cannot
