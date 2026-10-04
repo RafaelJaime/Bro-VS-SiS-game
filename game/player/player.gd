@@ -13,6 +13,11 @@ signal hit_received(hit: Hit, outcome: int)
 signal shield_broken(cause: Hit)
 signal food_picked_up(food_name: String)
 signal food_thrown(food_name: String)
+## The combo this fighter is taking (a victim-side signal): every FULL hit counted in
+## it, then the end. `attacker` dealt it; the attacker's HUD, the match metrics and
+## the training reward read these, never the state machine.
+signal combo_updated(hits: int, damage: float, attacker: Fighter)
+signal combo_ended(hits: int, damage: float, attacker: Fighter)
 ## The fighter finished a reset_player (a training episode restart).
 signal reset_done
 
@@ -21,6 +26,11 @@ signal reset_done
 		character_ui = value
 		if character_ui != null:
 			_apply_character_ui_settings()
+			# SceneManager.play_game assigns the characters after the scene is in the
+			# tree: the fighter switches to the kit of its new character (an assignment
+			# made while the scene loads is resolved in _enter_tree instead).
+			if kit_from_character and is_inside_tree():
+				set_profile(FighterKits.for_character(character_ui))
 			updated_characterUI.emit()
 	get:
 		return character_ui
@@ -28,6 +38,9 @@ signal reset_done
 ## Tuning and moveset flags. When unset, a default FighterProfile (baseline
 ## values) is created, so no .tres is required.
 @export var profile: FighterProfile
+## When true the fighter takes the kit of its character (FighterKits) at spawn and
+## whenever its character changes. Tests that need the baseline numbers turn it off.
+@export var kit_from_character: bool = true
 enum PlayerNumber { JUGADOR1, JUGADOR2 }
 @export var control_scheme: PlayerNumber = PlayerNumber.JUGADOR1
 ## Where this fighter's intent comes from. AUTO resolves from the scene's
@@ -55,11 +68,15 @@ const PUSH_HEIGHT: float = 120.0
 const PUSH_SPEED: float = 90.0
 # Smash: you face the way you move. No turning while an action owns the body.
 const TURN_DEADZONE: float = 0.1
-const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "Defeated", "LedgeHang", "Dizzy", "AirDodge"]
+const TURN_LOCKED_STATES: Array[String] = ["Punch", "Shoot", "Hurt", "Protect", "ShieldDrop", "Defeated", "LedgeHang", "Dizzy", "AirDodge"]
 # Air states a fighter can grab a table leg from. Punches, throws and blocks in the
 # air finish first (Smash), a hit never grabs.
 const LEDGE_GRAB_STATES: Array[String] = ["Jump", "Fall", "Recovery", "Helpless", "Dash", "AirDodge"]
 const INVULNERABILITY_BLINK_INTERVAL: float = 0.15
+# States in which a punch press is remembered (the attack buffer). Presses in Hurt,
+# ShieldDrop, Protect, Dizzy, AirDodge, LedgeHang, Dash, Recovery and Helpless are
+# edges and are not buffered.
+const ATTACK_BUFFER_STATES: Array[String] = ["Idle", "Run", "Jump", "Fall", "Punch"]
 
 ## How a jump request resolves this frame (see peek_jump / consume_jump).
 enum JumpKind { NONE, GROUND, AIR }
@@ -95,6 +112,12 @@ var held_food: String = ""
 ## The shield meter. Ticked once per physics frame (see _tick_combat), so it
 ## regenerates in every state; Protect only holds and drains it.
 var shield: ShieldMeter
+## The combo this fighter is taking (hit count, damage, attacker), ticked in
+## _tick_combat; Combat registers every FULL hit on it.
+var combo: ComboTracker
+## How many times the shield has been raised (Protect entered); the shield-spam
+## metric reads it.
+var shield_raises: int = 0
 ## Once per airtime: spent by AirDodge, refilled with the other air actions. The
 ## cooldown counts physics ticks down from the start of a dodge.
 var air_dodge_available: bool = true
@@ -109,6 +132,12 @@ var jumps_left: int = 0
 var air_dash_available: bool = true
 var coyote_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
+## Physics ticks until the next punch may start, counted from the swing's first tick.
+## It lives on the fighter (not in Punch) so it keeps running in Idle.
+var attack_cooldown_ticks: int = 0
+## Ticks left on a remembered punch press, and the aim held when it was pressed.
+var attack_buffer_ticks: int = 0
+var buffered_attack_aim: FighterIntent.Aim = FighterIntent.Aim.NEUTRAL
 # Set by a ground jump so the floor contact of the take-off frame cannot refill
 # the coyote time (that would allow ground jump + coyote jump + double jump).
 var _coyote_blocked: bool = false
@@ -141,9 +170,11 @@ var _blink_clock: float = 0.0
 # Runs parent-first, before the state machine children use `profile`.
 func _enter_tree() -> void:
 	if profile == null:
-		profile = FighterProfile.new()
+		profile = FighterKits.for_character(character_ui) if kit_from_character else FighterProfile.new()
 	shield = ShieldMeter.new()
 	shield.setup(profile)
+	combo = ComboTracker.new()
+	combo.setup(self)
 
 func _ready():
 	initial_position = position
@@ -172,6 +203,18 @@ func _ready():
 		facing = 1 if enemy.global_position.x >= global_position.x else -1
 	animated_sprite_2d.flip_h = facing < 0
 
+## Switches to another kit at run time (a character change, a training episode, the
+## harness): everything derived from the profile is rebuilt. The states read
+## `owner.profile` on every use, so nothing else caches it.
+func set_profile(new_profile: FighterProfile) -> void:
+	profile = new_profile if new_profile != null else FighterProfile.new()
+	if shield != null:
+		shield.setup(profile)
+		shield.refill()
+	restore_air_actions()
+	if is_node_ready():
+		_build_pickup_area()
+
 # The pickup rectangle (`2 * pickup_reach_x` wide, `pickup_reach_height` tall) sits
 # on the floor under the fighter's feet, so food lying next to it is in reach. Each
 # fighter gets its own shape copy (the scene's is shared) sized from its profile.
@@ -191,6 +234,7 @@ func _physics_process(delta: float) -> void:
 	if _blinking:
 		_blink_clock += delta
 	_apply_visibility()
+	_tick_attack_buffer()
 	_tick_combat()
 	_tick_movement(delta)
 
@@ -214,6 +258,36 @@ func _tick_combat() -> void:
 		break_shield(null)
 	if air_dodge_cooldown_left > 0:
 		air_dodge_cooldown_left -= 1
+	if attack_cooldown_ticks > 0:
+		attack_cooldown_ticks -= 1
+	combo.tick(state)
+
+# Remembers a punch press made in an actionable state (or in Punch itself) for
+# `attack_buffer_ticks`; only the press edge arms it, so holding the key never
+# re-presses. The state machine reads it in the same tick (Motion.handle_actions).
+func _tick_attack_buffer() -> void:
+	if intent.attack_pressed and ATTACK_BUFFER_STATES.has(_state_name()):
+		attack_buffer_ticks = profile.attack_buffer_ticks
+		buffered_attack_aim = intent.aim
+	elif attack_buffer_ticks > 0:
+		attack_buffer_ticks -= 1
+
+## Spends the remembered press and returns its aim (the current aim when nothing
+## is buffered, e.g. a state entered by a script).
+func consume_attack_buffer() -> FighterIntent.Aim:
+	var aim := buffered_attack_aim if attack_buffer_ticks > 0 else intent.aim
+	attack_buffer_ticks = 0
+	return aim
+
+func clear_attack_buffer() -> void:
+	attack_buffer_ticks = 0
+
+# Reset, respawn and sudden death start with a clean attack slate.
+func _clear_attack_state() -> void:
+	attack_buffer_ticks = 0
+	attack_cooldown_ticks = 0
+	# A combo the victim was in ends with it (its HUD counter and metrics hear it).
+	combo.end()
 
 ## The shield ran out (a hold or a blocked hit): the fighter goes dizzy. `cause` is
 ## the hit that did it, or null for the hold drain.
@@ -231,6 +305,12 @@ func is_dizzy() -> bool:
 ## True while the ground shield is up (the Protect state).
 func is_shielding() -> bool:
 	return _state_name() == "Protect"
+
+## Progress (0..1) of the shield drop lag, or -1 when the fighter is not in it.
+func shield_drop_progress() -> float:
+	if _state_name() != "ShieldDrop":
+		return -1.0
+	return (state_machine.current_state as ShieldDrop).progress()
 
 ## Seconds of dizzy left (0 when not dizzy).
 func dizzy_seconds_left() -> float:
@@ -467,12 +547,39 @@ func get_state_snapshot() -> Dictionary:
 		"dizzy_left": dizzy_seconds_left(),
 		"air_dodge_available": air_dodge_available,
 		"intangible": is_intangible(),
+		# Kit and combo state (additive keys, read by schema 4).
+		"kit_id": profile.kit_id if profile else -1,
+		"chain_step": _chain_step(),
+		"link_open": _link_open(),
+		"hitstun_left": _hitstun_left(),
+		"combo_hits": combo.hits if combo and combo.is_active() else 0,
+		"combo_damage": combo.damage if combo and combo.is_active() else 0.0,
 	}
+
+## 1-based jab chain step being thrown (0 outside a chain step).
+func _chain_step() -> int:
+	var punch = state_machine.state_map.get("Punch") if state_machine else null
+	return punch.chain_step() if punch != null else 0
+
+## True while a neutral press would advance the jab chain this tick.
+func _link_open() -> bool:
+	var punch = state_machine.state_map.get("Punch") if state_machine else null
+	return punch != null and punch.link_open()
+
+## Seconds of hitstun still to run (0 outside Hurt).
+func _hitstun_left() -> float:
+	var hurt = state_machine.state_map.get("Hurt") if state_machine else null
+	if hurt == null or _state_name() != "Hurt":
+		return 0.0
+	return CombatClock.seconds(maxi(0, hurt.ticks_left()))
 
 func _cooldown_left(state_name: String) -> float:
 	var state = state_machine.state_map.get(state_name) if state_machine else null
 	if state == null:
 		return 0.0
+	# Tick-based states (Punch) own their cooldown and report it in seconds.
+	if state.has_method("cooldown_left"):
+		return state.cooldown_left()
 	var cooldown_timer: Timer = state.cooldown_timer
 	return cooldown_timer.time_left if cooldown_timer else 0.0
 
@@ -503,6 +610,7 @@ func reset_player():
 	# After the state change, so a Dizzy._exit cannot overwrite the refill.
 	shield.refill()
 	air_dodge_cooldown_left = 0
+	_clear_attack_state()
 	reset_done.emit()
 
 func game_over():
@@ -537,6 +645,7 @@ func prepare_sudden_death(damage: float) -> void:
 		state_machine._change_state("Fall")
 	shield.refill()
 	air_dodge_cooldown_left = 0
+	_clear_attack_state()
 
 # Adds damage and notifies listeners (HUD, etc.).
 func add_damage(amount: float) -> void:
@@ -586,6 +695,7 @@ func _respawn() -> void:
 		state_machine._change_state("Fall")
 	shield.refill()
 	air_dodge_cooldown_left = 0
+	_clear_attack_state()
 	grant_invulnerability(profile.respawn_invulnerability)
 
 ## Makes the fighter immune to hits for `duration` seconds. A newer grant never

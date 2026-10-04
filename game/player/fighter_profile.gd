@@ -64,6 +64,26 @@ extends Resource
 ## punch_duration: startup before it, recovery after it (Smash-style frames).
 @export_range(0.0, 1.0) var punch_active_start: float = 0.2
 @export_range(0.0, 1.0) var punch_active_end: float = 0.7
+## A punch pressed up to this many physics ticks before the fighter can act (end lag,
+## hit-stop, cooldown) still fires on the first actionable tick. 6 ticks = 0.10 s,
+## the same window as the jump buffer.
+@export var attack_buffer_ticks: int = 6
+
+@export_group("Kit")
+## Which kit this profile is (-1 generic baseline); a schema feature, see FighterKits.
+@export var kit_id: int = -1
+@export var kit_name: StringName = &"default"
+## Grounded neutral punch chain: one step per neutral press inside the link window
+## of the previous step (at most 3; the last step is the finisher). Empty keeps the
+## single legacy neutral punch.
+@export var jab_chain: Array[AttackProfile] = []
+## The same for a neutral punch in the air.
+@export var air_jab_chain: Array[AttackProfile] = []
+## The neutral punch of a charged grounded press (held past tap_threshold) and of a
+## kit without a chain. Null means the legacy neutral built from the punch_* fields.
+@export var neutral_single: AttackProfile
+## CPU hint for what to do after the up launcher connects: &"none" or &"air_jab".
+@export var launcher_followup: StringName = &"none"
 
 @export_group("Directional punches")
 ## Smash-style variants (neutral is the Punch group above). Each uses the same
@@ -169,6 +189,13 @@ extends Resource
 @export var dizzy_duration: float = 2.0
 ## Upward pop at the moment the shield breaks (negative is up).
 @export var shield_break_pop_velocity: float = -450.0
+## Smash-style shield drop lag: letting go of the shield leaves the fighter unable
+## to act (attack, run, dash, re-shield, throw) for this long. 11 frames at 60 fps.
+@export var shield_drop_lag: float = 11.0 / 60.0
+## A shield is held at least this long, so a one-frame tap still pays the drop lag.
+@export var shield_min_hold: float = 4.0 / 60.0
+## Meter points spent each time the shield is raised (0 disables the cost).
+@export var shield_raise_cost: float = 4.0
 
 @export_group("Air dodge")
 ## In the air the block key dodges instead of shielding: intangible for

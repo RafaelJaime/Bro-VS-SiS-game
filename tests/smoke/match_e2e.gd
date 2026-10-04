@@ -31,12 +31,16 @@ func _play_to_results(game: Game, label: String, clock: float) -> void:
 		waited += 0.25
 	s.check("%s: the countdown hands over to PLAYING" % label, game.phase == Game.Phase.PLAYING, "phase=%d" % game.phase)
 	game.timer.start(clock)
+	# The winner is judged when the match is declared: a winner still in hitstun can
+	# be knocked out of the blast zone during the GAME! slow motion afterwards.
+	var alive_when_declared: Array[bool] = [false]
+	game.match_over.connect(func(declared: Fighter) -> void: alive_when_declared[0] = declared != null and declared.stocks > 0)
 	var elapsed := 0.0
 	while not game.game_over.visible and elapsed < MATCH_LIMIT:
 		await s.sim(1.0)
 		elapsed += 1.0
 	s.check("%s: the CPU match reaches the results" % label, game.game_over.visible and paused, "after %.0f s, phase=%d" % [elapsed, game.phase])
-	s.check("%s: the match has a winner" % label, game.winner != null and game.winner.stocks > 0, "winner=%s" % [game.winner])
+	s.check("%s: the match has a winner" % label, game.winner != null and alive_when_declared[0], "winner=%s stocks_now=%d" % [game.winner, game.winner.stocks if game.winner else -1])
 	s.check("%s: the clock is back to normal" % label, is_equal_approx(Engine.time_scale, 1.0))
 
 func _run() -> void:

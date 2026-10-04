@@ -58,6 +58,12 @@ func absorb(amount: float) -> bool:
 	_delay_left = _regen_delay_ticks
 	return value <= EMPTY_EPSILON
 
+## Spends `cost` for raising the shield and restarts the regeneration delay. It
+## never empties the meter by itself (a raise cannot break the shield).
+func pay_raise(cost: float) -> void:
+	value = maxf(value - maxf(0.0, cost), minf(value, 1.0))
+	_delay_left = _regen_delay_ticks
+
 func refill() -> void:
 	value = max_value
 	held_ticks = 0

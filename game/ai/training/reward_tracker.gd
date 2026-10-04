@@ -9,7 +9,10 @@ extends RefCounted
 ## Combat-depth terms: `pickup` (food_picked_up, capped per episode), `food_hit`
 ## (the foe's hit_received with a FOOD hit of mine that was not ignored),
 ## `shield_break_dealt` / `shield_break_taken` (shield_broken of the foe / of me) and
-## `shield_hold` (my shield held past a threshold, read per decision). An episode
+## `shield_hold` (my shield held past a threshold, read per decision). Character-kits
+## terms: `combo_hit` (the foe's combo_updated with me as the attacker, one small
+## reward per extra hit, capped per combo and per episode) and `shield_raise` (the
+## `Fighter.shield_raises` delta per decision, a lever against shield spam). An episode
 ## that the sudden-death safety cap ended (`sd_cap`) is a draw: outcome "draw",
 ## `"truncated": true` in the record, and no win, loss or timeout reward.
 ##
@@ -38,6 +41,7 @@ var _last_stocks_me := 0
 var _last_stocks_foe := 0
 var _previous_distance := -1.0
 var _pickups := 0
+var _last_raises := 0
 var _stage_left := 0.0
 var _stage_right := 0.0
 var _stage_top := 0.0
@@ -60,6 +64,7 @@ func setup(agent: AIController2D, me: Fighter, reward_config: RewardConfig = nul
 		_foe.damage_changed.connect(_on_foe_damage)
 		_foe.stocks_changed.connect(_on_foe_stocks)
 		_foe.hit_received.connect(_on_foe_hit_received)
+		_foe.combo_updated.connect(_on_foe_combo_updated)
 		_foe.shield_broken.connect(_on_foe_shield_broken)
 	if _game != null:
 		_game.training_episode_ended.connect(_on_episode_ended)
@@ -71,6 +76,10 @@ func on_decision() -> void:
 	_add("time", config.time)
 	if _me.shield.held_ticks > CombatClock.ticks(config.shield_hold_threshold):
 		_add("shield_hold", config.shield_hold)
+	var raises: int = _me.shield_raises
+	if raises > _last_raises:
+		_add("shield_raise", config.shield_raise * float(raises - _last_raises))
+	_last_raises = raises
 	_read_stage()
 	if not _stage_known or _foe == null:
 		return
@@ -87,6 +96,7 @@ func _begin_episode() -> void:
 		totals[term] = 0.0
 	_decisions = 0
 	_pickups = 0
+	_last_raises = _me.shield_raises
 	_previous_distance = -1.0
 	_last_damage_me = _me.damage_percent
 	_last_stocks_me = _me.stocks
@@ -128,6 +138,16 @@ func _on_food_picked_up(_food_name: String) -> void:
 func _on_foe_hit_received(hit: Hit, outcome: int) -> void:
 	if hit.source == Hit.Source.FOOD and hit.attacker == _me and outcome != Combat.Outcome.IGNORED:
 		_add("food_hit", config.food_hit)
+
+## A combo I am dealing grew: every hit from the second on is one extra hit, rewarded
+## up to `combo_hit_cap` per combo and `combo_episode_cap` per episode.
+func _on_foe_combo_updated(hits: int, _damage: float, attacker: Fighter) -> void:
+	if attacker != _me or hits < 2 or hits - 1 > config.combo_hit_cap:
+		return
+	var room: float = config.combo_episode_cap - float(totals["combo_hit"])
+	var amount := minf(config.combo_hit, room)
+	if amount > 0.0:
+		_add("combo_hit", amount)
 
 ## The opponent's shield broke: rewarded only when one of my hits broke it.
 func _on_foe_shield_broken(cause: Hit) -> void:

@@ -27,6 +27,7 @@
 [ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/dizzy.gd" id="28_dizzy"]
 [ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/air_dodge.gd" id="29_air_dodge"]
 [ext_resource type="Script" path="res://game/player/shield_bubble.gd" id="30_bubble"]
+[ext_resource type="Script" path="res://game/player/StateMachine/PlayerStateMachine/States/shield_drop.gd" id="33_shield_drop"]
 [ext_resource type="Script" path="res://game/player/dizzy_stars.gd" id="31_stars"]
 [ext_resource type="Texture2D" path="res://assets/textures/2D Fire  - Tutorial/T_LeLuStar11.jpg" id="32_star"]
 
@@ -130,7 +131,12 @@ metadata/_custom_type_script = "uid://o00jff2rmlo"
 [node name="Protect" type="Node" parent="StateMachine" unique_id=1375268043 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("22_kjljb")
 state_machine = NodePath("..")
+available_actions = Array[String](["jump"])
 metadata/_custom_type_script = "uid://o00jff2rmlo"
+
+[node name="ShieldDrop" type="Node" parent="StateMachine" node_paths=PackedStringArray("state_machine")]
+script = ExtResource("33_shield_drop")
+state_machine = NodePath("..")
 
 [node name="Shoot" type="Node" parent="StateMachine" unique_id=456247888 node_paths=PackedStringArray("state_machine", "right_mark", "left_mark")]
 script = ExtResource("11_brh81")

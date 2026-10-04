@@ -1,0 +1,49 @@
+{
+  "format": "bvs-model/1",
+  "schema_version": 4,
+  "obs_dim": 149,
+  "action_branches": [
+    {
+      "name": "a0_move",
+      "size": 3
+    },
+    {
+      "name": "a1_vertical",
+      "size": 3
+    },
+    {
+      "name": "a2_jump",
+      "size": 2
+    },
+    {
+      "name": "a3_attack",
+      "size": 5
+    },
+    {
+      "name": "a4_special",
+      "size": 2
+    },
+    {
+      "name": "a5_throw",
+      "size": 2
+    },
+    {
+      "name": "a6_block",
+      "size": 2
+    },
+    {
+      "name": "a7_dash",
+      "size": 2
+    }
+  ],
+  "action_repeat": 4,
+  "onnx": {
+    "file": "random_policy_v4.onnx",
+    "input": "obs",
+    "output": "logits",
+    "opset": 17
+  },
+  "trained_on_commit": "aae50c8f0ff788857f681cca77421b60713e4c16",
+  "label": "random v4 (test fixture)",
+  "difficulty_hint": "easy"
+}

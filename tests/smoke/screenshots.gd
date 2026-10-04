@@ -47,7 +47,10 @@ func _run() -> void:
 		await s.frames(1)
 		guard += 1
 	controllers[1].move_x = 0.0
-	await s.frames(18)
+	# A fighter that walked off the table falls from rest: it is past y 480 after
+	# about 20 frames (hitstun now ends on a tick count, so it no longer carries a
+	# stale fall speed from the earlier punch).
+	await s.frames(24)
 	s.check("the fighter is past the table end and falling", fighter_2.position.x > 830.0 and fighter_2.position.y > 480.0, "pos=%s" % [fighter_2.position])
 	await s.screenshot("05_falling_off_table_end")
 	s.check("screenshots written", true)

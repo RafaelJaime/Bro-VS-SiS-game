@@ -20,15 +20,15 @@ def _source(tmp_path: Path, replay: bool) -> Path:
     return source
 
 
-def test_tags_name_schema_3() -> None:
-    assert prepare_upload.TAGS == ("BVS", "bvs-schema-3", "reinforcement-learning")
+def test_tags_name_schema_4() -> None:
+    assert prepare_upload.TAGS == ("BVS", "bvs-schema-4", "reinforcement-learning")
 
 
-def test_model_card_front_matter_names_schema_3() -> None:
+def test_model_card_front_matter_names_schema_4() -> None:
     card = prepare_upload.render_card("owner/name", "mit", {"label": "x", "trained_on_commit": "abc"})
-    assert "  - bvs-schema-3" in card
-    assert "bvs-schema-2" not in card
-    assert "[1, 136]" in card
+    assert "  - bvs-schema-4" in card
+    assert "bvs-schema-3" not in card.replace("`bvs-schema-3` vector", "")
+    assert "[1, 149]" in card
 
 
 @pytest.mark.parametrize("replay", [True, False])

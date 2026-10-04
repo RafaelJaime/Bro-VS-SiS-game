@@ -21,6 +21,9 @@ set -u
 BG="$1"
 LOG="$2"
 STOP="$3"
+# The runner that started us; if it dies without touching the stop file
+# (killed, timed out), stop too instead of polling forever.
+PARENT_PID="$PPID"
 
 now_ms() {
 	perl -MTime::HiRes=time -e 'printf "%d", time * 1000'
@@ -28,7 +31,7 @@ now_ms() {
 
 prev=""
 since=""
-while [[ ! -e "$STOP" ]]; do
+while [[ ! -e "$STOP" ]] && kill -0 "$PARENT_PID" 2>/dev/null; do
 	front="$(lsappinfo info -only bundleid "$(lsappinfo front)" 2>/dev/null | sed -e 's/.*=//' -e 's/"//g')"
 	echo sample >>"$LOG"
 	if [[ "$front" == "$BG" ]]; then

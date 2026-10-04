@@ -4,7 +4,7 @@
     uv run python -m bvs_training.train --config configs/default.toml          # full curriculum
 
 Per phase it writes a BVS_TRAIN_CONFIG JSON (schema version, rows, the `match`
-block and reward overrides), opens a fresh Godot env, trains, checkpoints, and
+block, the `kits` block and reward overrides), opens a fresh Godot env, trains, checkpoints, and
 closes the env. Stop early with `touch training/out/STOP`; the run also ends at the
 time box. Phases may set `sd_start`, the share of rows that begin every episode in
 sudden death.
@@ -92,13 +92,32 @@ def match_block(match: dict) -> dict:
     }
 
 
+def kits_block(kits: dict, seed: int) -> dict:
+    """The `kits` block of BVS_TRAIN_CONFIG: `random` draws a kit per side per episode, `character` keeps the scene kits.
+
+    The Godot side seeds every row from `seed * 1009 + row`, so the draw is reproducible from the run seed.
+    """
+    mode = str(kits.get("mode", "random"))
+    if mode not in ("random", "character"):
+        raise SystemExit(f"[kits] mode must be 'random' or 'character', got '{mode}'")
+    return {"mode": mode, "seed": int(kits.get("seed", seed))}
+
+
 def write_phase_config(
-    out_dir: Path, phase: dict, run: dict, reward: dict, seed: int, snapshots: list[Path], match: dict | None = None
+    out_dir: Path,
+    phase: dict,
+    run: dict,
+    reward: dict,
+    seed: int,
+    snapshots: list[Path],
+    match: dict | None = None,
+    kits: dict | None = None,
 ) -> Path:
     config = {
         "schema_version": schema.TRAIN_VERSION,
         "rows": build_rows(phase, run, seed, snapshots),
         "match": match_block(match or {}),
+        "kits": kits_block(kits or {}, seed),
         "reward": reward,
         "episode_log": True,
     }
@@ -209,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
     config = load_config(args.config)
     run, ppo, reward = config["run"], config["ppo"], config.get("reward", {})
     match = config.get("match", {})
+    kits = config.get("kits", {})
     phases = [p for p in config["phase"] if args.phase in ("all", p["name"])]
     if not phases:
         parser.error(f"no phase named {args.phase}")
@@ -235,7 +255,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"stopping before {phase['name']}: time box or stop file")
             break
         steps = args.steps if args.steps is not None else int(phase["steps"])
-        config_path = write_phase_config(out_dir, phase, run, reward, seed, snapshots, match)
+        config_path = write_phase_config(out_dir, phase, run, reward, seed, snapshots, match, kits)
         print(f"=== phase {phase['name']}: {steps} steps, config {config_path}")
         env = make_env(config_path, run, seed, n_parallel, speedup)
         try:

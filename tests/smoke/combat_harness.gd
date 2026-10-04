@@ -5,7 +5,8 @@ extends SceneTree
 ## `training/bvs_training/harness.py` launches it and applies the gates.
 ##
 ##   BVS_HARNESS_MODEL=<model.onnx> BVS_HARNESS_MATCHUPS=mvm,m_vs_cpu_easy,cpu_hard_vs_cpu_hard \
-##   BVS_HARNESS_MATCHES=20 BVS_HARNESS_SEED=1 [BVS_HARNESS_FORCE_SD=1] BVS_HARNESS_OUT=<out.json> \
+##   BVS_HARNESS_MATCHES=20 BVS_HARNESS_SEED=1 [BVS_HARNESS_FORCE_SD=1] [BVS_HARNESS_KITS=rm] \
+##   BVS_HARNESS_OUT=<out.json> \
 ##   godot --headless --path . --fixed-fps 60 --script res://tests/smoke/combat_harness.gd
 ##
 ## Matchups (comma list):
@@ -15,6 +16,12 @@ extends SceneTree
 ## BVS_HARNESS_MODEL is required only for the matchups that use the model; the model
 ## plays the schema its sidecar declares (any registered one). BVS_HARNESS_FORCE_SD=1
 ## puts every match into sudden death right away (the sudden-death length gate).
+## BVS_HARNESS_KITS picks the fighter kits (FighterKits): `character` keeps the scene
+## kits (Fighter1 Rafael, Fighter2 Matilde); `rm` (default) gives the first controller
+## Rafael on matches 0-1 (mod 4) and Matilde on matches 2-3, the other controller the
+## other kit, while sides alternate with the match index, so each controller plays each
+## kit on each side; `rotate4` cycles the first and second controller through RM, MR,
+## RR and MM every two matches (mirrors included).
 ## BVS_HARNESS_SEED seeds the shared generator and the CPUs of every match, so the
 ## same seed and build give the same numbers (the documented tolerance for engine
 ## differences is 5% on the rate metrics).
@@ -24,10 +31,19 @@ extends SceneTree
 ##    "matchups": {"<name>": {"matches", "ko_results", "ko_wins", "ko_win_rate", "draws",
 ##       "mean_match_seconds", "mean_sd_seconds", "max_sd_seconds", "sd_matches",
 ##       "pickups_per_fighter_minute", "throws_per_fighter_minute", "blocked_share",
-##       "damage_by_source", "shield_breaks"}}}
+##       "damage_by_source", "shield_breaks", "shield_raises_per_fighter_minute",
+##       "shield_holds", "shield_taps", "shield_tap_share",
+##       "combo_histogram", "max_combo", "multi_hit_combos", "max_hurt_seconds",
+##       "hurt_over_cap", "damage_by_kit", "combo_damage_by_kit",
+##       "combo_damage_sum_by_kit", "combo_count_by_kit", "kit_win_share",
+##       "side_win_share", "kit_matches", "results": [{"winner_kit", "winner_side",
+##       "kits"}]}}, "kits_mode"}
 ## `ko_results` counts the matches that ended by elimination; `ko_wins` the KO wins of
 ## the model (m_vs_cpu_*) or of the first CPU (cpu_* matchups; sides alternate), so
 ## `ko_win_rate` is the share of matches the model (or first CPU) won by KO.
+## `kit_win_share` is Rafael's wins over the decided matches whose kits differ (null
+## when there are none), `side_win_share` Fighter1's wins over the decided matches,
+## `kit_matches` the matches played per `<first kit>/<second kit>` pairing.
 ## Exits non-zero on a setup error or an inference failure.
 
 const Smoke := preload("res://tests/smoke/smoke_util.gd")
@@ -36,9 +52,13 @@ const LEVELS := {"easy": CpuDifficulty.Level.EASY, "normal": CpuDifficulty.Level
 const MATCH_LIMIT_SECONDS := 400.0
 ## Ticks of game time the engine runs per second under --fixed-fps 60.
 const DEFAULT_MATCHES := 20
+const KIT_MODES := ["character", "rm", "rotate4"]
+## (kit of the first controller, kit of the second controller) per pair index of rotate4.
+const ROTATE4 := [[0, 1], [1, 0], [0, 0], [1, 1]]
 
 var _model: OnnxPolicyModel
 var _model_schema: Object
+var _kits_mode := "rm"
 
 func _initialize() -> void:
 	_run()
@@ -54,6 +74,11 @@ func _run() -> void:
 	var force_sd := OS.get_environment("BVS_HARNESS_FORCE_SD") in ["1", "true", "yes"]
 	var out_path := OS.get_environment("BVS_HARNESS_OUT")
 	var model_path := OS.get_environment("BVS_HARNESS_MODEL")
+	if OS.get_environment("BVS_HARNESS_KITS") != "":
+		_kits_mode = OS.get_environment("BVS_HARNESS_KITS")
+	if not KIT_MODES.has(_kits_mode):
+		_fail("BVS_HARNESS_KITS must be one of %s (got '%s')" % [str(KIT_MODES), _kits_mode])
+		return
 	if matchups.is_empty():
 		_fail("BVS_HARNESS_MATCHUPS must list matchups (mvm, m_vs_cpu_<lvl>, cpu_<lvl>_vs_cpu_<lvl>)")
 		return
@@ -83,6 +108,7 @@ func _run() -> void:
 		"model": model_path if needs_model else "",
 		"schema_version": int(_model_schema.VERSION) if _model_schema != null else 0,
 		"matches_per_matchup": matches,
+		"kits_mode": _kits_mode,
 		"matchups": {},
 	}
 	for name in matchups:
@@ -161,6 +187,8 @@ func _play_matchup(s: RefCounted, name: String, spec: Dictionary, matches: int, 
 	var ko_wins := 0
 	var draws := 0
 	var seconds_total := 0.0
+	var results: Array = []
+	var kit_matches := {}
 	for index in matches:
 		var record := await _play_match(s, spec["kinds"], index, harness_seed, force_sd)
 		if record.has("error"):
@@ -170,6 +198,9 @@ func _play_matchup(s: RefCounted, name: String, spec: Dictionary, matches: int, 
 		ko_wins += 1 if record["by_ko"] and record["first_won"] else 0
 		draws += 1 if record["draw"] else 0
 		seconds_total += float(record["metrics"]["seconds"])
+		results.append({"winner_kit": record["winner_kit"], "winner_side": record["winner_side"], "kits": record["kits"]})
+		var pairing := "%s/%s" % [record["first_kit"], record["second_kit"]]
+		kit_matches[pairing] = int(kit_matches.get(pairing, 0)) + 1
 	var result := {
 		"matches": matches,
 		"ko_results": ko_results,
@@ -177,20 +208,58 @@ func _play_matchup(s: RefCounted, name: String, spec: Dictionary, matches: int, 
 		"ko_win_rate": float(ko_wins) / float(matches),
 		"draws": draws,
 		"mean_match_seconds": seconds_total / float(matches),
+		"kit_matches": kit_matches,
+		"results": results,
 	}
+	result.merge(_win_shares(results))
 	result.merge(MatchMetrics.aggregate(records))
 	return result
+
+## Rafael's win share over the decided matches with different kits and Fighter1's
+## over every decided match; null when no match qualifies.
+func _win_shares(results: Array) -> Dictionary:
+	var kit_decided := 0
+	var rafael_wins := 0
+	var side_decided := 0
+	var side_wins := 0
+	for entry: Dictionary in results:
+		if entry["winner_side"] < 0:
+			continue
+		side_decided += 1
+		side_wins += 1 if entry["winner_side"] == 0 else 0
+		var kits: Array = entry["kits"]
+		if kits[0] != kits[1]:
+			kit_decided += 1
+			rafael_wins += 1 if entry["winner_kit"] == "rafael" else 0
+	return {
+		"kit_win_share": float(rafael_wins) / float(kit_decided) if kit_decided > 0 else null,
+		"side_win_share": float(side_wins) / float(side_decided) if side_decided > 0 else null,
+	}
+
+## The kit ids (first controller, second controller) of match `index`, [-1, -1] for
+## the scene kits.
+func _kit_pair(index: int) -> Array:
+	match _kits_mode:
+		"rm":
+			var first_kit := (index / 2) % 2
+			return [first_kit, 1 - first_kit]
+		"rotate4":
+			return ROTATE4[(index / 2) % 4]
+	return [-1, -1]
 
 ## One match. `kinds` are the two controllers; the first one takes side 0 on even
 ## matches and side 1 on odd ones, so both sides are played.
 func _play_match(s: RefCounted, kinds: Array, index: int, harness_seed: int, force_sd: bool) -> Dictionary:
 	GameRng.seed_all(harness_seed * 100003 + index)
-	var game: Node2D = s.spawn_game()
+	var game: Node2D = s.spawn_game(NAN, NAN, false, true)
 	var fighters: Array[Fighter] = [game.get_node("Fighter1"), game.get_node("Fighter2")]
 	var first := fighters[index % 2]
 	var order: Array[Fighter] = [first, fighters[1 - index % 2]]
 	var controllers: Array = []
+	var pair := _kit_pair(index)
 	for side in 2:
+		if pair[side] >= 0:
+			order[side].set_profile(FighterKits.by_id(pair[side]))
 		var kind: String = kinds[side]
 		if kind == "model":
 			var controller := PolicyController.new(_model)
@@ -218,9 +287,18 @@ func _play_match(s: RefCounted, kinds: Array, index: int, harness_seed: int, for
 	var by_ko: bool = fighters[0].stocks <= 0 or fighters[1].stocks <= 0
 	var first_won: bool = done["winner"] == first
 	var draw: bool = not done["over"] or done["winner"] == null
+	var winner_fighter := done["winner"] as Fighter
+	var winner_kit := String(winner_fighter.profile.kit_name) if not draw and winner_fighter != null else ""
+	var winner_side := fighters.find(winner_fighter) if not draw and winner_fighter != null else -1
+	var kits_played: Array = [String(fighters[0].profile.kit_name), String(fighters[1].profile.kit_name)]
+	var first_kit := String(order[0].profile.kit_name)
+	var second_kit := String(order[1].profile.kit_name)
 	paused = false
 	Combat.cancel_hit_stop()
 	await s.despawn(game)
 	if failure != "":
 		return {"error": "inference failed: %s" % failure}
-	return {"metrics": metrics.to_dict(), "by_ko": by_ko and done["over"], "first_won": first_won, "draw": draw}
+	return {
+		"metrics": metrics.to_dict(), "by_ko": by_ko and done["over"], "first_won": first_won, "draw": draw,
+		"winner_kit": winner_kit, "winner_side": winner_side, "kits": kits_played, "first_kit": first_kit, "second_kit": second_kit,
+	}

@@ -48,11 +48,17 @@ static func apply_hit(attacker: Fighter, target: Fighter, damage: float, knockba
 # Full damage and knockback: the target goes into Hurt, which reads the pending
 # values (and the side the hit came from) when it starts.
 static func _apply_full(hit: Hit, target: Fighter) -> void:
+	# The combo is registered before the state change: whether the target was still
+	# in hitstun decides if this hit extends the combo or starts a new one.
+	var in_hitstun: bool = target._state_name() == "Hurt"
+	var scale: ComboTracker.Scale = target.combo.register(hit, in_hitstun) if target.combo != null else null
 	var hurt_state = target.state_machine.state_map.get("Hurt")
 	if hurt_state:
+		hurt_state.pending_combo = scale
 		hurt_state.pending_damage = hit.damage
 		hurt_state.pending_knockback = hit.knockback
 		hurt_state.pending_source_x = hit.source_position.x
+		hurt_state.pending_attack = hit.attack
 	target.state_machine._change_state("Hurt")
 
 # Skip juice (global time_scale hit-stop + SFX) under AI training: dozens
@@ -69,7 +75,7 @@ static func _play_juice(hit: Hit, target: Fighter, outcome: Outcome) -> void:
 			_trigger_hit_stop(0.04, 0.3)
 			Sfx.play_event(&"block", target)
 		_:
-			_trigger_hit_stop(0.08, 0.05)
+			_trigger_hit_stop(0.08 * hit.hitstop_scale, 0.05)
 			# A bomb has its own explosion cue.
 			if hit.source == Hit.Source.BOMB:
 				return

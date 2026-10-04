@@ -29,14 +29,15 @@ const REPO := "alice/bvs-brawler"
 const SHA1 := "1111111111111111111111111111111111111111"
 const SHA2 := "2222222222222222222222222222222222222222"
 const SHA3 := "3333333333333333333333333333333333333333"
-const ONNX_PATH := "res://tests/fixtures/onnx/random_policy_v3.onnx"
-const SIDECAR_PATH := "res://tests/fixtures/onnx/random_policy_v3.bvs.json"
+const ONNX_PATH := "res://tests/fixtures/onnx/random_policy_v4.onnx"
+const SIDECAR_PATH := "res://tests/fixtures/onnx/random_policy_v4.bvs.json"
 const OPS_DIR := "res://tests/fixtures/onnx/ops/"
 
-## alice's own BVS models (server-side author query).
+## alice's own BVS models (server-side author query): one schema-4 (current, Compatible) and
+## one schema-3 (now "Trained for an older version").
 const ALICE_BODY := """[
-	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-3"]},
-	{"id": "alice/bvs-v0", "author": "alice", "downloads": 20, "tags": ["onnx", "BVS", "bvs-schema-2"]}
+	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-4"]},
+	{"id": "alice/bvs-v0", "author": "alice", "downloads": 20, "tags": ["onnx", "BVS", "bvs-schema-3"]}
 ]"""
 ## zed has no BVS model; the second query lists the other RL models.
 const ZED_RL_BODY := """[
@@ -47,10 +48,10 @@ const ZED_RL_BODY := """[
 ## Hub listing as the API returns it (most downloaded first), plus a model that
 ## lost its BVS tag (never listed).
 const FIXTURE := """[
-	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-3"]},
+	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-4"]},
 	{"id": "RafaelJaime/BVS_SB3", "author": "RafaelJaime", "downloads": 87, "tags": ["stable-baselines3", "BVS", "BVS.1"]},
 	{"id": "bob/old-fighter", "downloads": 12, "tags": ["BVS", "bvs-schema-0"]},
-	{"id": "carol/from-the-future", "author": "carol", "downloads": 2, "tags": ["BVS", "bvs-schema-4"]},
+	{"id": "carol/from-the-future", "author": "carol", "downloads": 2, "tags": ["BVS", "bvs-schema-5"]},
 	{"id": "dave/not-ours", "author": "dave", "downloads": 9000, "tags": ["onnx"]}
 ]"""
 
@@ -101,14 +102,20 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 	fake.by_url = {ALICE_URL: ALICE_BODY, ODD_URL: "[]", NOBVS_URL: "[]", NOBVS_RL_URL: ZED_RL_BODY, NOTHING_URL: "[]", NOTHING_RL_URL: "[]"}
 	manager.prefs_path = "user://smoke_hf_picker_test.cfg"
 	DirAccess.remove_absolute(manager.prefs_path)
-	s.check("the username box sits right under the title, with the placeholder", picker.author_edit.placeholder_text == "Hugging Face username" and picker.author_edit.get_parent().get_index() == 1)
+	s.check("the username box is the main input of step 1, with the placeholder", picker.author_edit.placeholder_text == "Hugging Face username" and picker.user_page.is_ancestor_of(picker.author_edit))
 	s.check("nothing is remembered yet", manager.load_last_author() == "")
 
 	# search by Search button
 	fake.urls.clear()
 	ai.open_model_picker(false)
 	await s.frames(3)
-	s.check("an empty field lists the tag (global list)", fake.urls == [EXPECTED_URL] and picker.rows().size() == 4, str(fake.urls))
+	s.check("opening shows step 1 and asks the Hub nothing yet", picker.step == picker.Step.USER and picker.user_page.visible and not picker.models_page.visible and fake.urls.is_empty(), str(fake.urls))
+	await s.screenshot("hf_picker_step1_empty")
+	picker.search_button.pressed.emit()
+	await s.frames(3)
+	s.check("Continue with an empty field lists the tag (global list)", picker.step == picker.Step.MODELS and fake.urls == [EXPECTED_URL] and picker.rows().size() == 4, str(fake.urls))
+	picker.back_button.pressed.emit()
+	await s.frames(2)
 	picker.author_edit.text = "alice"
 	picker.search_button.pressed.emit()
 	await s.frames(3)
@@ -117,9 +124,12 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 	s.check("their compat badges stay", _badge(_row_for(picker, "alice/bvs-brawler")) == "Compatible" and not _row_for(picker, "alice/bvs-brawler").disabled and _row_for(picker, "alice/bvs-v0").disabled and _badge(_row_for(picker, "alice/bvs-v0")) == "Trained for an older version")
 	s.check("the status names the user", picker.status_label.text.contains("by alice"), picker.status_label.text)
 	s.check("the username is remembered", manager.load_last_author() == "alice")
+	s.check("step 2 is titled with the username", picker.title_label.text == "Models by alice")
 	await s.screenshot("hf_picker_username")
 
 	# Enter in the field, with an odd name
+	picker.back_button.pressed.emit()
+	await s.frames(2)
 	picker.author_edit.text = ODD_NAME
 	picker.author_edit.text_submitted.emit(ODD_NAME)
 	await s.frames(3)
@@ -127,6 +137,8 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 
 	# a user with no BVS model: hint plus their other RL models, disabled
 	fake.urls.clear()
+	picker.back_button.pressed.emit()
+	await s.frames(2)
 	picker.author_edit.text = "zed"
 	picker.search_button.pressed.emit()
 	await s.frames(3)
@@ -142,6 +154,8 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 	await s.screenshot("hf_picker_zero_bvs")
 
 	# nothing at all for that user
+	picker.back_button.pressed.emit()
+	await s.frames(2)
 	picker.author_edit.text = "nobody"
 	picker.search_button.pressed.emit()
 	await s.frames(3)
@@ -154,18 +168,24 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 	fake.urls.clear()
 	ai.open_model_picker(false)
 	await s.frames(3)
-	s.check("reopening fills the remembered username and searches it", picker.author_edit.text == "nobody" and fake.urls.front() == NOTHING_URL, str(fake.urls))
-
-	# emptying the field goes back to the tag list, and that is remembered too
-	picker.author_edit.text = ""
-	fake.urls.clear()
+	s.check("reopening shows step 1 with the remembered username, without searching", picker.step == picker.Step.USER and picker.author_edit.text == "nobody" and fake.urls.is_empty(), str(fake.urls))
 	picker.search_button.pressed.emit()
 	await s.frames(3)
-	s.check("an empty field is the global tag list again", fake.urls == [EXPECTED_URL] and picker.rows().size() == 4 and manager.load_last_author() == "", str(fake.urls))
+	s.check("Continue searches the remembered username", fake.urls.front() == NOTHING_URL, str(fake.urls))
+
+	# Browse all: the tag list again, and that is remembered too
+	picker.back_button.pressed.emit()
+	await s.frames(2)
+	fake.urls.clear()
+	picker.browse_button.pressed.emit()
+	await s.frames(3)
+	s.check("Browse all clears the username and is the global tag list", picker.author_edit.text == "" and fake.urls == [EXPECTED_URL] and picker.rows().size() == 4 and manager.load_last_author() == "", str(fake.urls))
 
 	# a failure on the author query is a normal error state
 	_answer(HTTPRequest.RESULT_SUCCESS, 500, "")
 	fake.by_url = {}
+	picker.back_button.pressed.emit()
+	await s.frames(2)
 	picker.author_edit.text = "alice"
 	picker.search_button.pressed.emit()
 	await s.frames(3)
@@ -174,8 +194,138 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 	picker.author_edit.text = ""
 	picker.retry_button.pressed.emit()
 	await s.frames(3)
+	await _two_step_flow(picker, ai, chosen)
 	DirAccess.remove_absolute(manager.prefs_path)
 	manager.prefs_path = "user://smoke_hub_picker.cfg"
+
+func _key(keycode: Key, pressed: bool) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = keycode
+	event.physical_keycode = keycode
+	event.pressed = pressed
+	return event
+
+func _tap(keycode: Key) -> void:
+	Input.parse_input_event(_key(keycode, true))
+	await s.frames(2)
+	Input.parse_input_event(_key(keycode, false))
+	await s.frames(3)
+
+## The two-step flow: step 1 -> step 2 -> select, Back, Browse all, error / retry,
+## keyboard / gamepad focus through both steps, a stale answer after Back.
+func _two_step_flow(picker: Control, ai: Control, chosen: Array) -> void:
+	_answer(HTTPRequest.RESULT_SUCCESS, 200, FIXTURE)
+	fake.by_url = {ALICE_URL: ALICE_BODY}
+	fake.hold = false
+	manager.prefs_path = "user://smoke_hf_picker_flow.cfg"
+	manager.save_last_author("alice")
+	var cancelled: Array = []
+	var on_cancel := func() -> void: cancelled.append(true)
+	picker.cancelled.connect(on_cancel)
+	fake.urls.clear()
+	chosen.clear()
+
+	# Step 1: remembered username, big input focused, nothing requested.
+	ai.open_model_picker(false)
+	await s.frames(3)
+	s.check("flow step 1: the remembered username fills the input, which has the focus", picker.step == picker.Step.USER and picker.author_edit.text == "alice" and picker.author_edit.has_focus() and fake.urls.is_empty())
+	s.check("flow step 1: Continue, Back and Browse all are there, no model card", picker.search_button.visible and picker.back_button.visible and picker.browse_button.visible and not picker.retry_button.visible and picker.rows().is_empty())
+	s.check("flow step 1: the input is big and the buttons use the pizza art", picker.author_edit.custom_minimum_size.y >= 60.0 and picker.search_button.icon == load("res://assets/images/ui/buttons/button6.png") and picker.back_button.icon == load("res://assets/images/ui/buttons/button4.png") and picker.search_button.flat)
+	var screen := Rect2(0, 0, 800, 600)
+	var inside := true
+	for control: Control in [picker.author_edit, picker.search_button, picker.back_button, picker.browse_button]:
+		inside = inside and screen.encloses(Rect2(control.global_position, control.size))
+	s.check("flow step 1: everything fits 800x600", inside)
+	await s.screenshot("hf_picker_step1")
+
+	# Keyboard / gamepad focus on step 1 (the ui_* actions).
+	await _tap(KEY_DOWN)
+	s.check("flow step 1: Down from the input reaches Browse all", picker.browse_button.has_focus())
+	await _tap(KEY_DOWN)
+	s.check("flow step 1: Down again reaches Continue", picker.search_button.has_focus())
+	await _tap(KEY_LEFT)
+	s.check("flow step 1: Left reaches Back", picker.back_button.has_focus())
+	await _tap(KEY_RIGHT)
+	s.check("flow step 1: Right returns to Continue", picker.search_button.has_focus())
+	await _tap(KEY_UP)
+	await _tap(KEY_UP)
+	s.check("flow step 1: Up twice returns to the input", picker.author_edit.has_focus())
+
+	# Step 1 -> step 2 with the keyboard: accept on Continue.
+	await _tap(KEY_DOWN)
+	await _tap(KEY_DOWN)
+	await _tap(KEY_ENTER)
+	await s.frames(3)
+	s.check("flow: accepting Continue lists the user's models on step 2", picker.step == picker.Step.MODELS and fake.urls == [ALICE_URL] and _row_ids(picker) == ["alice/bvs-brawler", "alice/bvs-v0"], str(fake.urls))
+	s.check("flow step 2: the first compatible card has the focus; the username is hidden", _row_for(picker, "alice/bvs-brawler").has_focus() and not picker.user_page.visible and picker.models_page.visible)
+	var cards_inside := true
+	for row in picker.rows():
+		cards_inside = cards_inside and screen.encloses(Rect2(row.global_position, row.size))
+	s.check("flow step 2: the cards fit 800x600", cards_inside and screen.encloses(Rect2(picker.back_button.global_position, picker.back_button.size)), "back=%s %s" % [picker.back_button.global_position, picker.back_button.size])
+	await _tap(KEY_DOWN)
+	s.check("flow step 2: Down from the only compatible card reaches Back", picker.back_button.has_focus())
+	await _tap(KEY_UP)
+	s.check("flow step 2: Up returns to the card", _row_for(picker, "alice/bvs-brawler").has_focus())
+
+	# Back returns to step 1, keeping the username; the picker stays open.
+	await _tap(KEY_ESCAPE)
+	s.check("flow: Escape on step 2 goes back to step 1 (picker still open, username kept)", picker.visible and picker.step == picker.Step.USER and picker.author_edit.text == "alice" and cancelled.is_empty())
+	picker.back_button.pressed.emit()
+	await s.frames(2)
+	s.check("flow: Back on step 1 closes the picker and cancels", not picker.visible and cancelled.size() == 1)
+
+	# Browse all from step 1.
+	ai.open_model_picker(false)
+	await s.frames(3)
+	fake.urls.clear()
+	picker.browse_button.pressed.emit()
+	await s.frames(3)
+	s.check("flow: Browse all lists every BVS model and forgets the username", fake.urls == [EXPECTED_URL] and picker.rows().size() == 4 and picker.title_label.text == "All BVS models" and manager.load_last_author() == "", str(fake.urls))
+
+	# Error on step 2 -> Back -> a different username works (no stale state).
+	picker.back_button.pressed.emit()
+	await s.frames(2)
+	_answer(HTTPRequest.RESULT_SUCCESS, 503, "")
+	picker.author_edit.text = "alice"
+	picker.search_button.pressed.emit()
+	await s.frames(3)
+	s.check("flow: a failing list shows the error with Retry (the card list is empty)", picker.state == picker.PickerState.ERROR and picker.retry_button.visible and picker.rows().is_empty() and picker.status_label.text.contains("503"))
+	await s.screenshot("hf_picker_step2_error")
+	await _tap(KEY_RIGHT)
+	s.check("flow: Retry is reachable from Back with the arrows", picker.retry_button.has_focus() or picker.back_button.has_focus())
+	_answer(HTTPRequest.RESULT_SUCCESS, 200, FIXTURE)
+	picker.retry_button.pressed.emit()
+	await s.frames(3)
+	s.check("flow: Retry lists the models again", picker.state == picker.PickerState.READY and not picker.retry_button.visible and picker.rows().size() == 2)
+	await s.screenshot("hf_picker_step2_ready")
+
+	# Select on step 2: the existing Policy path.
+	_row_for(picker, "alice/bvs-brawler").pressed.emit()
+	await s.frames(3)
+	s.check("flow: selecting a card closes the picker and chooses that model", not picker.visible and chosen.size() == 1 and (chosen[0] as HubModel).id == "alice/bvs-brawler" and ai.get_controller_config(false).kind == ControllerConfig.Kind.POLICY)
+	ai._on_back_button_pressed(false)
+
+	# Back while a request is in flight: Continue waits, and the late answer is not shown on step 1.
+	ai.open_model_picker(false)
+	await s.frames(3)
+	fake.hold = true
+	picker.author_edit.text = "alice"
+	picker.search_button.pressed.emit()
+	await s.frames(2)
+	var late: Callable = fake.pending
+	picker.back_button.pressed.emit()
+	await s.frames(2)
+	s.check("flow: Back during loading returns to step 1, where Continue and Browse all wait", picker.step == picker.Step.USER and picker.search_button.disabled and picker.browse_button.disabled)
+	fake.hold = false
+	late.call(HTTPRequest.RESULT_SUCCESS, 200, ALICE_BODY.to_utf8_buffer())
+	await s.frames(3)
+	s.check("flow: the late answer changes nothing on step 1 and re-enables Continue", picker.step == picker.Step.USER and picker.rows().is_empty() and not picker.search_button.disabled and not picker.browse_button.disabled)
+	picker.cancelled.disconnect(on_cancel)
+	picker.cancel()
+	await s.frames(2)
+	ai.initial_menu(false)
+	manager.prefs_path = "user://smoke_hub_picker.cfg"
+	DirAccess.remove_absolute("user://smoke_hf_picker_flow.cfg")
 
 ## The Hub answer for `repo` at revision `sha`: its info (with the file list) and files.
 func _serve(repo: String, sha: String, sidecar: PackedByteArray, onnx: PackedByteArray, files: Array = ["model.onnx", "bvs.json", "README.md"]) -> void:
@@ -301,7 +451,7 @@ func _model_loading() -> void:
 	wrong_dim["obs_dim"] = 13
 	_serve("carol/sidecar13", SHA1, JSON.stringify(wrong_dim).to_utf8_buffer(), onnx)
 	await _request(0, "carol/sidecar13")
-	s.check("failure SCHEMA_MISMATCH when the sidecar declares another obs_dim", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects 13 inputs; this game provides 136"), manager.message_of(0))
+	s.check("failure SCHEMA_MISMATCH when the sidecar declares another obs_dim", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects 13 inputs; this game provides 149"), manager.message_of(0))
 	var wrong_schema: Dictionary = JSON.parse_string(sidecar.get_string_from_utf8())
 	wrong_schema["schema_version"] = 1
 	_serve("carol/schema1", SHA1, JSON.stringify(wrong_schema).to_utf8_buffer(), onnx)
@@ -312,7 +462,7 @@ func _model_loading() -> void:
 	plain_sidecar.erase("onnx")
 	_serve("carol/small", SHA1, JSON.stringify(plain_sidecar).to_utf8_buffer(), small_model)
 	await _request(0, "carol/small")
-	s.check("failure SCHEMA_MISMATCH when the ONNX takes another input size", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects") and manager.message_of(0).contains("this game provides 136"), manager.message_of(0))
+	s.check("failure SCHEMA_MISMATCH when the ONNX takes another input size", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects") and manager.message_of(0).contains("this game provides 149"), manager.message_of(0))
 	_serve("carol/lstm", SHA1, sidecar, FileAccess.get_file_as_bytes(OPS_DIR + "reject_unknown_op_lstm.onnx"))
 	await _request(0, "carol/lstm")
 	s.check("failure UNSUPPORTED_OP names the operation", manager.failure_of(0) == Failure.UNSUPPORTED_OP and manager.message_of(0).contains("LSTM"), manager.message_of(0))
@@ -416,6 +566,8 @@ func _loading_ux(select: Control, picker: Control, ai: Control) -> void:
 	fake.by_url = {}
 	ai.open_model_picker(false)
 	await s.frames(3)
+	picker.browse_button.pressed.emit()
+	await s.frames(3)
 	fake.hold = true
 	fake.urls.clear()
 	picker.rows()[0].pressed.emit()  # alice/bvs-brawler, the first compatible row
@@ -446,6 +598,8 @@ func _loading_ux(select: Control, picker: Control, ai: Control) -> void:
 	# Cancel while loading: the previous controller returns, a late answer changes nothing.
 	ai.open_model_picker(false)
 	await s.frames(3)
+	picker.browse_button.pressed.emit()
+	await s.frames(3)
 	fake.hold = true
 	picker.rows()[0].pressed.emit()
 	await s.frames(2)
@@ -463,6 +617,8 @@ func _loading_ux(select: Control, picker: Control, ai: Control) -> void:
 	# A failure (rate limit): the reason is visible, Play stays disabled, no CPU swap, Back recovers.
 	fake.bytes_by_url[HubModel.info_url(chosen_id)] = {"code": 429, "body": PackedByteArray()}
 	ai.open_model_picker(true)
+	await s.frames(3)
+	picker.browse_button.pressed.emit()
 	await s.frames(3)
 	picker.rows()[0].pressed.emit()
 	await s.frames(2)
@@ -482,13 +638,13 @@ func _run() -> void:
 	_install_fake()
 
 	# --- the listing logic, without any UI
-	s.check("the current schema version is a constant", HubModel.BVS_SCHEMA_VERSION == 3 and HubModel.BVS_SCHEMA_VERSION == BvsSchema.CURRENT_VERSION)
+	s.check("the current schema version is a constant", HubModel.BVS_SCHEMA_VERSION == 4 and HubModel.BVS_SCHEMA_VERSION == BvsSchema.CURRENT_VERSION)
 	s.check("discovery is by tag, most downloaded first, no username", HubModel.DISCOVERY_URL == EXPECTED_URL and not HubModel.DISCOVERY_URL.contains("author="), HubModel.DISCOVERY_URL)
 	var models: Array = HubModel.parse_list(FIXTURE)
 	s.check("the parser keeps the BVS-tagged models in the Hub's order", models.map(func(m: HubModel): return m.id) == ["alice/bvs-brawler", "RafaelJaime/BVS_SB3", "bob/old-fighter", "carol/from-the-future"])
 	s.check("compat comes from the bvs-schema-N tag", models[0].compat() == HubModel.Compat.COMPATIBLE and models[1].compat() == HubModel.Compat.OLDER and models[2].compat() == HubModel.Compat.OLDER and models[3].compat() == HubModel.Compat.NEWER)
 	var v2_listing: Array = HubModel.parse_list("[{\"id\": \"erin/bvs-v2\", \"author\": \"erin\", \"tags\": [\"BVS\", \"bvs-schema-2\"]}]")
-	s.check("a schema 2 model is 'Trained for an older version' now that the game uses schema 3", v2_listing.size() == 1 and v2_listing[0].compat() == HubModel.Compat.OLDER and v2_listing[0].badge_text() == "Trained for an older version" and not v2_listing[0].is_compatible())
+	s.check("a schema 2 model is 'Trained for an older version' now that the game uses schema 4", v2_listing.size() == 1 and v2_listing[0].compat() == HubModel.Compat.OLDER and v2_listing[0].badge_text() == "Trained for an older version" and not v2_listing[0].is_compatible())
 	s.check("RafaelJaime/BVS_SB3 (tags BVS, BVS.1) is 'trained for an older version'", models[1].schema == -1 and models[1].badge_text() == "Trained for an older version")
 	s.check("the author falls back to the repo owner", models[2].author == "bob")
 	s.check("downloads read well", HubModel.format_downloads(87) == "87" and HubModel.format_downloads(3400) == "3.4k" and HubModel.format_downloads(2500000) == "2.5M")
@@ -522,8 +678,11 @@ func _run() -> void:
 	picker.model_chosen.connect(func(model: HubModel): chosen.append(model))
 	ai.open_model_picker(false)
 	await s.frames(2)
-	s.check("Use AI opens the picker and asks the Hub by tag", picker.visible and fake.urls.size() == 1 and fake.urls[0] == EXPECTED_URL, str(fake.urls))
-	s.check("loading: the state is LOADING with a message and no rows", picker.state == picker.PickerState.LOADING and picker.status_label.text.contains("Loading") and picker.rows().is_empty() and picker.search_button.disabled)
+	s.check("Use AI opens the picker on step 1 (the username), asking the Hub nothing", picker.visible and picker.step == picker.Step.USER and fake.urls.is_empty() and picker.author_edit.has_focus(), str(fake.urls))
+	picker.browse_button.pressed.emit()
+	await s.frames(2)
+	s.check("Browse all asks the Hub by tag", fake.urls.size() == 1 and fake.urls[0] == EXPECTED_URL, str(fake.urls))
+	s.check("loading: step 2 is LOADING with a message and no rows", picker.step == picker.Step.MODELS and picker.state == picker.PickerState.LOADING and picker.status_label.text.contains("Loading") and picker.rows().is_empty() and not picker.search_button.visible)
 	await s.screenshot("hf_picker_loading")
 	fake.hold = false
 	fake.pending.call(HTTPRequest.RESULT_SUCCESS, 200, FIXTURE.to_utf8_buffer())
@@ -572,6 +731,8 @@ func _run() -> void:
 	_answer(HTTPRequest.RESULT_SUCCESS, 500, "")
 	ai.open_model_picker(true)
 	await s.frames(3)
+	picker.browse_button.pressed.emit()
+	await s.frames(3)
 	s.check("error: HTTP 500 shows the error state with a Retry", picker.state == picker.PickerState.ERROR and picker.status_label.text.contains("500") and picker.retry_button.visible and picker.rows().is_empty(), picker.status_label.text)
 	s.check("error: the Retry button has the focus", picker.retry_button.has_focus())
 	await s.screenshot("hf_picker_error")
@@ -587,6 +748,8 @@ func _run() -> void:
 	# offline state
 	_answer(HTTPRequest.RESULT_CANT_CONNECT, 0, "")
 	ai.open_model_picker(false)
+	await s.frames(3)
+	picker.browse_button.pressed.emit()
 	await s.frames(3)
 	s.check("offline: a connection failure shows the offline state with a Retry", picker.state == picker.PickerState.OFFLINE and picker.status_label.text.to_lower().contains("offline") and picker.retry_button.visible)
 	await s.screenshot("hf_picker_offline")
@@ -610,9 +773,11 @@ func _run() -> void:
 	await _loading_ux(select, picker, ai)
 
 	# cancel
-	picker.cancel_button.pressed.emit()
+	ai.open_model_picker(false)
 	await s.frames(2)
-	s.check("Cancel closes the picker and restores the options", not picker.visible and ai.get_node("ControlP1/ControllerOption").visible and ai.get_controller_config(false).kind == ControllerConfig.Kind.HUMAN)
+	picker.back_button.pressed.emit()
+	await s.frames(2)
+	s.check("Back on step 1 closes the picker and restores the options", not picker.visible and ai.get_node("ControlP1/ControllerOption").visible and ai.get_controller_config(false).kind == ControllerConfig.Kind.HUMAN)
 
 	# the whole script stayed off the network
 	var http_nodes := 0

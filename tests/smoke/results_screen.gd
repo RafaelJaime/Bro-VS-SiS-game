@@ -47,17 +47,48 @@ func _rect(control: Control) -> Rect2:
 func _check_art_meets_border(tag: String, panel: ResultsPanel) -> void:
 	var rect := panel.art_rect()
 	s.check("%s: the art's bottom edge is at or below the panel's inner bottom" % tag, rect.end.y >= panel.size.y, "art end=%.1f panel=%.1f" % [rect.end.y, panel.size.y])
-	s.check("%s: the art was lowered a few pixels" % tag, rect.position.y >= ResultsPanel.ART_DROP - 0.01, "art top=%.1f" % rect.position.y)
+	if not panel.portrait:
+		s.check("%s: the art was lowered a few pixels" % tag, rect.position.y >= ResultsPanel.ART_DROP - 0.01, "art top=%.1f" % rect.position.y)
 	var shot := root.get_viewport().get_texture().get_image()
 	var base := panel._base_color()
-	var probe := Vector2i(int(panel.global_position.x + panel.size.x * 0.5), int(panel.global_position.y + panel.size.y - 6.0))
-	var pixel := shot.get_pixelv(probe)
 	var backgrounds: Array[Color] = [base, base.lightened(0.22), base.lightened(0.45)]
-	var on_background := false
-	for background in backgrounds:
-		if absf(pixel.r - background.r) + absf(pixel.g - background.g) + absf(pixel.b - background.b) < 0.03:
-			on_background = true
-	s.check("%s: the pixels just above the border are the art, not the panel background" % tag, not on_background, "pixel=%s" % [pixel])
+	# Several probes along the border: one thin gap in a drawing is not a strip.
+	var art_pixels := 0
+	var pixel := Color.BLACK
+	for dx in [-0.2, -0.1, 0.0, 0.1, 0.2]:
+		var probe := Vector2i(int(panel.global_position.x + panel.size.x * (0.5 + dx)), int(panel.global_position.y + panel.size.y - 6.0))
+		pixel = shot.get_pixelv(probe)
+		var on_background := false
+		for background in backgrounds:
+			if absf(pixel.r - background.r) + absf(pixel.g - background.g) + absf(pixel.b - background.b) < 0.03:
+				on_background = true
+		if not on_background:
+			art_pixels += 1
+	s.check("%s: the pixels just above the border are the art, not the panel background" % tag, art_pixels >= 3, "art probes=%d last=%s" % [art_pixels, pixel])
+
+# The loser panel shows the loser's own face portrait (r_014 / m_014, the one the
+# HUD uses), never the illustration whose top is only hair, and the face's visible
+# center lies inside the panel, away from its edges.
+func _check_loser_face(tag: String, loser: Fighter, loser_panel: ResultsPanel) -> void:
+	var key := loser.character_ui.name.to_lower()
+	var face: Texture2D = load("res://assets/images/game/characters/%s/face/%s_014.png" % [key, key.left(1)])
+	s.check("%s: the loser panel uses %s's face texture" % [tag, key], loser_panel.texture == face and loser_panel.texture != null)
+	s.check("%s: the loser panel is framed as a portrait" % tag, loser_panel.portrait)
+	var rect := loser_panel.art_rect()
+	var head := ResultsPanel.head_bounds(face)
+	var scale_factor := rect.size.x / face.get_width()
+	var center := rect.position + (head.position + head.size / 2.0) * scale_factor
+	var inner := Rect2(Vector2.ZERO, loser_panel.size).grow(-10.0)
+	s.check("%s: the face's visible center is inside the panel" % tag, inner.has_point(center) and Geometry2D.is_point_in_polygon(center, loser_panel.outline()), "center=%s panel=%s" % [center, loser_panel.size])
+	var offset := absf(center.x - loser_panel.size.x / 2.0)
+	s.check("%s: the face is horizontally centered" % tag, offset < 3.0, "offset=%.1f" % offset)
+	var head_rect := Rect2(rect.position + head.position * scale_factor, head.size * scale_factor)
+	s.check("%s: the head fits the panel (no side or top cut) and meets the bottom border" % tag, head_rect.position.y >= 0.0 and head_rect.end.y >= loser_panel.size.y and head_rect.size.x <= loser_panel.size.x - loser_panel.slant + 0.5, "head=%s" % head_rect)
+	# Rendered pixels: the face center is the art (not the panel background).
+	var shot := root.get_viewport().get_texture().get_image()
+	var pixel := shot.get_pixelv(Vector2i(loser_panel.global_position + center))
+	var base := loser_panel._base_color()
+	s.check("%s: the rendered pixel at the face center is the art, not the panel background" % tag, absf(pixel.r - base.r) + absf(pixel.g - base.g) + absf(pixel.b - base.b) > 0.03 and pixel.a > 0.99, "pixel=%s" % [pixel])
 
 func _check_screen(game: Node2D, tag: String, winner_name: String, loser_name: String) -> void:
 	var over: Control = game.game_over
@@ -87,6 +118,7 @@ func _check_screen(game: Node2D, tag: String, winner_name: String, loser_name: S
 	s.check("%s: the visible part of the art ends exactly at the panel bottom (intentional chest cut)" % tag, absf(cut_height - panel.size.y) < 1.0 or panel.art_rect().size.y * panel.crop > panel.size.y, "cut=%.1f panel=%.1f" % [cut_height, panel.size.y])
 	_check_art_meets_border(tag + " winner", panel)
 	_check_art_meets_border(tag + " loser", loser_panel)
+	_check_loser_face(tag, loser, loser_panel)
 	s.check("%s: the winner name is big and named" % tag, (over.get_node("%WinnerNameLabel") as Label).text == winner.character_ui.name.to_upper() and (over.get_node("%WinnerNameLabel") as Label).get_theme_font_size("font_size") >= 56)
 	s.check("%s: WINS! is shown" % tag, (over.get_node("%WinnerLabel") as Label).text == "WINS!")
 

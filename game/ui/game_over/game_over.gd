@@ -59,7 +59,7 @@ func _on_visibility_changed():
 		winner_name_label.add_theme_color_override("font_color", winner.character_ui.color.lightened(0.45))
 		up_gpu_particles_2d_5.modulate = winner.character_ui.color
 		loser_panel.visible = true
-		_set_art(loser_panel, face_texture(loser.character_ui))
+		_set_art(loser_panel, face_texture(loser.character_ui), true)
 		loser_panel.color = loser.character_ui.color
 		loser_label.text = loser.character_ui.name.to_upper()
 		stats_label.text = stats_text(winner, loser)
@@ -76,7 +76,8 @@ static func stats_text(winner: Fighter, loser: Fighter) -> String:
 ## a face portrait is shown whole.
 const ART_ILLUSTRATION_CROP := 0.62
 
-func _set_art(panel: ResultsPanel, art: Texture2D) -> void:
+func _set_art(panel: ResultsPanel, art: Texture2D, as_portrait: bool = false) -> void:
+	panel.portrait = as_portrait
 	panel.texture = art
 	var tall := art != null and art.get_height() > art.get_width() * 1.2
 	panel.crop = ART_ILLUSTRATION_CROP if tall else 1.0
@@ -99,12 +100,19 @@ static func winner_texture(character: CharacterUI) -> Texture2D:
 			return load(path)
 	return null
 
-## The face portrait, else the winner art.
+## The face portrait: the character select's face_texture, else the face art that
+## sits next to the sprites (the built-in fighters carry no face_texture, and their
+## winner art is the tall illustration, whose top is only hair), else the winner art.
 static func face_texture(character: CharacterUI) -> Texture2D:
 	if character == null:
 		return null
 	if character.face_texture:
 		return character.face_texture
+	var key := character.name.to_lower()
+	if not key.is_empty():
+		var path := ART_DIR % [key, "face/%s_014.png" % key.substr(0, 1)]
+		if ResourceLoader.exists(path):
+			return load(path)
 	return winner_texture(character)
 
 func _on_characters_button_pressed() -> void:

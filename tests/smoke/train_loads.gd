@@ -269,7 +269,7 @@ func _run() -> void:
 	await s.frames(2)
 
 	# A snapshot row: the opponent is a PolicyController running the frozen model.
-	var snapshot_path := "res://tests/fixtures/onnx/random_policy_v3.onnx"
+	var snapshot_path := "res://tests/fixtures/onnx/random_policy_v4.onnx"
 	var snapshot_arena := TrainArena.new()
 	snapshot_arena.name = "SnapshotTrain"
 	snapshot_arena.position = Vector2(0.0, 80000.0)
@@ -293,6 +293,8 @@ func _run() -> void:
 	await _combat_rewards(s)
 	await _schema_3_rows(s)
 	await _sudden_death_start_rows(s)
+	await _kit_rows(s)
+	await _kit_rewards(s)
 	s.finish()
 
 ## A TrainArena built from `config` far away from the other rows.
@@ -543,5 +545,136 @@ func _sudden_death_start_rows(s: RefCounted) -> void:
 	await s.frames(3)
 	s.check("a double KO in sudden death restarts it with no done", ended.size() == ended_before and game.phase == Game.Phase.SUDDEN_DEATH and game.fighter_1.stocks == 1 and game.fighter_2.stocks == 1, "ended=%d phase=%d" % [ended.size() - ended_before, game.phase])
 	s.check("the restart began a fresh grace period and escalation", game.hazards.is_active() and game.hazards.elapsed_ticks < elapsed_before and game.hazards.bombs_spawned == 0, "elapsed %d -> %d" % [elapsed_before, game.hazards.elapsed_ticks])
+	arena.queue_free()
+	await s.frames(2)
+
+# ------------------------------------------------------ schema 4 and kits
+
+## Ends the running episode of `game` (the foe loses its last stock off the stage).
+func _end_episode(s: RefCounted, game: Game) -> void:
+	game.fighter_2.stocks = 1
+	game.fighter_2.position = Vector2(game.blast_right + 500.0, 0.0)
+	await s.frames(4)
+
+func _kit_rows(s: RefCounted) -> void:
+	var config := {"schema_version": 4, "kits": {"mode": "random", "seed": 7}, "rows": [{"opponent": "self"}, {"opponent": "self"}, {"opponent": "cpu_easy"}, {"opponent": "self"}]}
+	var arena := await _arena(s, "KitsRandom", 200000.0, config)
+	s.check("schema_version 4 builds every row with no error", arena.schema_version == 4 and arena.games.size() == 4 and arena.errors.is_empty(), str(arena.errors))
+	var all_v4 := true
+	for game: Game in arena.games:
+		for fighter in _fighters_of(game):
+			all_v4 = all_v4 and (fighter.ai_controller_2d as PlayerAIController).schema_version == 4
+	s.check("every fighter of a schema 4 arena carries schema_version 4", all_v4)
+	var obs_ok := true
+	for game: Game in arena.games:
+		for fighter in _fighters_of(game):
+			var ai := fighter.ai_controller_2d as PlayerAIController
+			obs_ok = obs_ok and ai.get_obs()["obs"].size() == 149
+	s.check("schema 4 agents observe 149 floats", obs_ok)
+
+	var first: Dictionary = arena.rows[0]
+	var game: Game = first["game"]
+	for episode in 14:
+		await _end_episode(s, game)
+	var history: Array = first["kit_history"]
+	var applied: Array = history[history.size() - 1]
+	var fighters := _fighters_of(game)
+	s.check("the kits of the last draw are the ones the fighters carry", applied == [fighters[0].profile.kit_id, fighters[1].profile.kit_id], "drawn=%s" % str(applied))
+	s.check("one draw per episode plus the build (14 episodes ended)", history.size() == 15, "draws=%d" % history.size())
+	var distinct := {}
+	var by_side := [{}, {}]
+	var mirrors := 0
+	for pair: Array in history:
+		distinct[str(pair)] = true
+		by_side[0][pair[0]] = true
+		by_side[1][pair[1]] = true
+		mirrors += 1 if pair[0] == pair[1] else 0
+	s.check("kits differ across episodes", distinct.size() >= 2, str(distinct.keys()))
+	s.check("both kits appear on both sides", by_side[0].size() == 2 and by_side[1].size() == 2, str(by_side))
+	s.check("mirror matchups occur", mirrors >= 1, "mirrors=%d" % mirrors)
+	var row_kits := {}
+	for row: Dictionary in arena.rows:
+		row_kits[str(row["kit_history"][0])] = true
+	s.check("rows draw their own kits at build (the row seed differs)", row_kits.size() >= 2, str(row_kits.keys()))
+
+	# The same seed gives the same assignments.
+	var again := await _arena(s, "KitsRandomAgain", 210000.0, config)
+	var again_game: Game = again.rows[0]["game"]
+	for episode in 14:
+		await _end_episode(s, again_game)
+	s.check("the same seed repeats the kit assignments", again.rows[0]["kit_history"] == history, "%s vs %s" % [str(again.rows[0]["kit_history"]), str(history)])
+	again.queue_free()
+	arena.queue_free()
+	await s.frames(2)
+
+	var kept := await _arena(s, "KitsCharacter", 220000.0, {"schema_version": 4, "kits": {"mode": "character"}, "rows": [{"opponent": "self"}]})
+	var kept_game: Game = kept.games[0]
+	await _end_episode(s, kept_game)
+	s.check("character mode keeps the scene kits (Rafael and Matilde) through episodes", kept.errors.is_empty() and kept_game.fighter_1.profile.kit_id == 0 and kept_game.fighter_2.profile.kit_id == 1 and not kept.rows[0].has("kit_history"))
+	kept.queue_free()
+	var unconfigured := await _arena(s, "KitsDefault", 230000.0, {"rows": [{"opponent": "self"}]})
+	s.check("without a kits block the scene kits are kept", unconfigured.kits_mode == "character" and unconfigured.games[0].fighter_1.profile.kit_id == 0)
+	unconfigured.queue_free()
+	var bad := await _arena(s, "KitsUnknown", 240000.0, {"kits": {"mode": "chaos"}, "rows": [{"opponent": "self"}]})
+	s.check("an unknown kits mode is an error naming it and builds no row", bad.games.is_empty() and bad.errors.size() == 1 and bad.errors[0].contains("chaos"), str(bad.errors))
+	bad.queue_free()
+	await s.frames(2)
+
+func _kit_rewards(s: RefCounted) -> void:
+	var defaults := RewardConfig.new()
+	s.check("the code defaults: combo_hit 0.02, shield_raise 0.0, cap 4 hits and 1.0 per episode", defaults.combo_hit == 0.02 and defaults.shield_raise == 0.0 and defaults.combo_hit_cap == 4 and defaults.combo_episode_cap == 1.0)
+	var parsed := RewardConfig.from_dict({"combo_hit": 0.03, "combo_hit_cap": 3, "combo_episode_cap": 0.5, "shield_raise": -0.002})
+	s.check("from_dict reads the combo and shield_raise keys", parsed.combo_hit == 0.03 and parsed.combo_hit_cap == 3 and parsed.combo_episode_cap == 0.5 and parsed.shield_raise == -0.002)
+
+	var arena := await _arena(s, "KitRewards", 250000.0, {"schema_version": 4, "rows": [{"opponent": "self"}], "reward": {"combo_episode_cap": 0.07, "shield_raise": -0.5}})
+	var game: Game = arena.games[0]
+	game.food_spawner.stop()
+	var me: Fighter = game.fighter_1
+	var foe: Fighter = game.fighter_2
+	var tracker := (me.ai_controller_2d as PlayerAIController).reward_tracker
+	var foe_tracker := (foe.ai_controller_2d as PlayerAIController).reward_tracker
+	tracker.print_log = false
+	foe_tracker.print_log = false
+	s.check("combo_hit and shield_raise are logged per episode", tracker.totals.has("combo_hit") and tracker.totals.has("shield_raise") and not tracker.totals.has("combo_hit_cap"))
+	await s.frames(60)
+
+	# A real combo: the second hit inside hitstun pays one extra hit, the first pays nothing.
+	Combat.resolve(Hit.punch(me, 3.0, Vector2(60.0, -20.0)), foe)
+	s.check("the first hit of a combo pays nothing", tracker.totals["combo_hit"] == 0.0)
+	await s.frames(2)
+	Combat.resolve(Hit.punch(me, 3.0, Vector2(60.0, -20.0)), foe)
+	s.check("the second hit (one extra) pays combo_hit", is_equal_approx(tracker.totals["combo_hit"], 0.02) and foe.combo.hits == 2, str(tracker.totals["combo_hit"]))
+	s.check("the victim's tracker does not earn the combo reward", foe_tracker.totals["combo_hit"] == 0.0)
+	var before: float = tracker.totals["combo_hit"]
+	foe.combo_updated.emit(3, 9.0, foe)
+	s.check("a combo dealt by the foe itself pays nothing", tracker.totals["combo_hit"] == before)
+	foe.combo_updated.emit(1, 3.0, me)
+	s.check("a single hit pays nothing", tracker.totals["combo_hit"] == before)
+
+	# Per-combo cap (4 extra hits), then the per-episode cap (0.07 here).
+	foe.combo_updated.emit(3, 9.0, me)
+	foe.combo_updated.emit(4, 12.0, me)
+	foe.combo_updated.emit(5, 15.0, me)
+	s.check("extra hits keep paying up to the per-episode cap (0.07, a partial last payment)", is_equal_approx(tracker.totals["combo_hit"], 0.07), str(tracker.totals["combo_hit"]))
+	foe.combo_updated.emit(2, 4.0, me)
+	s.check("the episode cap stops the reward of a later combo", is_equal_approx(tracker.totals["combo_hit"], 0.07))
+	var uncapped := RewardTracker.new()
+	var spare_agent := AIController2D.new()
+	uncapped.setup(spare_agent, me, RewardConfig.from_dict({"combo_hit_cap": 4, "combo_episode_cap": 5.0}))
+	uncapped.print_log = false
+	for hits in [2, 3, 4, 5, 6, 7]:
+		foe.combo_updated.emit(hits, 3.0 * hits, me)
+	s.check("a combo pays at most combo_hit_cap (4) extra hits (hits 6 and 7 pay nothing)", is_equal_approx(uncapped.totals["combo_hit"], 0.08), str(uncapped.totals["combo_hit"]))
+	spare_agent.free()
+
+	# shield_raise: the Fighter.shield_raises delta per decision.
+	var raise_before: float = tracker.totals["shield_raise"]
+	tracker.on_decision()
+	s.check("no raise since the last decision pays nothing", tracker.totals["shield_raise"] == raise_before)
+	me.shield_raises += 2
+	tracker.on_decision()
+	s.check("two raises since the last decision pay twice the weight", is_equal_approx(tracker.totals["shield_raise"], raise_before - 1.0), str(tracker.totals["shield_raise"]))
+	tracker.on_decision()
+	s.check("a raise is paid once", is_equal_approx(tracker.totals["shield_raise"], raise_before - 1.0))
 	arena.queue_free()
 	await s.frames(2)

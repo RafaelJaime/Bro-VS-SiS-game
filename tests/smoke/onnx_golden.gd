@@ -309,9 +309,9 @@ func _check_default_cost(s: Smoke) -> void:
 	print("INFO bundled default model inference cost: %.1f us per inference (%d runs, headless)" % [per_run, PERF_RUNS])
 	s.check("default cost: the bundled model infers under %d us" % int(MAX_INFERENCE_USEC), per_run <= MAX_INFERENCE_USEC, "%.1f us" % per_run)
 
-## The registered schema (2 or 3) whose observation has `obs_dim` floats, or null.
+## The registered schema (2, 3 or 4) whose observation has `obs_dim` floats, or null.
 func _schema_for_dim(obs_dim: int) -> Object:
-	for version in [2, 3]:
+	for version in [2, 3, 4]:
 		var schema := BvsSchema.get_schema(version)
 		if schema != null and int(schema.OBS_DIM) == obs_dim:
 			return schema
@@ -331,8 +331,9 @@ func _check_golden(s: Smoke, path: String) -> void:
 	if loaded.model == null:
 		return
 	var model: OnnxPolicyModel = loaded.model
-	# The golden names its observation width; the schema that has it (2 or 3) is the one
-	# the model must fit, so a schema 3 export is checked before it is bundled.
+	# The golden names its observation width; the registered schema that has it (2, 3 or 4)
+	# is the one the model must fit, so an export is checked before it is bundled, whatever
+	# its registered schema.
 	var schema := _schema_for_dim(int(golden.get("obs_dim", 102)))
 	s.check("golden: obs_dim %d belongs to a registered schema" % int(golden.get("obs_dim", 102)), schema != null)
 	if schema == null:

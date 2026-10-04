@@ -13,22 +13,29 @@ class_name Hurt
 var pending_damage: float = 8.0
 var pending_knockback: Vector2 = Vector2(200, -100)
 var pending_source_x: float = NAN
+## The attack that caused this hit: its frame data sets the hitstun. Null (food,
+## bombs, ledge attacks) falls back to the knockback formula.
+var pending_attack: AttackProfile
+## The combo safeguards of this hit (ComboTracker.register): knockback growth,
+## hitstun decay, the time-cap clamp and the hard-cap launch. Null is "no combo".
+var pending_combo: ComboTracker.Scale
 
-var timer: Timer
 var shake: FastNoiseLite
-
-func _ready() -> void:
-	super._ready()
-	# One timer, connected once. _exit stops it, so a stale timeout can never
-	# end a later Hurt early.
-	timer = Timer.new()
-	timer.one_shot = true
-	add_child(timer)
-	timer.timeout.connect(_on_hurt_finished)
+## Hitstun left, in physics ticks (hit-stop changes the time scale, never the tick
+## count). The tick the state is entered on does not count, so the stun is the same
+## whichever fighter updates first.
+var _ticks_left: int = 0
+var _entered_frame: int = -1
 
 func _enter() -> void:
 	shake = FastNoiseLite.new()
 	var final_knockback = pending_knockback
+	var combo_scale := pending_combo
+	pending_combo = null
+	# The hit that reaches the combo cap launches the victim with at least the cap's
+	# knockback, whatever attack it came from.
+	if combo_scale != null and combo_scale.capped and owner.combo.rules.cap_launch_knockback.length() > final_knockback.length():
+		final_knockback = owner.combo.rules.cap_launch_knockback
 
 	if owner is Fighter:
 		owner.add_damage(pending_damage)
@@ -39,12 +46,15 @@ func _enter() -> void:
 		source_x = owner.enemy.global_position.x
 	if not is_nan(source_x):
 		if source_x < owner.global_position.x:
-			final_knockback.x = abs(pending_knockback.x)
+			final_knockback.x = abs(final_knockback.x)
 		else:
-			final_knockback.x = -abs(pending_knockback.x)
+			final_knockback.x = -abs(final_knockback.x)
 
-	# Smash-style: knockback grows with the victim's accumulated damage %.
+	# Smash-style: knockback grows with the victim's accumulated damage %, and with
+	# each hit of a combo.
 	final_knockback *= owner.get_knockback_scale()
+	if combo_scale != null:
+		final_knockback *= combo_scale.kb_mult
 
 	state_machine.velocity = final_knockback
 	owner.set_velocity(state_machine.velocity)
@@ -68,16 +78,37 @@ func _enter() -> void:
 	particles.restart()
 	particles.emitting = true
 
-	timer.start(_hitstun_for(final_knockback))
+	_ticks_left = _hitstun_ticks_for(final_knockback)
+	pending_attack = null
+	if combo_scale != null:
+		# Later hits of a combo stun less, never past the time cap; the capped hit is
+		# also untouchable from this tick on, so nothing else connects before it ends.
+		_ticks_left = clampi(roundi(_ticks_left * combo_scale.stun_mult), 1, maxi(1, combo_scale.stun_cap_ticks))
+		if combo_scale.capped:
+			owner.grant_invulnerability(CombatClock.seconds(_ticks_left) + profile.post_hit_invulnerability)
+	_entered_frame = Engine.get_physics_frames()
 
 func _update(delta: float) -> void:
 	super._update(delta)
 	# Light gravity while in hitstun keeps the launch arc long; x momentum is kept.
 	state_machine.velocity.y += gravity * profile.hurt_gravity_scale * delta
 	owner.set_velocity(state_machine.velocity)
+	if Engine.get_physics_frames() == _entered_frame:
+		return
+	_ticks_left -= 1
+	if _ticks_left <= 0:
+		_on_hurt_finished()
 
-func _exit() -> void:
-	timer.stop()
+## Ticks of hitstun still to run.
+func ticks_left() -> int:
+	return _ticks_left
+
+# Hitstun in ticks: an attack with frame data sets it (plus its growth per px/s of
+# the final knockback), anything else uses the knockback formula below.
+func _hitstun_ticks_for(knockback: Vector2) -> int:
+	if pending_attack != null and pending_attack.hitstun_ticks >= 0:
+		return maxi(1, pending_attack.hitstun_ticks + roundi(pending_attack.hitstun_kb_growth * knockback.length()))
+	return maxi(1, CombatClock.ticks(_hitstun_for(knockback)))
 
 # Harder hits stun longer: clamp(base + |knockback| * per_knockback, min, max).
 func _hitstun_for(knockback: Vector2) -> float:

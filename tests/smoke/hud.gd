@@ -79,6 +79,7 @@ func _run() -> void:
 	await s.screenshot("s5b_hud_300")
 	await _shield_hud(s, game, f1, f2, hud1, hud2)
 	await s.despawn(game)
+	await _combo_hud(s)
 	s.finish()
 
 # The shield bar under the percent follows the meter, sits idle at full, and the
@@ -114,3 +115,78 @@ func _shield_hud(s: RefCounted, game: Node2D, f1: Fighter, f2: Fighter, hud1: Fi
 		guard += 1
 	await s.frames(2)
 	s.check("BREAK! hides when the dizzy ends", not hud1.break_label.visible)
+
+# The combo counter on the attacker's card: hidden for one hit, "N HIT COMBO  D%" from
+# two, gone about a second after the combo ends, and absent in training. The hits are
+# real ones resolved through Combat, so the victim's tracker drives the signals.
+func _combo_hud(s: RefCounted) -> void:
+	var game: Node2D = s.spawn_game(400.0, 470.0)
+	s.attach_controllers(game)
+	await s.frames(60)
+	var victim: Fighter = game.get_node("Fighter1")
+	var attacker: Fighter = game.get_node("Fighter2")
+	var attacker_hud: FighterHud = attacker.get_node("PlayerUI")
+	var victim_hud: FighterHud = victim.get_node("PlayerUI")
+	var label: Label = attacker_hud.combo_label
+	s.check("the attacker's card has a combo label above it, hidden at first", label != null and not label.visible and label.position.y < 0.0 and label.get_theme_font_size("font_size") == 22 and label.get_theme_color("font_color") == Color.WHITE and label.get_theme_color("font_outline_color") == Color.BLACK, "label=%s" % [label])
+	var jab := AttackProfile.frames(AttackProfile.make(4.0, Vector2(100.0, -50.0), Vector2(75.0, -10.0), Vector2(110.0, 40.0), &"neutral"), 2, 2, 2, 0, 0, 24, 0.0, 0.5)
+	Combat.resolve(Hit.punch(attacker, jab.damage, jab.knockback, -1.0, Hit.Source.PUNCH, jab), victim)
+	Combat.cancel_hit_stop()
+	await s.frames(2)
+	s.check("a single hit shows no combo counter", not label.visible)
+	await s.frames(3)
+	Combat.resolve(Hit.punch(attacker, jab.damage, jab.knockback, -1.0, Hit.Source.PUNCH, jab), victim)
+	Combat.cancel_hit_stop()
+	await s.frames(2)
+	s.check("two hits show \"2 HIT COMBO\" with the combo damage", label.visible and label.text == "2 HIT COMBO  8%" and is_equal_approx(label.modulate.a, 1.0), "text=%s visible=%s" % [label.text, label.visible])
+	s.check("the counter pops on a new hit", label.scale.x > 1.05, "scale=%.2f" % label.scale.x)
+	s.check("the other fighter's card shows nothing", not victim_hud.combo_label.visible)
+	await s.frames(3)
+	Combat.resolve(Hit.punch(attacker, jab.damage, jab.knockback, -1.0, Hit.Source.PUNCH, jab), victim)
+	Combat.cancel_hit_stop()
+	await s.frames(2)
+	s.check("the counter follows the combo (3 hits, 12%)", label.text == "3 HIT COMBO  12%", "text=%s" % label.text)
+	# A combo of someone else (or a bomb) never shows on this card.
+	victim.combo_updated.emit(5, 30.0, victim)
+	s.check("a combo dealt by the other fighter is ignored", label.text == "3 HIT COMBO  12%")
+	await s.screenshot("kc_combo_counter")
+	# Wait for the combo to end, then time the fade in frames (60 per second).
+	var guard := 0
+	while victim.combo.is_active() and guard < 200:
+		await s.frames(1)
+		guard += 1
+	await s.frames(2)
+	s.check("the counter is still up right after the combo ends (it holds 0.35 s)", label.visible and label.modulate.a > 0.9, "alpha=%.2f" % label.modulate.a)
+	await s.frames(36)
+	await s.screenshot("kc_combo_counter_fading")
+	s.check("the counter is fading about half a second later", label.visible and label.modulate.a < 0.9 and label.modulate.a > 0.0, "alpha=%.2f visible=%s" % [label.modulate.a, label.visible])
+	await s.frames(36)
+	s.check("the counter is gone about 1.1 s after the combo ended", not label.visible, "alpha=%.2f" % label.modulate.a)
+	await s.despawn(game)
+
+	# A bomb clears a combo without ending it: the counter must still go away.
+	game = s.spawn_game(400.0, 470.0)
+	s.attach_controllers(game)
+	await s.frames(60)
+	victim = game.get_node("Fighter1")
+	attacker = game.get_node("Fighter2")
+	label = (attacker.get_node("PlayerUI") as FighterHud).combo_label
+	for i in 2:
+		Combat.resolve(Hit.punch(attacker, jab.damage, jab.knockback, -1.0, Hit.Source.PUNCH, jab), victim)
+		Combat.cancel_hit_stop()
+		await s.frames(3)
+	s.check("the counter shows the second hit", label.visible and label.text == "2 HIT COMBO  8%")
+	Combat.resolve(Hit.bomb(victim.global_position + Vector2(40.0, 0.0), 5.0, Vector2(100.0, -100.0)), victim)
+	Combat.cancel_hit_stop()
+	await s.frames(90)
+	s.check("a bomb clears the combo and the counter fades away anyway", not label.visible)
+	await s.despawn(game)
+
+	# Training rows have no HUD, so no counter and no signal hookup.
+	var training_game: Node2D = load(Smoke.GAME_SCENE).instantiate()
+	training_game.training = true
+	root.add_child(training_game)
+	await s.frames(3)
+	var training_hud: FighterHud = training_game.get_node("Fighter1/PlayerUI")
+	s.check("in training the combo counter does not exist", training_hud.combo_label == null and not training_hud.visible)
+	await s.despawn(training_game)

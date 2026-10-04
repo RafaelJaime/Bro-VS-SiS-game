@@ -10,6 +10,12 @@ const BUBBLE_RADIUS := 34.0
 const ARROW_LENGTH := 16.0
 ## Distance kept between the bubble center and the screen edge.
 const EDGE_INSET := 46.0
+## Extra top clearance so the bubble and its arrow tip (radius + arrow, at most
+## BUBBLE_RADIUS + 3.0 + ARROW_LENGTH past the center) never reach into the
+## match timer's band (the top ~70px of the screen; see TimerLabel in game.tscn
+## and TOP_BAND in tests/smoke/match_reel.gd), the way `bottom_reserve` already
+## keeps it off the HUD panels.
+const TOP_RESERVE := 90.0
 
 ## One entry per indicated fighter: { "pos": bubble center, "dir": unit vector
 ## toward the fighter, "color": Color, "face": Texture2D or null }.
@@ -28,8 +34,10 @@ func show_entries(entries: Array[Dictionary]) -> void:
 
 ## Where the bubble for a fighter at `screen_pos` sits: the point where the line
 ## from the screen center to the fighter meets the inset screen rectangle.
+## `bottom_reserve` keeps it above the HUD panels; `TOP_RESERVE` keeps it below
+## the timer at the top, the same way, on every side.
 static func bubble_position(screen_pos: Vector2, screen_size: Vector2, bottom_reserve: float) -> Vector2:
-	var area := Rect2(Vector2.ONE * EDGE_INSET, screen_size - Vector2(2.0 * EDGE_INSET, 2.0 * EDGE_INSET + bottom_reserve))
+	var area := Rect2(Vector2(EDGE_INSET, EDGE_INSET + TOP_RESERVE), screen_size - Vector2(2.0 * EDGE_INSET, 2.0 * EDGE_INSET + TOP_RESERVE + bottom_reserve))
 	var center := screen_size / 2.0
 	var dir := screen_pos - center
 	if dir.length_squared() < 0.0001:

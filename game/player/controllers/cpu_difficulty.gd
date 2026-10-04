@@ -65,6 +65,19 @@ enum Level { EASY, NORMAL, HARD }
 ## never charges a smash.
 @export var use_up_recovery: bool = true
 
+@export_group("Combos")
+## Chance, each time one of the bot's jab steps connects (and the chain has a next
+## step), that it presses neutral attack again to throw it. Easy never chains: it throws
+## single jabs only. A tap per step, never a held key.
+@export_range(0.0, 1.0) var chain_chance: float = 0.75
+## Seconds between the connecting hit and the chain press (its reaction to the hit).
+## The press waits in the attack buffer until the link window opens, so it works at any
+## `decision_interval`. A true combo needs it within the link's slack of the window.
+@export var chain_press_delay: float = 0.05
+## Chance, when the up launcher connects and the kit says `launcher_followup = air_jab`,
+## that the bot jumps after the victim and throws the air jab. Only Hard does it.
+@export_range(0.0, 1.0) var launcher_followup_chance: float = 0.0
+
 @export_group("Recovery")
 ## Chance, per recovery decision, that the bot uses its double jump or air dash
 ## when it is needed. Easy often fumbles it, Hard never does.
@@ -87,10 +100,14 @@ static func preset(level: Level) -> CpuDifficulty:
 			d.recovery_skill = 0.60
 			d.use_directional = false
 			d.use_up_recovery = false
+			d.chain_chance = 0.0
 			d.shield_release_ratio = 0.45
 			d.punish_dizzy_chance = 0.0
 			d.food_pressure_chance = 0.0
 		Level.HARD:
+			d.chain_chance = 0.95
+			d.chain_press_delay = 0.017
+			d.launcher_followup_chance = 0.8
 			d.decision_interval = 0.12
 			d.action_accuracy = 0.95
 			d.aggression = 1.0

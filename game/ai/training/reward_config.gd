@@ -38,22 +38,34 @@ extends Resource
 @export var shield_break_taken: float = -0.4
 ## Per decision while my shield has been held longer than `shield_hold_threshold`.
 @export var shield_hold: float = -0.003
+## Character-kits terms, signal driven. Per extra hit (hits >= 2) of a combo I deal,
+## at most `combo_hit_cap` extra hits per combo and `combo_episode_cap` in total per
+## episode, so jab restarts are not farmed.
+@export var combo_hit: float = 0.02
+## Per shield raise of mine (Fighter.shield_raises delta, read per decision). Zero in
+## code so behavior is unchanged without a config; default.toml sets the lever.
+@export var shield_raise: float = 0.0
 
 ## Non-term parameters (accepted by from_dict, never logged as a term).
 ## Seconds of continuous shielding before `shield_hold` starts to apply.
 @export var shield_hold_threshold: float = 1.5
 ## Pickups rewarded per episode.
 @export var pickup_cap: int = 20
+## Extra combo hits rewarded per combo.
+@export var combo_hit_cap: int = 4
+## Total `combo_hit` reward per episode.
+@export var combo_episode_cap: float = 1.0
 
 ## The terms in the order they are logged.
 const TERMS: PackedStringArray = [
 	"damage_dealt", "damage_taken", "ko_given", "ko_taken", "stock_lost",
 	"win", "loss", "timeout", "time", "off_stage", "approach",
 	"pickup", "food_hit", "shield_break_dealt", "shield_break_taken", "shield_hold",
+	"combo_hit", "shield_raise",
 ]
 
 ## Settings that are not reward terms but live in the same `reward` block.
-const PARAMS: PackedStringArray = ["shield_hold_threshold", "pickup_cap"]
+const PARAMS: PackedStringArray = ["shield_hold_threshold", "pickup_cap", "combo_hit_cap", "combo_episode_cap"]
 
 ## A config with the weights found in `data` (a Dictionary from BVS_TRAIN_CONFIG).
 ## An unknown or non-numeric key is reported by name and ignored.
@@ -67,8 +79,8 @@ static func from_dict(data: Dictionary) -> RewardConfig:
 		if not (value is float or value is int):
 			push_error("RewardConfig: reward weight '%s' must be a number" % str(key))
 			continue
-		if String(key) == "pickup_cap":
-			config.pickup_cap = int(value)
+		if String(key) == "pickup_cap" or String(key) == "combo_hit_cap":
+			config.set(String(key), int(value))
 		else:
 			config.set(String(key), float(value))
 	return config

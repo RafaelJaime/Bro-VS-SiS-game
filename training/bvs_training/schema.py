@@ -1,13 +1,14 @@
-"""bvs-schema constants, mirrored from `game/ai/schema/bvs_schema_v2.gd` and `bvs_schema_v3.gd`.
+"""bvs-schema constants, mirrored from `game/ai/schema/bvs_schema_v2.gd`, `bvs_schema_v3.gd` and `bvs_schema_v4.gd`.
 
 GDScript is the source of truth: Python never builds observations. These values
 are only used to fail fast when Godot's `env_info` disagrees, and to write the
 `bvs.json` sidecar. The layout and golden fixtures are read-only here.
 
-Both schemas are registered (`SCHEMAS`); training, export and the sidecar target
-`TRAIN_VERSION` (3, the combat-depth schema). The playable version of the game
-(`BvsSchema.CURRENT_VERSION`) is a separate switch that only moves when a retrained
-model passes every acceptance gate, so schema 2 stays describable here.
+Schemas 2, 3 and 4 are registered (`SCHEMAS`); training, export and the sidecar target
+`TRAIN_VERSION` (4, the character-kits schema: schema 3 plus 13 kit, chain, hitstun and
+combo floats). The playable version of the game (`BvsSchema.CURRENT_VERSION`, still 3
+until the gated schema 4 model is bundled) is a separate switch that only moves when a
+retrained model passes every acceptance gate, so schemas 2 and 3 stay describable here.
 """
 
 from __future__ import annotations
@@ -58,10 +59,11 @@ class SchemaSpec:
 SCHEMAS: dict[int, SchemaSpec] = {
     2: SchemaSpec(version=2, obs_dim=102),
     3: SchemaSpec(version=3, obs_dim=136),
+    4: SchemaSpec(version=4, obs_dim=149),
 }
 
 # The schema training, export and the sidecar target.
-TRAIN_VERSION = 3
+TRAIN_VERSION = 4
 SCHEMA_VERSION = TRAIN_VERSION
 OBS_DIM = SCHEMAS[TRAIN_VERSION].obs_dim
 SCHEMA_TAG = SCHEMAS[TRAIN_VERSION].tag

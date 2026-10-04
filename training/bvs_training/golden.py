@@ -95,7 +95,7 @@ def build_golden(model_path: Path, dump: Path | None, repo_relative: str, seed: 
     }
 
 
-# Block order of the schema 3 layout: (first index, last index + 1, name prefix). The self and
+# Block order of the schema 3 layout (schema 4 keeps it and appends the V4_APPENDED names): (first index, last index + 1, name prefix). The self and
 # opponent blocks mirror each other field by field; the shared blocks follow in this order.
 V3_FIGHTER_BLOCK = 43
 V3_SHARED_PREFIXES: list[tuple[int, str]] = [
@@ -113,6 +113,13 @@ V3_SHARED_PREFIXES: list[tuple[int, str]] = [
 ]
 
 
+V4_APPENDED = [
+    "self_kit_0", "self_kit_1", "self_kit_2", "self_kit_3",
+    "opp_kit_0", "opp_kit_1", "opp_kit_2", "opp_kit_3",
+    "self_chain_step", "self_link_open", "opp_hitstun_left", "self_combo_dealt", "self_combo_taken",
+]
+
+
 def check_schema_fixtures(version: int = schema.TRAIN_VERSION) -> list[str]:
     """Problems (empty when none) between the committed fixtures of a schema and its Python mirror."""
     spec = schema.SCHEMAS[version]
@@ -122,7 +129,7 @@ def check_schema_fixtures(version: int = schema.TRAIN_VERSION) -> list[str]:
         problems.append(f"layout has {len(names)} names, expected {spec.obs_dim}")
     if len(set(names)) != len(names):
         problems.append("layout has duplicate names")
-    if version == 3 and len(names) == spec.obs_dim:
+    if version in (3, 4) and len(names) == spec.obs_dim:
         block = V3_FIGHTER_BLOCK
         for index in range(block):
             mine, theirs = names[index], names[block + index]
@@ -132,6 +139,10 @@ def check_schema_fixtures(version: int = schema.TRAIN_VERSION) -> list[str]:
         for index, expected in V3_SHARED_PREFIXES:
             if names[index] != expected:
                 problems.append(f"layout[{index}] is {names[index]}, expected {expected}")
+        if version == 4 and names[len(schema.layout_names(3)) :] != V4_APPENDED:
+            problems.append("the appended schema 4 names differ from the documented 13 floats")
+        if version == 4 and names[: len(schema.layout_names(3))] != schema.layout_names(3):
+            problems.append("the first 136 names of schema 4 differ from schema 3")
     golden = json.loads(spec.obs_fixture.read_text())
     for case in golden["cases"]:
         values = case["expected"]

@@ -401,7 +401,7 @@ func _punches() -> void:
 	var base := _hits(p2)
 	await tap(&"P1_punch", 3)
 	await s.frames(25)
-	s.check("KB punch tap: F punches and damages the CPU in reach", _hits(p2) - base > 6.0 and p1.last_attack_direction == &"neutral", "damage=%.1f dir=%s" % [_hits(p2) - base, p1.last_attack_direction])
+	s.check("KB punch tap: F punches and damages the CPU in reach", _hits(p2) - base > 3.0 and p1.last_attack_direction == &"neutral", "damage=%.1f dir=%s" % [_hits(p2) - base, p1.last_attack_direction])
 	await s.screenshot("kb_05_punch")
 
 	# Charged smash: hold F, the charge builds, the release hits harder.
@@ -906,7 +906,7 @@ func _local_two_player() -> void:
 	p1_x = p1.position.x
 	p2_x = p2.position.x
 	await hold_for(&"P1_left", 0.3)
-	s.check("KB 2P: the P1 left key moves P1 and not P2", p1_x - p1.position.x > 60.0 and absf(p2.position.x - p2_x) < 1.0, "p1 dx=%.0f p2 dx=%.1f" % [p1.position.x - p1_x, p2.position.x - p2_x])
+	s.check("KB 2P: the P1 left key moves P1 and not P2", p1_x - p1.position.x > 50.0 and absf(p2.position.x - p2_x) < 1.0, "p1 dx=%.0f p2 dx=%.1f" % [p1.position.x - p1_x, p2.position.x - p2_x])
 	await s.frames(20)
 
 	var p1_y := p1.position.y

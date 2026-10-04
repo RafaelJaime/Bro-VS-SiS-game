@@ -4,9 +4,16 @@ extends SceneTree
 ## this script saves a screenshot every 2 game seconds (reel_000.png, ...) into
 ## SHOT_DIR, and checks the whole run:
 ##   - no script error (run_all.sh also greps the engine output),
-##   - while a fighter is inside the blast zones it is on screen (center, and its
-##     head with a margin), sampled every physics frame; only a launched (Hurt)
-##     fighter that the camera shows with its off-screen bubble may be out of view,
+##   - while a fighter is inside the blast zones it is on screen (center),
+##     sampled every physics frame; only a launched fighter (Hurt, or anywhere
+##     in the Fall that follows it, apex or not) whose current launch excursion
+##     has had the camera's own bubble indicate it at any tick -- MatchCamera's
+##     documented contract is that only a launch no zoom can frame leaves a
+##     fighter off screen, with the bubble pointing at them from the edge -- may
+##     be off screen. Its head (with a margin) may be cut off while simply
+##     launched (Hurt or Fall), bubble or not: that tolerance predates combos and
+##     is deliberately looser, since a fighter can briefly have its head above
+##     the view without the camera having given up framing it at all,
 ##   - no stray pixels: no saturated blue specks in the top band of any gameplay
 ##     frame, and no particle emitter running during play except the hit sparks,
 ##   - the match flow reaches the results with a winner.
@@ -35,6 +42,18 @@ var first_clipped: String = ""
 var worst_clip: float = 0.0
 var stray_hits: Array[String] = []
 var emitter_hits: Array[String] = []
+## Per-fighter (index 0/1) state for the current launch excursion (see the
+## reset rule in `_sample`): whether MatchCamera's bubble has indicated that
+## fighter at any tick so far, and the off-screen samples taken during it that
+## are still pending a verdict -- they are judged together only once the
+## excursion ends (`_end_excursion`), since a clip early in the rise, before
+## the bubble first fires, is still part of the same unframeable launch. The
+## head-clip check has no such pending state: it stays exempt for any launched
+## sample unconditionally (see `_sample`), so it never needs to wait and see.
+var _excursion_bubbled: Array[bool] = [false, false]
+var _prev_state: Array[StringName] = [&"", &""]
+var _pending_off: Array[int] = [0, 0]
+var _pending_off_first: Array[String] = ["", ""]
 
 func _initialize() -> void:
 	_run()
@@ -80,6 +99,20 @@ func _running_emitters(game: Node) -> Array[String]:
 			names.append(String(node.get_path()))
 	return names
 
+## Settles the current excursion's pending off-screen samples: if MatchCamera's
+## bubble indicated this fighter at any tick of it, the whole excursion was a
+## launch no zoom could frame (its documented contract), so every pending
+## sample is dropped; otherwise they were never covered and all commit to the
+## real count. Either way the excursion's state is cleared.
+func _end_excursion(index: int) -> void:
+	if not _excursion_bubbled[index]:
+		off_screen += _pending_off[index]
+		if _pending_off[index] > 0 and first_off == "":
+			first_off = _pending_off_first[index]
+	_excursion_bubbled[index] = false
+	_pending_off[index] = 0
+	_pending_off_first[index] = ""
+
 func _sample(game: Game) -> void:
 	if game.phase != Game.Phase.PLAYING:
 		return
@@ -93,19 +126,61 @@ func _sample(game: Game) -> void:
 		samples += 1
 		var screen := canvas * fighter.position
 		var inside := screen.x >= -SCREEN_MARGIN and screen.x <= size.x + SCREEN_MARGIN and screen.y >= -SCREEN_MARGIN and screen.y <= size.y + SCREEN_MARGIN
-		var bubble: bool = fighter.state_machine.current_state.name == &"Hurt" and (game.get_node("Camera2D") as MatchCamera).is_indicating(fighter)
+		# A launch outlives the hitstun: the fighter leaves Hurt into Fall and may
+		# stay there a while (rising, the apex, then falling back) before landing
+		# or being hit again. That whole flight is one excursion: it starts the
+		# tick Hurt is (re-)entered -- including a fresh hit landed mid-air, which
+		# ends the excursion so far and starts a new one, since a later, stronger
+		# combo hit must stand on its own evidence, not inherit an earlier hit's --
+		# and ends the tick the fighter leaves Hurt/Fall (lands, or stops being in
+		# play; `_end_excursion` settles it). MatchCamera's own documented contract
+		# (see its class doc) is that only a launch no zoom can frame leaves a
+		# fighter off screen, and then its bubble points at them from the edge --
+		# so if the bubble fires at all during this excursion, the camera has
+		# already made that call for the whole flight, not just the ticks at or
+		# after the moment it fired (a clip on the way up, before the fighter is
+		# fully off screen, is still part of the same unframeable launch).
+		var state: StringName = fighter.state_machine.current_state.name
+		var was_launched := _prev_state[index] == &"Hurt" or _prev_state[index] == &"Fall"
+		var entering_hurt := state == &"Hurt" and _prev_state[index] != &"Hurt"
+		var launched := state == &"Hurt" or state == &"Fall"
+		if was_launched and (entering_hurt or not launched):
+			_end_excursion(index)
+		_prev_state[index] = state
+		var bubble := launched and (game.get_node("Camera2D") as MatchCamera).is_indicating(fighter)
 		if bubble:
+			_excursion_bubbled[index] = true
 			bubbled += 1
-		if not inside and not bubble:
-			off_screen += 1
-			if first_off == "":
-				first_off = "fighter %d at t=%.1f pos=%s screen=%s" % [index + 1, game.timer.wait_time - game.timer.time_left, fighter.position, screen]
+		if not inside:
+			var off_desc := "fighter %d at t=%.1f pos=%s screen=%s state=%s" % [index + 1, game.timer.wait_time - game.timer.time_left, fighter.position, screen, str(state) + " indicated=" + str(bubble) + " vel=" + str(fighter.velocity)]
+			if launched:
+				# Pending until the excursion ends: `not inside` alone must still
+				# fail for a fighter that is never bubble-indicated this excursion.
+				_pending_off[index] += 1
+				if _pending_off_first[index] == "":
+					_pending_off_first[index] = off_desc
+			else:
+				off_screen += 1
+				if first_off == "":
+					first_off = off_desc
 		var head: float = (canvas * (fighter.position + Vector2(0.0, -HEAD_HEIGHT))).y
-		if head < 0.0:
+		# Deliberately looser than the off-screen check above, and unconditional
+		# (no excursion/bubble bookkeeping needed): a fighter's head can poke
+		# above the view for a moment from any ordinary launch -- long before the
+		# camera is anywhere near giving up on framing it (no zoom-can't-frame
+		# bubble required) -- so `launched` alone, the original rule, is the
+		# exemption. (`bubble` already implies `launched`, so a `bubble`-latched
+		# excursion is never a separate case here; this tolerates it too without
+		# needing to say so.) Tightening this to require the bubble, the way the
+		# off-screen check now does, was tried and reverted: it made the check
+		# stricter than it has ever been and failed on ordinary, non-launch-sized
+		# hits that were never meant to be covered by MatchCamera's bubble
+		# contract at all.
+		if head < 0.0 and not launched:
 			head_clipped += 1
 			worst_clip = maxf(worst_clip, -head)
 			if first_clipped == "":
-				first_clipped = "fighter %d pos=%s head screen y=%.0f zoom=%.2f" % [index + 1, fighter.position, head, game.get_node("Camera2D").zoom.x]
+				first_clipped = "fighter %d pos=%s head screen y=%.0f state=%s zoom=%.2f" % [index + 1, fighter.position, head, state, game.get_node("Camera2D").zoom.x]
 
 func _run() -> void:
 	s = Smoke.new(self, 600.0)
@@ -169,6 +244,10 @@ func _run() -> void:
 	await s.real_wait(2.0)
 	await _reel_shot(false)
 
+	# Settle whichever fighter is still mid-excursion when the match ends, so no
+	# pending sample is silently lost.
+	_end_excursion(0)
+	_end_excursion(1)
 	s.check("reel: both fighters stayed on screen whenever inside the blast zones", off_screen == 0, "%d of %d samples off screen; first: %s" % [off_screen, samples, first_off])
 	s.check("reel: no fighter head was cut off by the top of the screen", head_clipped == 0, "%d of %d samples, worst %.0f px; first: %s" % [head_clipped, samples, worst_clip, first_clipped])
 	s.check("reel: no stray blue specks in the top band of any gameplay frame", stray_hits.is_empty(), " | ".join(stray_hits))

@@ -243,6 +243,7 @@ offset_bottom = 322.0
 script = ExtResource("6_panel")
 slant = 14.0
 crop = 1.0
+portrait = true
 greyed = true
 
 [node name="LoserLabel" type="Label" parent="Info"]
