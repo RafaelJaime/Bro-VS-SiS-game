@@ -8,7 +8,8 @@ extends Node2D
 ## from the trainer):
 ##   {"rows": [{"opponent": "cpu_easy", "seed": 11}, {"opponent": "self", "start": "sudden_death"}],
 ##    "reward": {"win": 3.0}, "episode_log": true, "columns": 8,
-##    "schema_version": 3, "match": {"sudden_death": true, "sd_safety_cap": 60.0}}
+##    "schema_version": 4, "match": {"sudden_death": true, "sd_safety_cap": 60.0},
+##    "kits": {"mode": "random", "seed": 7}}
 ## Without it the arena builds DEFAULT_ROWS rows: 6 cpu_easy and 2 self.
 ##
 ## `schema_version` picks the observation/action schema of every agent (BvsSchema
@@ -17,6 +18,12 @@ extends Node2D
 ## death instead of ending the episode as a draw, and `match.sd_safety_cap` is the
 ## seconds of sudden death after which an episode is truncated as a draw. A row with
 ## `"start": "sudden_death"` begins every episode in sudden death.
+##
+## `kits.mode` is "character" (default: every fighter keeps the kit of its character,
+## Rafael for Fighter1 and Matilde for Fighter2) or "random": each side of each row
+## draws a kit (FighterKits.random) when the row is built and again at the end of
+## every episode, from a per-row RNG seeded `kits.seed * 1009 + row index`, so both
+## kits appear on both sides, mirrors included, and the draw is reproducible.
 ##
 ## Row opponent kinds:
 ##   self                     both fighters are training agents (shared policy)
@@ -61,6 +68,9 @@ var rows: Array[Dictionary] = []
 var errors: PackedStringArray = PackedStringArray()
 ## Loaded snapshot models by path (a snapshot is shared by every row that names it).
 var _snapshot_models := {}
+## "character" or "random" (the kit assignment mode of every row).
+var kits_mode := "character"
+var _kits_seed := 0
 
 func _ready() -> void:
 	if config.is_empty():
@@ -70,6 +80,14 @@ func _ready() -> void:
 	schema_version = int(config.get("schema_version", BvsSchema.CURRENT_VERSION))
 	if BvsSchema.get_schema(schema_version) == null or BvsSchema.new_decoder(schema_version) == null:
 		var message := "TrainArena: schema_version %d is not registered, no row is built" % schema_version
+		errors.append(message)
+		push_error(message)
+		return
+	var kits_config: Dictionary = config.get("kits", {})
+	kits_mode = String(kits_config.get("mode", "character"))
+	_kits_seed = int(kits_config.get("seed", 0))
+	if kits_mode != "character" and kits_mode != "random":
+		var message := "TrainArena: kits.mode '%s' is unknown (use character or random), no row is built" % kits_mode
 		errors.append(message)
 		push_error(message)
 		return
@@ -202,7 +220,25 @@ func _build_row(index: int, spec: Dictionary, opponent: String, offset: Vector2,
 			# A frozen model, run by the same PolicyController as in a normal match.
 			foe.set_controller(PolicyController.new(_snapshot_models[_snapshot_path(opponent, spec)]))
 	games.append(game)
-	rows.append({"index": index, "opponent": opponent, "agent_side": 0 if opponent == "self" else agent_side, "game": game})
+	var row := {"index": index, "opponent": opponent, "agent_side": 0 if opponent == "self" else agent_side, "game": game}
+	if kits_mode == "random":
+		var rng := RandomNumberGenerator.new()
+		rng.seed = _kits_seed * 1009 + index
+		# The kit ids drawn for each side, one entry per episode (the first is the build).
+		var history: Array = []
+		row["kit_history"] = history
+		_assign_kits(fighters, rng, history)
+		game.training_episode_ended.connect(func(_winner: Fighter) -> void: _assign_kits(fighters, rng, history))
+	rows.append(row)
+
+## Draws a kit for each side and applies it; the fighters pick it up on their next reset.
+func _assign_kits(fighters: Array[Fighter], rng: RandomNumberGenerator, history: Array) -> void:
+	var drawn: Array[int] = []
+	for fighter in fighters:
+		var kit := FighterKits.random(rng)
+		fighter.set_profile(kit)
+		drawn.append(kit.kit_id)
+	history.append(drawn)
 
 ## Frames the whole arena (for watching a run; headless ignores it).
 func _frame_camera(row_count: int, columns: int) -> void:
