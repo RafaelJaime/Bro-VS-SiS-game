@@ -82,6 +82,7 @@ Throughput on a 10-core Apple M-series (8 rows per Godot process, speedup 8, `ac
   | blocking is not the plan | every regulation matchup with the model | blocked share at most 0.70 |
   | it wins by KO | `m_vs_cpu_easy` | KO win rate at least 0.60 |
   | shields are not spammed | `mvm`, `m_vs_cpu_hard` | at most `max_shield_raises_per_fighter_minute` (recorded by `--baseline`; the gate fails while no value is recorded) |
+  | shields are not tapped | every regulation matchup with the model | share of shield holds shorter than 15 ticks (0.25 s) at most `max_shield_tap_share` (0.5); CPU Hard's share is reported for information |
   | combos stay short | every matchup | longest combo at most 6 hits |
   | no long stun | every matchup | longest continuous Hurt at most 1.5 s |
   | combos happen | `mvm`, `cpu_normal_vs_cpu_normal`, `cpu_hard_vs_cpu_hard` | at least 5 combos of 2+ hits each |

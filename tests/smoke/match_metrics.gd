@@ -13,6 +13,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var s := Smoke.new(self)
 	await _live(s)
+	await _shield_taps(s)
 	_aggregate(s)
 	s.finish()
 
@@ -53,6 +54,31 @@ func _live(s: RefCounted) -> void:
 	s.check("a second stop() records nothing again", metrics.combos.size() == sum_before)
 	await s.despawn(game)
 
+## A one-tick tap and a 30 tick hold: both are finished holds, only the tap is under 15 ticks.
+func _shield_taps(s: RefCounted) -> void:
+	var game: Game = s.spawn_game(330.0, 900.0)
+	var controllers: Array = s.attach_controllers(game)
+	await s.frames(90)
+	game.food_spawner.stop()
+	var f: Fighter = game.get_node("Fighter1")
+	var ctrl = controllers[0]
+	var metrics := MatchMetrics.new()
+	metrics.setup(game)
+	ctrl.press_block()
+	await s.frames(60)
+	s.check("a one-tick tap is one finished hold and one tap", metrics.shield_holds == [1, 0] and metrics.shield_taps == [1, 0], "holds=%s taps=%s" % [str(metrics.shield_holds), str(metrics.shield_taps)])
+	ctrl.block_held_level = true
+	ctrl.press_block()
+	await s.frames(30)
+	s.check("a hold in progress is not counted yet", metrics.shield_holds == [1, 0] and s.state_of(f) == "Protect", "holds=%s state=%s" % [str(metrics.shield_holds), s.state_of(f)])
+	ctrl.block_held_level = false
+	await s.frames(60)
+	s.check("a 30 tick hold is a finished hold that is not a tap", metrics.shield_holds == [2, 0] and metrics.shield_taps == [1, 0], "holds=%s taps=%s" % [str(metrics.shield_holds), str(metrics.shield_taps)])
+	var record := metrics.to_dict()
+	s.check("to_dict carries the holds and taps", record["shield_holds"] == [2, 0] and record["shield_taps"] == [1, 0])
+	metrics.stop()
+	await s.despawn(game)
+
 func _record(combos: Array, raises: Array, hurt: Array, over: int, seconds: float = 60.0) -> Dictionary:
 	return {
 		"seconds": seconds, "sd_seconds": 0.0, "pickups": [0, 0], "throws": [0, 0], "shield_breaks": [0, 0],
@@ -77,11 +103,17 @@ func _aggregate(s: RefCounted) -> void:
 	s.check("the longest continuous Hurt is in seconds and over-cap runs are summed", is_equal_approx(float(out["max_hurt_seconds"]), 95.0 / 60.0) and out["hurt_over_cap"] == 1, str(out["max_hurt_seconds"]))
 	s.check("damage by kit sums the records", is_equal_approx(float(out["damage_by_kit"]["rafael"]), 20.0) and is_equal_approx(float(out["damage_by_kit"]["matilde"]), 12.0))
 	s.check("combo damage by kit is the mean of the multi-hit combos (single hits excluded)", is_equal_approx(float(out["combo_damage_by_kit"]["rafael"]), 18.5) and is_equal_approx(float(out["combo_damage_by_kit"]["matilde"]), 18.0) and out["combo_count_by_kit"] == {"rafael": 2, "matilde": 3}, str(out["combo_damage_by_kit"]))
+	var first := _record([], [0, 0], [0, 0], 0)
+	first.merge({"shield_holds": [3, 1], "shield_taps": [2, 0]})
+	var second := _record([], [0, 0], [0, 0], 0)
+	second.merge({"shield_holds": [4, 2], "shield_taps": [1, 1]})
+	var taps := MatchMetrics.aggregate([first, second])
+	s.check("the shield tap share is finished holds under 15 ticks over all finished holds", taps["shield_holds"] == 10 and taps["shield_taps"] == 4 and is_equal_approx(float(taps["shield_tap_share"]), 0.4), str(taps["shield_tap_share"]))
 	var empty := MatchMetrics.aggregate([])
-	s.check("an empty aggregate is zeros with an empty histogram", empty["shield_raises_per_fighter_minute"] == 0.0 and empty["max_combo"] == 0 and empty["multi_hit_combos"] == 0 and empty["combo_damage_by_kit"].is_empty() and empty["combo_histogram"]["7+"] == 0)
+	s.check("an empty aggregate is zeros with an empty histogram", empty["shield_raises_per_fighter_minute"] == 0.0 and empty["max_combo"] == 0 and empty["multi_hit_combos"] == 0 and empty["combo_damage_by_kit"].is_empty() and empty["combo_histogram"]["7+"] == 0 and empty["shield_tap_share"] == 0.0)
 	var legacy := MatchMetrics.aggregate([{
 		"seconds": 60.0, "sd_seconds": 0.0, "pickups": [0, 0], "throws": [0, 0], "shield_breaks": [0, 0],
 		"full_hits": 0, "blocked_hits": 0, "broke_hits": 0, "ignored_hits": 0,
 		"damage_by_source": {"punch": 0.0, "ledge": 0.0, "food": 0.0, "bomb": 0.0},
 	}])
-	s.check("a record without the new fields still aggregates", legacy["max_combo"] == 0 and legacy["shield_raises"] == 0)
+	s.check("a record without the new fields still aggregates", legacy["max_combo"] == 0 and legacy["shield_raises"] == 0 and legacy["shield_tap_share"] == 0.0)

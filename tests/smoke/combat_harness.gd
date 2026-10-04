@@ -32,6 +32,7 @@ extends SceneTree
 ##       "mean_match_seconds", "mean_sd_seconds", "max_sd_seconds", "sd_matches",
 ##       "pickups_per_fighter_minute", "throws_per_fighter_minute", "blocked_share",
 ##       "damage_by_source", "shield_breaks", "shield_raises_per_fighter_minute",
+##       "shield_holds", "shield_taps", "shield_tap_share",
 ##       "combo_histogram", "max_combo", "multi_hit_combos", "max_hurt_seconds",
 ##       "hurt_over_cap", "damage_by_kit", "combo_damage_by_kit",
 ##       "combo_damage_sum_by_kit", "combo_count_by_kit", "kit_win_share",

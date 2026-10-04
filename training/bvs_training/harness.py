@@ -23,6 +23,7 @@ exits non-zero when a gate fails (or a matchup a gate needs was not played):
 | blocking is not the plan | every regulation matchup with the model: blocked share | `max_blocked_share` |
 | it wins by KO | regulation `m_vs_cpu_easy` KO win rate | `min_ko_win_rate_easy` |
 | shields are not spammed | `mvm` and `m_vs_cpu_hard`: shield raises per fighter-minute | `max_shield_raises_per_fighter_minute` (recorded by `--baseline`; a missing value fails the gate) |
+| shields are not tapped | every regulation matchup with the model: share of shield holds under 15 ticks (CPU Hard reported for information) | `max_shield_tap_share` |
 | combos stay short | every matchup: longest combo | `max_combo` |
 | no long stun | every matchup: longest continuous Hurt (s) | `max_hurt_seconds` |
 | combos happen | `mvm`, `cpu_normal_vs_cpu_normal`, `cpu_hard_vs_cpu_hard`: 2+ hit combos | `min_multi_hit_combos` |
@@ -76,6 +77,7 @@ REQUIRED_ACCEPTANCE = (
     "min_matches",
     "min_matches_share",
     "min_matches_forced_sd",
+    "max_shield_tap_share",
     "max_combo",
     "max_hurt_seconds",
     "min_multi_hit_combos",
@@ -164,6 +166,7 @@ def evaluate_gates(report: dict, acceptance: dict, enforce_min_matches: bool = T
         results.append(GateResult("ko_win_rate_easy", value >= ko_floor, value, ko_floor, f"{value:.2f} KO wins over {int(easy['matches'])} matches (floor {ko_floor:g})"))
 
     results += shield_gate(regulation, acceptance)
+    results += shield_tap_gate(regulation, acceptance)
     results += combo_gates(regulation, forced, acceptance)
     results += balance_gates(regulation, acceptance)
 
@@ -184,6 +187,17 @@ def shield_gate(regulation: dict, acceptance: dict) -> list[GateResult]:
     worst = max(played, key=lambda name: float(played[name]["shield_raises_per_fighter_minute"]))
     value = float(played[worst]["shield_raises_per_fighter_minute"])
     return [GateResult("shield_raises", value <= limit, value, limit, f"highest {value:.2f} raises per fighter-minute in {worst} (limit {limit:.2f})")]
+
+
+def shield_tap_gate(regulation: dict, acceptance: dict) -> list[GateResult]:
+    """Share of shield holds shorter than 15 ticks at or under the limit in every regulation matchup with the model."""
+    limit = float(acceptance["max_shield_tap_share"])
+    played = {name: metrics for name, metrics in regulation.items() if uses_model(name)}
+    if not played:
+        return [GateResult("shield_tap_share", False, None, limit, "no regulation matchup with the model was played")]
+    worst = max(played, key=lambda name: float(played[name].get("shield_tap_share", 0.0)))
+    value = float(played[worst].get("shield_tap_share", 0.0))
+    return [GateResult("shield_tap_share", value <= limit, value, limit, f"highest {value:.2f} of shield holds under 15 ticks in {worst} (limit {limit:g})")]
 
 
 def combo_gates(regulation: dict, forced: dict, acceptance: dict) -> list[GateResult]:
@@ -368,14 +382,14 @@ def render_kit_tables(report: dict) -> list[str]:
         if not table:
             continue
         lines += ["", f"## Combos, shields and kits: {title.lower()}", "",
-                  "| Matchup | Shield raises / fighter-min | Max combo | 2+ hit combos | Combo histogram (1..6, 7+) | Longest Hurt (s) | Hurt runs over 90 ticks | Rafael win share | Fighter1 win share | Combo damage Rafael | Matilde |",
-                  "|---------|-----------------------------|-----------|---------------|----------------------------|------------------|--------------------------|------------------|--------------------|---------------------|---------|"]
+                  "| Matchup | Shield raises / fighter-min | Shield tap share | Max combo | 2+ hit combos | Combo histogram (1..6, 7+) | Longest Hurt (s) | Hurt runs over 90 ticks | Rafael win share | Fighter1 win share | Combo damage Rafael | Matilde |",
+                  "|---------|-----------------------------|------------------|-----------|---------------|----------------------------|------------------|--------------------------|------------------|--------------------|---------------------|---------|"]
         for matchup, m in table.items():
             histogram = m.get("combo_histogram", {})
             buckets = " / ".join(str(histogram.get(bucket, 0)) for bucket in ("1", "2", "3", "4", "5", "6", "7+"))
             damage = m.get("combo_damage_by_kit", {})
             lines.append(
-                f"| {matchup} | {m.get('shield_raises_per_fighter_minute', 0.0):.2f} | {m.get('max_combo', 0)} | {m.get('multi_hit_combos', 0)} | "
+                f"| {matchup} | {m.get('shield_raises_per_fighter_minute', 0.0):.2f} | {m.get('shield_tap_share', 0.0):.2f} | {m.get('max_combo', 0)} | {m.get('multi_hit_combos', 0)} | "
                 f"{buckets} | {m.get('max_hurt_seconds', 0.0):.2f} | {m.get('hurt_over_cap', 0)} | {_share(m.get('kit_win_share'))} | "
                 f"{_share(m.get('side_win_share'))} | {damage.get('rafael', 0.0):.1f} | {damage.get('matilde', 0.0):.1f} |"
             )

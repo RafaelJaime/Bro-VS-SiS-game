@@ -20,6 +20,9 @@ const SOURCE_NAMES: PackedStringArray = ["punch", "ledge", "food", "bomb"]
 const HURT_CAP_TICKS := 90
 ## Combo lengths up to this have their own histogram bucket, longer ones land in "7+".
 const HISTOGRAM_BUCKETS := 6
+## A shield raise held fewer ticks than this is a tap (0.25 s): the "shield tapped between
+## other actions" pattern. The mandatory minimum hold alone is 4 ticks.
+const SHIELD_TAP_TICKS := 15
 
 var game: Game
 ## Per fighter (index 0 = Fighter1): foods picked up, thrown, and shields of that
@@ -36,6 +39,10 @@ var ignored_hits := 0
 var damage_by_source := {"punch": 0.0, "ledge": 0.0, "food": 0.0, "bomb": 0.0}
 ## Shield raises per fighter (the Fighter.shield_raises delta since `setup`).
 var shield_raises: Array[int] = [0, 0]
+## Finished shield holds per fighter (consecutive ticks in Protect) and how many of them
+## were shorter than SHIELD_TAP_TICKS. A hold still open when the match ends is not counted.
+var shield_holds: Array[int] = [0, 0]
+var shield_taps: Array[int] = [0, 0]
 ## Every combo that ended (single hits count as length 1): {hits, damage,
 ## attacker_kit, victim_index}. An open combo is flushed by `stop()`.
 var combos: Array[Dictionary] = []
@@ -54,6 +61,7 @@ var sd_ticks := 0
 var _fighters: Array[Fighter] = []
 var _running := false
 var _hurt_run: Array[int] = [0, 0]
+var _shield_run: Array[int] = [0, 0]
 var _raises_start: Array[int] = [0, 0]
 
 ## Connects to both fighters of `match_game` and starts counting ticks. The fighters
@@ -118,6 +126,18 @@ func _on_physics_frame() -> void:
 				hurt_over_cap += 1
 		else:
 			_hurt_run[index] = 0
+		_track_shield(index, fighter)
+
+## Counts the consecutive ticks of a Protect hold and records the hold when it ends.
+func _track_shield(index: int, fighter: Fighter) -> void:
+	var shielding: bool = fighter.state_machine != null and fighter.state_machine.current_state != null and fighter.state_machine.current_state.name == "Protect"
+	if shielding:
+		_shield_run[index] += 1
+	elif _shield_run[index] > 0:
+		shield_holds[index] += 1
+		if _shield_run[index] < SHIELD_TAP_TICKS:
+			shield_taps[index] += 1
+		_shield_run[index] = 0
 
 func _kit_of(fighter: Fighter) -> String:
 	return String(fighter.profile.kit_name) if fighter != null and fighter.profile != null else "default"
@@ -192,6 +212,8 @@ func to_dict() -> Dictionary:
 		"ignored_hits": ignored_hits,
 		"damage_by_source": damage_by_source.duplicate(),
 		"shield_raises": _current_raises(),
+		"shield_holds": shield_holds.duplicate(),
+		"shield_taps": shield_taps.duplicate(),
 		"combos": combos.duplicate(true),
 		"max_hurt_ticks": max_hurt_ticks.duplicate(),
 		"hurt_over_cap": hurt_over_cap,
@@ -212,7 +234,8 @@ func _current_raises() -> Array[int]:
 ## pickups and throws per fighter-minute (all fighters over all match time),
 ## blocked share, damage by source, shield breaks, and the sudden-death lengths
 ## (only matches that reached sudden death count; 0 when none did), plus the
-## character-kits fields: shield raises per fighter-minute, the combo histogram
+## character-kits fields: shield raises per fighter-minute, the shield tap share (finished
+## shield holds shorter than 15 ticks over all finished holds), the combo histogram
 ## ("1".."6", "7+"), the longest combo, the number of 2+ hit combos, the longest
 ## continuous Hurt in seconds, the Hurt runs over the 90 tick cap, damage by kit and
 ## the mean multi-hit combo damage by attacker kit (with its sum and count, so
@@ -228,6 +251,8 @@ static func aggregate(records: Array) -> Dictionary:
 	var damage := {"punch": 0.0, "ledge": 0.0, "food": 0.0, "bomb": 0.0}
 	var sd_lengths: Array[float] = []
 	var raises_total := 0
+	var holds_total := 0
+	var taps_total := 0
 	var histogram := {}
 	for bucket in HISTOGRAM_BUCKETS:
 		histogram[str(bucket + 1)] = 0
@@ -243,6 +268,10 @@ static func aggregate(records: Array) -> Dictionary:
 		seconds_total += float(record["seconds"])
 		for count: int in record.get("shield_raises", []):
 			raises_total += count
+		for count: int in record.get("shield_holds", []):
+			holds_total += count
+		for count: int in record.get("shield_taps", []):
+			taps_total += count
 		for combo: Dictionary in record.get("combos", []):
 			var hits := int(combo["hits"])
 			histogram[str(hits) if hits <= HISTOGRAM_BUCKETS else "%d+" % (HISTOGRAM_BUCKETS + 1)] += 1
@@ -288,6 +317,9 @@ static func aggregate(records: Array) -> Dictionary:
 		"max_sd_seconds": sd_max,
 		"shield_raises": raises_total,
 		"shield_raises_per_fighter_minute": float(raises_total) / fighter_minutes if fighter_minutes > 0.0 else 0.0,
+		"shield_holds": holds_total,
+		"shield_taps": taps_total,
+		"shield_tap_share": float(taps_total) / float(holds_total) if holds_total > 0 else 0.0,
 		"combo_histogram": histogram,
 		"max_combo": max_combo,
 		"multi_hit_combos": multi_hit,

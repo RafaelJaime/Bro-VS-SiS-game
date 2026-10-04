@@ -17,6 +17,7 @@ ACCEPTANCE = {
     "min_matches": 24,
     "min_matches_share": 40,
     "min_matches_forced_sd": 20,
+    "max_shield_tap_share": 0.5,
     "max_combo": 6,
     "max_hurt_seconds": 1.5,
     "min_multi_hit_combos": 5,
@@ -34,7 +35,7 @@ def metrics(**over) -> dict:
         "mean_match_seconds": 60.0, "mean_sd_seconds": 10.0, "max_sd_seconds": 20.0, "sd_matches": 20,
         "pickups_per_fighter_minute": 5.0, "throws_per_fighter_minute": 4.0, "blocked_share": 0.3,
         "damage_by_source": {"punch": 100.0, "ledge": 0.0, "food": 80.0, "bomb": 12.0}, "shield_breaks": 3,
-        "shield_raises_per_fighter_minute": 3.0, "max_combo": 4, "multi_hit_combos": 12, "max_hurt_seconds": 1.0,
+        "shield_raises_per_fighter_minute": 3.0, "shield_tap_share": 0.2, "max_combo": 4, "multi_hit_combos": 12, "max_hurt_seconds": 1.0,
         "hurt_over_cap": 0, "kit_win_share": 0.5, "side_win_share": 0.5,
         "combo_histogram": {"1": 40, "2": 8, "3": 3, "4": 1, "5": 0, "6": 0, "7+": 0},
         "combo_damage_by_kit": {"rafael": 11.0, "matilde": 10.0},
@@ -51,7 +52,7 @@ def passing_report() -> dict:
         "kits": "rm",
         "regulation": {
             "mvm": metrics(matches=40),
-            "cpu_hard_vs_cpu_hard": metrics(matches=40, pickups_per_fighter_minute=0.0, blocked_share=0.99, shield_raises_per_fighter_minute=11.0),
+            "cpu_hard_vs_cpu_hard": metrics(matches=40, pickups_per_fighter_minute=0.0, blocked_share=0.99, shield_raises_per_fighter_minute=11.0, shield_tap_share=0.9),
             "m_vs_cpu_easy": metrics(matches=24, ko_win_rate=0.8, multi_hit_combos=0),
             "m_vs_cpu_hard": metrics(matches=24),
             "cpu_normal_vs_cpu_normal": metrics(matches=24, pickups_per_fighter_minute=0.0, blocked_share=0.99),
@@ -65,7 +66,7 @@ def verdicts(report: dict, acceptance: dict = GATED, **kwargs) -> dict[str, bool
 
 
 ALL_GATES = {
-    "sudden_death_length", "pickups", "blocked_share", "ko_win_rate_easy", "shield_raises", "max_combo", "max_hurt_seconds",
+    "sudden_death_length", "pickups", "blocked_share", "ko_win_rate_easy", "shield_raises", "shield_tap_share", "max_combo", "max_hurt_seconds",
     "multi_hit_combos", "kit_win_share", "combo_damage_gap", "min_matches",
 }
 
@@ -166,6 +167,26 @@ def test_the_shield_gate_uses_the_recorded_threshold_in_the_model_matchups() -> 
     assert all(results.values())
     report["regulation"]["m_vs_cpu_hard"] = metrics(matches=24, shield_raises_per_fighter_minute=THRESHOLD)
     assert verdicts(report)["shield_raises"]
+
+
+def test_the_tap_gate_covers_every_matchup_with_the_model_and_not_cpu_only_ones() -> None:
+    report = passing_report()
+    assert report["regulation"]["cpu_hard_vs_cpu_hard"]["shield_tap_share"] > 0.5
+    assert verdicts(report)["shield_tap_share"]
+    for matchup in ("mvm", "m_vs_cpu_easy", "m_vs_cpu_hard"):
+        broken = passing_report()
+        broken["regulation"][matchup] = metrics(matches=broken["regulation"][matchup]["matches"], shield_tap_share=0.51)
+        results = verdicts(broken)
+        assert results["shield_tap_share"] is False, matchup
+    edge = passing_report()
+    edge["regulation"]["mvm"] = metrics(matches=40, shield_tap_share=0.5)
+    assert verdicts(edge)["shield_tap_share"]
+
+
+def test_a_report_without_the_tap_metric_counts_as_zero_taps() -> None:
+    report = passing_report()
+    del report["regulation"]["mvm"]["shield_tap_share"]
+    assert verdicts(report)["shield_tap_share"]
 
 
 def test_without_a_recorded_threshold_the_shield_gate_fails_with_a_reason() -> None:
