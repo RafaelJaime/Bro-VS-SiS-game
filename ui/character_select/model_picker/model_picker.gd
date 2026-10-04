@@ -100,7 +100,9 @@ func _build() -> void:
 	bar.offset_right = -30.0
 	bar.offset_bottom = 0.0
 	add_child(bar)
-	back_button = _pizza_button(BUTTON_BACK, "Back")
+	# Back and Continue are art only (no caption); Continue's art is mirrored so it points right.
+	back_button = _pizza_button(BUTTON_BACK, "")
+	back_button.tooltip_text = "Back"
 	back_button.pressed.connect(back)
 	bar.add_child(back_button)
 	var spacer := Control.new()
@@ -109,7 +111,8 @@ func _build() -> void:
 	retry_button = _pizza_button(BUTTON_RETRY, "Retry")
 	retry_button.pressed.connect(reload)
 	bar.add_child(retry_button)
-	search_button = _pizza_button(BUTTON_CONTINUE, "Continue")
+	search_button = _pizza_button(_mirrored(BUTTON_CONTINUE), "")
+	search_button.tooltip_text = "Continue"
 	search_button.pressed.connect(search)
 	bar.add_child(search_button)
 
@@ -223,15 +226,16 @@ func _pizza_button(art: Texture2D, caption: String) -> Button:
 	button.expand_icon = true
 	button.pivot_offset = BUTTON_SIZE / 2.0
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	var label := _outlined(caption, 20, Color.WHITE, 7)
-	label.name = "Caption"
-	label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	label.offset_left = -BUTTON_SIZE.x / 2.0
-	label.offset_right = BUTTON_SIZE.x / 2.0
-	label.offset_top = 2.0
-	label.offset_bottom = 32.0
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	button.add_child(label)
+	if not caption.is_empty():
+		var label := _outlined(caption, 20, Color.WHITE, 7)
+		label.name = "Caption"
+		label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+		label.offset_left = -BUTTON_SIZE.x / 2.0
+		label.offset_right = BUTTON_SIZE.x / 2.0
+		label.offset_top = 2.0
+		label.offset_bottom = 32.0
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.add_child(label)
 	button.focus_entered.connect(_highlight.bind(button, true))
 	button.focus_exited.connect(_highlight.bind(button, false))
 	button.mouse_entered.connect(button.grab_focus)
@@ -242,8 +246,15 @@ func _highlight(button: Button, on: bool) -> void:
 		return
 	var tween := button.create_tween().set_parallel(true)
 	tween.tween_property(button, "scale", Vector2.ONE * (FOCUS_SCALE if on else 1.0), 0.1)
-	var caption := button.get_node("Caption") as Label
-	caption.add_theme_color_override("font_color", COLOR_YELLOW if on else Color.WHITE)
+	var caption := button.get_node_or_null("Caption") as Label
+	if caption != null:
+		caption.add_theme_color_override("font_color", COLOR_YELLOW if on else Color.WHITE)
+
+## A horizontally mirrored copy of `art` (an icon that should point the other way).
+static func _mirrored(art: Texture2D) -> Texture2D:
+	var image := art.get_image()
+	image.flip_x()
+	return ImageTexture.create_from_image(image)
 
 # --- flow -------------------------------------------------------------------
 
