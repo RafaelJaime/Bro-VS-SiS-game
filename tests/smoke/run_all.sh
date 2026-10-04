@@ -75,6 +75,8 @@ if [ "$BACKGROUND" -eq 1 ]; then
 	FRONT_BEFORE="$(frontmost_bundle)"
 	tests/smoke/focus_keeper.sh "$BG_BUNDLE_ID" "$GUARD_LOG" "$GUARD_STOP" &
 	SAMPLER_PID=$!
+	# Always release the focus keeper, even if this run is interrupted.
+	trap 'touch "$GUARD_STOP"' EXIT
 fi
 
 # Refresh the imported assets and the global class cache first, so new
