@@ -2,8 +2,8 @@
 
 The validation mirrors `BvsSchema.validate_sidecar` in GDScript: schema_version,
 obs_dim, action_branches (names and sizes, in order) and action_repeat must match
-`bvs_training.schema` (the training schema, 3, unless a version is passed). The Hub
-tag of a schema is `schema.SCHEMA_TAG` (`bvs-schema-3`).
+`bvs_training.schema` (the training schema, 4, unless a version is passed). The Hub
+tag of a schema is `schema.SCHEMA_TAG` (`bvs-schema-4`).
 """
 
 from __future__ import annotations

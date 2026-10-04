@@ -2,9 +2,9 @@
 
     cd training && uv run python -m bvs_training.handshake
 
-Writes a small BVS_TRAIN_CONFIG that asks Godot for `schema.TRAIN_VERSION` (schema 3:
-136 observations), then checks the observation shape, the action space and that a
-sudden-death-start row reaches `done` (a KO or the 60 s safety cap).
+Writes a small BVS_TRAIN_CONFIG that asks Godot for `schema.TRAIN_VERSION` (schema 4:
+149 observations, random kits per side), then checks the observation shape, the action
+space and that a sudden-death-start row reaches `done` (a KO or the 60 s safety cap).
 """
 
 from __future__ import annotations
@@ -36,6 +36,7 @@ def handshake_config(version: int = schema.TRAIN_VERSION) -> dict:
         "schema_version": version,
         "rows": [{"opponent": "cpu_easy", "seed": 1}, {"opponent": "self", "start": "sudden_death"}],
         "match": {"sudden_death": True, "sd_safety_cap": 30.0},
+        "kits": {"mode": "random", "seed": 1},
         "episode_log": True,
     }
 

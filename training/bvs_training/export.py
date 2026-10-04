@@ -38,7 +38,7 @@ class ExportError(Exception):
 
 
 class PolicyLogits(torch.nn.Module):
-    """obs [1, OBS_DIM] -> logits [1, 21]: policy trunk plus the action head (OBS_DIM is 136 for schema 3)."""
+    """obs [1, OBS_DIM] -> logits [1, 21]: policy trunk plus the action head (OBS_DIM is 149 for schema 4)."""
 
     def __init__(self, policy) -> None:
         super().__init__()
