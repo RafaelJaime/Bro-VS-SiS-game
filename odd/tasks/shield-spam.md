@@ -39,3 +39,6 @@ strict_tdd=false; smoke checks first where feasible; full suite green per task.
 - T2 `ccf2005`: root cause was `Punch._update` planting every punch (`calculate_velocity(0, ZERO)`), braking the horizontal speed in the air (dx 278 vs 360 px, 77%). Vertical velocity was never zeroed (apex identical before and after). Airborne punches now use Jump/Fall air control. `tests/smoke/air_punch.gd` (5): apex and dx within 5%, the punch still hits.
 - T3 `5606ce5`: bubble hue = `CharacterUI.color` (HUD source), weak meter fades and pulses instead of turning red. `tests/smoke/shield_look.gd` (11). Screenshots in the session scratchpad `shield_fix/`.
 - Risk for T4: the bundled schema-3 model was trained without drop lag/raise cost (state ShieldDrop lands in the one-hot "other" slot); retrain needed.
+
+### T4 cross-reference (SDD change `character-kits-combos`)
+- S5 baseline (seed 1, kits `rm`, final gameplay and kits): `training/reports/shield-baseline.{json,md}`. `R_cpu` 10.50 raises per fighter-minute (CPU Hard mirror, 40 matches), `R_old` 5.85 (the bundled schema 3 model; 0.00 in `mvm`, 5.85 against CPU Hard), so the gate is `max_shield_raises_per_fighter_minute = 15.75` in `training/configs/default.toml`. The S6 retrain (one run covering the shield fixes and the kits) is measured against it; see `openspec/changes/character-kits-combos/tasks.md` (5.16 and S6).

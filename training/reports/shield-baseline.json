@@ -1,0 +1,27 @@
+{
+  "seed": 1,
+  "kits": "rm",
+  "model": "game/ai/models/bvs_default/model.onnx",
+  "model_schema_version": 3,
+  "R_cpu": 10.501272546199,
+  "R_cpu_matchup": {
+    "name": "cpu_hard_vs_cpu_hard",
+    "matches": 40,
+    "shield_raises": 949,
+    "seconds_per_match": 67.7775
+  },
+  "R_old": 5.85165960934299,
+  "R_old_matchups": {
+    "mvm": {
+      "rate": 0.0,
+      "matches": 24
+    },
+    "m_vs_cpu_hard": {
+      "rate": 5.85165960934299,
+      "matches": 24
+    }
+  },
+  "T": 15.751908819298501,
+  "T_rule": "0.5 * R_old is below R_cpu (the old model does not spam on the new rules): T = max(1.5 * R_cpu, R_cpu + 2.0)",
+  "max_shield_raises_per_fighter_minute": 15.75
+}

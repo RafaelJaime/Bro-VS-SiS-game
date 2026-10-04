@@ -74,8 +74,12 @@ min_multi_hit_combos = 5             # 2+ hit combos per matchup (mvm, cpu_norma
 kit_win_share_min = 0.40             # Rafael's win share band in mvm and the CPU Hard mirror
 kit_win_share_max = 0.60
 max_combo_damage_gap = 0.20          # abs(R - M) / max(R, M) of the mean multi-hit combo damage
-# max_shield_raises_per_fighter_minute (mvm and m_vs_cpu_hard) is recorded by
-# `uv run python -m bvs_training.harness --baseline` before the retrain (see reports/shield-baseline.md).
+# Shield raises per fighter-minute in mvm and m_vs_cpu_hard (design D15). Measured by
+# `uv run python -m bvs_training.harness --baseline` at seed 1 with kits rm, before any retrain:
+# R_cpu 10.50 (CPU Hard mirror), R_old 5.85 (bundled schema 3 model), so 0.5 * R_old < R_cpu and
+# T = max(1.5 * R_cpu, R_cpu + 2.0) = 15.75 (see reports/shield-baseline.md). Changed only by a new
+# measurement that a report explains.
+max_shield_raises_per_fighter_minute = 15.75
 
 [[phase]]
 name = "P1"

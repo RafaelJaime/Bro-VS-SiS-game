@@ -284,9 +284,18 @@ def test_no_model_matchup_at_all_fails_the_food_and_block_gates() -> None:
 
 def test_the_default_config_holds_the_documented_gates() -> None:
     acceptance = harness.load_acceptance(harness.DEFAULT_CONFIG)
-    recorded = acceptance.pop(harness.SHIELD_THRESHOLD_KEY, None)
+    recorded = acceptance.pop(harness.SHIELD_THRESHOLD_KEY)
     assert acceptance == ACCEPTANCE
-    assert recorded is None or recorded > 0.0
+    assert recorded > 0.0
+
+
+def test_the_recorded_shield_threshold_is_the_one_the_committed_baseline_measured() -> None:
+    baseline = json.loads((harness.REPORT_DIR / "shield-baseline.json").read_text())
+    acceptance = harness.load_acceptance(harness.DEFAULT_CONFIG)
+    threshold, _note = harness.compute_threshold(baseline["R_cpu"], baseline["R_old"])
+    assert baseline["T"] == pytest.approx(threshold)
+    assert acceptance[harness.SHIELD_THRESHOLD_KEY] == round(threshold, 2) == baseline["max_shield_raises_per_fighter_minute"]
+    assert baseline["R_cpu_matchup"]["matches"] == 40 and {entry["matches"] for entry in baseline["R_old_matchups"].values()} == {24}
 
 
 def test_a_config_without_acceptance_names_the_missing_keys(tmp_path: Path) -> None:

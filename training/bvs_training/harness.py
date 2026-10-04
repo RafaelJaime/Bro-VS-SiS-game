@@ -391,6 +391,14 @@ def plan_matchups(matchups: tuple[str, ...], acceptance: dict, override: int | N
     return {count: tuple(names) for count, names in groups.items()}
 
 
+def _display_path(path: Path) -> str:
+    """The path relative to the repository when it lies inside it (reports never carry an absolute home path)."""
+    try:
+        return str(path.resolve().relative_to(schema.REPO_ROOT))
+    except ValueError:
+        return path.name
+
+
 def run_baseline(model: Path, seed: int, kits: str, work: Path) -> dict:
     """The shield-raise baseline (design D15): R_cpu from CPU Hard against itself, R_old from the model."""
     cpu_name, cpu_matches = BASELINE_CPU
@@ -404,7 +412,7 @@ def run_baseline(model: Path, seed: int, kits: str, work: Path) -> dict:
     return {
         "seed": seed,
         "kits": kits,
-        "model": str(model),
+        "model": _display_path(model),
         "model_schema_version": old.get("schema_version", 0),
         "R_cpu": r_cpu,
         "R_cpu_matchup": {"name": cpu_name, "matches": int(cpu["matches"]), "shield_raises": int(cpu["shield_raises"]), "seconds_per_match": float(cpu["mean_match_seconds"])},
