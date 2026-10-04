@@ -169,14 +169,14 @@ func _assignment(s: RefCounted) -> void:
 	var arena := await _arena(s)
 	var rafael := _fighter(arena, RAFAEL)
 	var matilde := _fighter(arena, MATILDE)
-	s.check("Rafael gets his kit at spawn", rafael.profile.kit_id == 0 and rafael.profile.kit_name == &"rafael" and is_equal_approx(rafael.profile.run_speed, 270.0))
-	s.check("Matilde gets her kit at spawn", matilde.profile.kit_id == 1 and matilde.profile.kit_name == &"matilde" and is_equal_approx(matilde.profile.run_speed, 340.0))
+	s.check("Rafael gets his kit at spawn", rafael.profile.kit_id == 0 and rafael.profile.kit_name == &"rafael" and is_equal_approx(rafael.profile.run_speed, 295.0))
+	s.check("Matilde gets her kit at spawn", matilde.profile.kit_id == 1 and matilde.profile.kit_name == &"matilde" and is_equal_approx(matilde.profile.run_speed, 325.0))
 	var rafael_ui: CharacterUI = rafael.character_ui
 	var matilde_ui: CharacterUI = matilde.character_ui
 
 	# The character_ui setter (what SceneManager.play_game does after add_child).
 	rafael.character_ui = matilde_ui
-	s.check("changing the character swaps the kit (setter path)", rafael.profile.kit_id == 1 and is_equal_approx(rafael.profile.run_speed, 340.0))
+	s.check("changing the character swaps the kit (setter path)", rafael.profile.kit_id == 1 and is_equal_approx(rafael.profile.run_speed, 325.0))
 	rafael.character_ui = rafael_ui
 	s.check("changing it back restores the Rafael kit", rafael.profile.kit_id == 0)
 	await s.despawn(arena["game"])
@@ -200,7 +200,7 @@ func _assignment(s: RefCounted) -> void:
 	var mirror: Node = manager.current_scene
 	var m1: Fighter = mirror.get_node("Fighter1")
 	var m2: Fighter = mirror.get_node("Fighter2")
-	s.check("play_game gives a mirror match the Rafael kit on both sides", m1.profile.kit_id == 0 and m2.profile.kit_id == 0 and is_equal_approx(m2.profile.run_speed, 270.0))
+	s.check("play_game gives a mirror match the Rafael kit on both sides", m1.profile.kit_id == 0 and m2.profile.kit_id == 0 and is_equal_approx(m2.profile.run_speed, 295.0))
 	s.check("the mirror fighters keep independent shield meters and combo trackers", m1.shield != m2.shield and m1.combo != m2.combo)
 	mirror.queue_free()
 	await s.frames(2)
@@ -243,7 +243,7 @@ func _set_profile_refresh(s: RefCounted) -> void:
 	s.check("set_profile refills the shield", is_equal_approx(fighter.shield.ratio(), 1.0), "ratio=%.2f" % fighter.shield.ratio())
 	s.check("set_profile restores the air jump and the air dash", fighter.jumps_left == custom.max_air_jumps and fighter.air_dash_available)
 	s.check("set_profile rebuilds the pickup area from the new profile", is_equal_approx(size.x, 300.0) and is_equal_approx(size.y, 120.0), "size=%s" % [size])
-	s.check("set_profile makes the fighter read the new numbers at once", fighter.profile == custom and is_equal_approx(fighter.get_knockback_scale(), 1.0))
+	s.check("set_profile makes the fighter read the new numbers at once", fighter.profile == custom and is_equal_approx(fighter.get_knockback_scale(), custom.knockback_scale))
 	fighter.set_profile(null)
 	s.check("set_profile(null) falls back to the default profile", fighter.profile.kit_id == -1)
 	await s.despawn(arena["game"])
@@ -253,8 +253,8 @@ func _set_profile_refresh(s: RefCounted) -> void:
 func _kit_data(s: RefCounted) -> void:
 	var r := FighterKits.by_id(0)
 	var m := FighterKits.by_id(1)
-	s.check("Rafael: heavy and slow (run 270, jumps -820 / -720, knockback scale 0.92 after the S6 balance pass)", is_equal_approx(r.run_speed, 270.0) and is_equal_approx(r.jump_velocity, -820.0) and is_equal_approx(r.double_jump_velocity, -720.0) and is_equal_approx(r.knockback_scale, 0.92))
-	s.check("Matilde: light and fast (run 340, jumps -900 / -780, knockback scale 1.0 after the balance pass)", is_equal_approx(m.run_speed, 340.0) and is_equal_approx(m.jump_velocity, -900.0) and is_equal_approx(m.double_jump_velocity, -780.0) and is_equal_approx(m.knockback_scale, 1.0))
+	s.check("Rafael: heavy and slow (run 295, jumps -820 / -720, knockback scale 0.92 after the S6 balance pass)", is_equal_approx(r.run_speed, 295.0) and is_equal_approx(r.jump_velocity, -820.0) and is_equal_approx(r.double_jump_velocity, -720.0) and is_equal_approx(r.knockback_scale, 0.92))
+	s.check("Matilde: light and fast (run 325, jumps -900 / -780, knockback scale 1.15 after the S6 balance pass)", is_equal_approx(m.run_speed, 325.0) and is_equal_approx(m.jump_velocity, -900.0) and is_equal_approx(m.double_jump_velocity, -780.0) and is_equal_approx(m.knockback_scale, 1.15))
 	s.check("Rafael: 2-hit jab (3.5 then the 7 damage finisher), single air jab, single 10", r.jab_chain.size() == 2 and is_equal_approx(r.jab_chain[0].damage, 3.5) and is_equal_approx(r.jab_chain[1].damage, 7.0) and r.air_jab_chain.size() == 1 and is_equal_approx(r.neutral_single.damage, 10.0))
 	s.check("Matilde: 3-hit jab (2.5, 2.5, finisher 6), 2-hit air jab, single 6", m.jab_chain.size() == 3 and is_equal_approx(m.jab_chain[0].damage, 2.5) and is_equal_approx(m.jab_chain[1].damage, 2.5) and is_equal_approx(m.jab_chain[2].damage, 6.0) and m.air_jab_chain.size() == 2 and is_equal_approx(m.neutral_single.damage, 6.0))
 	s.check("Rafael: heavy up launcher (8) with a 0.55 s endlag, side 12 (300, -90), spike 11 (40, 460)", is_equal_approx(r.attack_up.damage, 8.0) and r.attack_up.resolved_frames(r)["endlag"] == CombatClock.ticks(0.55) and is_equal_approx(r.attack_side.damage, 12.0) and r.attack_side.knockback == Vector2(300.0, -90.0) and is_equal_approx(r.attack_down_air.damage, 11.0) and r.attack_down_air.knockback == Vector2(40.0, 460.0))
@@ -283,7 +283,7 @@ func _movement(s: RefCounted) -> void:
 	await s.frames(22)
 	var run_r := absf(r.velocity.x)
 	var run_m := absf(m.velocity.x)
-	s.check("run speed per kit: Rafael 270, Matilde 340", absf(run_r - 270.0) < 3.0 and absf(run_m - 340.0) < 3.0, "rafael=%.0f matilde=%.0f" % [run_r, run_m])
+	s.check("run speed per kit: Rafael 295, Matilde 325", absf(run_r - 295.0) < 3.0 and absf(run_m - 325.0) < 3.0, "rafael=%.0f matilde=%.0f" % [run_r, run_m])
 	_ctrl(arena, RAFAEL).move_x = 0.0
 	_ctrl(arena, MATILDE).move_x = 0.0
 	await s.frames(30)

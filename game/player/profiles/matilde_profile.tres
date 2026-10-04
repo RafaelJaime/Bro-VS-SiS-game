@@ -123,7 +123,8 @@ cooldown_ticks = 0
 
 [resource]
 script = ExtResource("2_md0p8")
-run_speed = 340.0
+run_speed = 325.0
+knockback_scale = 1.15
 jump_velocity = -900.0
 double_jump_velocity = -780.0
 kit_id = 1

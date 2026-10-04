@@ -91,7 +91,7 @@ cooldown_ticks = 0
 
 [resource]
 script = ExtResource("2_an1oi")
-run_speed = 270.0
+run_speed = 295.0
 knockback_scale = 0.92
 jump_velocity = -820.0
 double_jump_velocity = -720.0
