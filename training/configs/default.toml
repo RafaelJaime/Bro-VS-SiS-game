@@ -43,13 +43,13 @@ mode = "random"
 # game/ai/training/reward_config.gd for the defaults. The combat-depth terms are signal-driven
 # (pickups, food hits, shield breaks, a long shield hold); the last two keys are parameters.
 [reward]
-pickup = 0.12
+pickup = 0.35
 food_hit = 0.15
 shield_break_dealt = 0.4
 shield_break_taken = -0.4
 shield_hold = -0.003
 shield_hold_threshold = 1.5   # seconds of continuous shielding before shield_hold applies
-pickup_cap = 20               # rewarded pickups per episode
+pickup_cap = 8                # rewarded pickups per episode
 # Character-kits terms (signal driven): a small reward per extra hit of a combo I deal, capped per
 # combo (combo_hit_cap extra hits) and per episode (combo_episode_cap), and a small cost per shield
 # raise (the lever against shield spam; 0.0 in code, so a missing key changes nothing).

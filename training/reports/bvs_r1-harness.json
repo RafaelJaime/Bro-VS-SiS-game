@@ -1,0 +1,1853 @@
+{
+  "name": "bvs_r1",
+  "model": "out/r1m/model.onnx",
+  "seed": 1,
+  "kits": "rm",
+  "schema_version": 4,
+  "acceptance": {
+    "max_mean_sd_seconds": 45,
+    "min_pickups_per_fighter_minute": 1.0,
+    "max_blocked_share": 0.7,
+    "min_ko_win_rate_easy": 0.6,
+    "min_matches": 24,
+    "min_matches_share": 40,
+    "min_matches_forced_sd": 20,
+    "max_combo": 6,
+    "max_hurt_seconds": 1.5,
+    "min_multi_hit_combos": 5,
+    "kit_win_share_min": 0.4,
+    "kit_win_share_max": 0.6,
+    "max_combo_damage_gap": 0.2,
+    "max_shield_raises_per_fighter_minute": 15.75,
+    "max_shield_tap_share": 0.5
+  },
+  "regulation": {
+    "mvm": {
+      "blocked_share": 0.0,
+      "combo_count_by_kit": {
+        "matilde": 129
+      },
+      "combo_damage_by_kit": {
+        "matilde": 18.1240310077519
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 2338.0
+      },
+      "combo_histogram": {
+        "1": 1328,
+        "2": 127,
+        "3": 2,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 8301.0,
+        "rafael": 7980.0
+      },
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 0.0,
+        "ledge": 0.0,
+        "punch": 16281.0
+      },
+      "draws": 0,
+      "hurt_over_cap": 0,
+      "kit_matches": {
+        "matilde/rafael": 20,
+        "rafael/matilde": 20
+      },
+      "kit_win_share": 0.05,
+      "ko_results": 40,
+      "ko_win_rate": 0.45,
+      "ko_wins": 18,
+      "matches": 40,
+      "max_combo": 3,
+      "max_hurt_seconds": 1.33333333333333,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 41.6004166666667,
+      "mean_sd_seconds": 0.0,
+      "multi_hit_combos": 129,
+      "pickups_per_fighter_minute": 0.0,
+      "results": [
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        }
+      ],
+      "sd_matches": 0,
+      "shield_breaks": 0,
+      "shield_holds": 0,
+      "shield_raises": 0,
+      "shield_raises_per_fighter_minute": 0.0,
+      "shield_tap_share": 0.0,
+      "shield_taps": 0,
+      "side_win_share": 0.5,
+      "throws_per_fighter_minute": 0.0
+    },
+    "cpu_hard_vs_cpu_hard": {
+      "blocked_share": 0.308216068996823,
+      "combo_count_by_kit": {
+        "matilde": 317,
+        "rafael": 123
+      },
+      "combo_damage_by_kit": {
+        "matilde": 9.90378548895899,
+        "rafael": 11.130081300813
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 3139.5,
+        "rafael": 1369.0
+      },
+      "combo_histogram": {
+        "1": 1933,
+        "2": 216,
+        "3": 213,
+        "4": 11,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 8510.5,
+        "rafael": 7937.5
+      },
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 6768.75,
+        "ledge": 490.0,
+        "punch": 10827.125
+      },
+      "draws": 0,
+      "hurt_over_cap": 0,
+      "kit_matches": {
+        "matilde/rafael": 20,
+        "rafael/matilde": 20
+      },
+      "kit_win_share": 0.25,
+      "ko_results": 40,
+      "ko_win_rate": 0.6,
+      "ko_wins": 24,
+      "matches": 40,
+      "max_combo": 4,
+      "max_hurt_seconds": 1.41666666666667,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 67.29625,
+      "mean_sd_seconds": 0.0,
+      "multi_hit_combos": 440,
+      "pickups_per_fighter_minute": 9.4841837398072,
+      "results": [
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        }
+      ],
+      "sd_matches": 0,
+      "shield_breaks": 6,
+      "shield_holds": 936,
+      "shield_raises": 945,
+      "shield_raises_per_fighter_minute": 10.5317904043687,
+      "shield_tap_share": 0.239316239316239,
+      "shield_taps": 224,
+      "side_win_share": 0.65,
+      "throws_per_fighter_minute": 9.1386964355369
+    },
+    "m_vs_cpu_easy": {
+      "blocked_share": 0.0243362831858407,
+      "combo_count_by_kit": {
+        "matilde": 17
+      },
+      "combo_damage_by_kit": {
+        "matilde": 18.0
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 306.0
+      },
+      "combo_histogram": {
+        "1": 407,
+        "2": 17,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 1740.0,
+        "rafael": 2294.0
+      },
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 576.0,
+        "ledge": 0.0,
+        "punch": 3487.25
+      },
+      "draws": 0,
+      "hurt_over_cap": 0,
+      "kit_matches": {
+        "matilde/rafael": 12,
+        "rafael/matilde": 12
+      },
+      "kit_win_share": 0.5,
+      "ko_results": 24,
+      "ko_win_rate": 1.0,
+      "ko_wins": 24,
+      "matches": 24,
+      "max_combo": 2,
+      "max_hurt_seconds": 0.866666666666667,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 21.2041666666667,
+      "mean_sd_seconds": 0.0,
+      "multi_hit_combos": 17,
+      "pickups_per_fighter_minute": 4.12654745529574,
+      "results": [
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        }
+      ],
+      "sd_matches": 0,
+      "shield_breaks": 0,
+      "shield_holds": 22,
+      "shield_raises": 22,
+      "shield_raises_per_fighter_minute": 1.29691491452152,
+      "shield_tap_share": 0.136363636363636,
+      "shield_taps": 3,
+      "side_win_share": 0.5,
+      "throws_per_fighter_minute": 3.0654352525054
+    },
+    "m_vs_cpu_hard": {
+      "blocked_share": 0.219976218787158,
+      "combo_count_by_kit": {
+        "matilde": 63,
+        "rafael": 25
+      },
+      "combo_damage_by_kit": {
+        "matilde": 11.5555555555556,
+        "rafael": 11.84
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 728.0,
+        "rafael": 296.0
+      },
+      "combo_histogram": {
+        "1": 446,
+        "2": 56,
+        "3": 30,
+        "4": 2,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 2533.5,
+        "rafael": 2795.0
+      },
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 837.0,
+        "ledge": 120.0,
+        "punch": 4857.5
+      },
+      "draws": 0,
+      "hurt_over_cap": 1,
+      "kit_matches": {
+        "matilde/rafael": 12,
+        "rafael/matilde": 12
+      },
+      "kit_win_share": 0.5,
+      "ko_results": 24,
+      "ko_win_rate": 1.0,
+      "ko_wins": 24,
+      "matches": 24,
+      "max_combo": 4,
+      "max_hurt_seconds": 1.51666666666667,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 29.71875,
+      "mean_sd_seconds": 0.0,
+      "multi_hit_combos": 88,
+      "pickups_per_fighter_minute": 3.53312302839117,
+      "results": [
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        }
+      ],
+      "sd_matches": 0,
+      "shield_breaks": 0,
+      "shield_holds": 166,
+      "shield_raises": 166,
+      "shield_raises_per_fighter_minute": 6.98212407991588,
+      "shield_tap_share": 0.102409638554217,
+      "shield_taps": 17,
+      "side_win_share": 0.5,
+      "throws_per_fighter_minute": 3.11251314405889
+    },
+    "cpu_normal_vs_cpu_normal": {
+      "blocked_share": 0.15615141955836,
+      "combo_count_by_kit": {
+        "matilde": 134,
+        "rafael": 19
+      },
+      "combo_damage_by_kit": {
+        "matilde": 6.91791044776119,
+        "rafael": 16.0
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 927.0,
+        "rafael": 304.0
+      },
+      "combo_histogram": {
+        "1": 1807,
+        "2": 128,
+        "3": 23,
+        "4": 2,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 5583.5,
+        "rafael": 6001.0
+      },
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 5573.0,
+        "ledge": 260.0,
+        "punch": 6215.75
+      },
+      "draws": 0,
+      "hurt_over_cap": 0,
+      "kit_matches": {
+        "matilde/rafael": 12,
+        "rafael/matilde": 12
+      },
+      "kit_win_share": 0.5,
+      "ko_results": 24,
+      "ko_win_rate": 0.416666666666667,
+      "ko_wins": 10,
+      "matches": 24,
+      "max_combo": 4,
+      "max_hurt_seconds": 1.13333333333333,
+      "max_sd_seconds": 0.0,
+      "mean_match_seconds": 74.0020833333333,
+      "mean_sd_seconds": 0.0,
+      "multi_hit_combos": 153,
+      "pickups_per_fighter_minute": 10.1855240561921,
+      "results": [
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "rafael",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        }
+      ],
+      "sd_matches": 0,
+      "shield_breaks": 1,
+      "shield_holds": 530,
+      "shield_raises": 530,
+      "shield_raises_per_fighter_minute": 8.95245066298809,
+      "shield_tap_share": 0.379245283018868,
+      "shield_taps": 201,
+      "side_win_share": 0.583333333333333,
+      "throws_per_fighter_minute": 9.86458714563216
+    }
+  },
+  "forced_sd": {
+    "mvm": {
+      "blocked_share": 0.0,
+      "combo_count_by_kit": {},
+      "combo_damage_by_kit": {},
+      "combo_damage_sum_by_kit": {},
+      "combo_histogram": {
+        "1": 20,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 180.0
+      },
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 0.0,
+        "ledge": 0.0,
+        "punch": 180.0
+      },
+      "draws": 0,
+      "hurt_over_cap": 0,
+      "kit_matches": {
+        "matilde/rafael": 10,
+        "rafael/matilde": 10
+      },
+      "kit_win_share": 0.0,
+      "ko_results": 20,
+      "ko_win_rate": 0.5,
+      "ko_wins": 10,
+      "matches": 20,
+      "max_combo": 1,
+      "max_hurt_seconds": 0.316666666666667,
+      "max_sd_seconds": 2.73333333333333,
+      "mean_match_seconds": 2.775,
+      "mean_sd_seconds": 2.725,
+      "multi_hit_combos": 0,
+      "pickups_per_fighter_minute": 0.0,
+      "results": [
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "matilde",
+            "rafael"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 0
+        },
+        {
+          "kits": [
+            "rafael",
+            "matilde"
+          ],
+          "winner_kit": "matilde",
+          "winner_side": 1
+        }
+      ],
+      "sd_matches": 20,
+      "shield_breaks": 0,
+      "shield_holds": 0,
+      "shield_raises": 0,
+      "shield_raises_per_fighter_minute": 0.0,
+      "shield_tap_share": 0.0,
+      "shield_taps": 0,
+      "side_win_share": 0.5,
+      "throws_per_fighter_minute": 0.0
+    }
+  },
+  "gates": [
+    {
+      "name": "sudden_death_length",
+      "passed": true,
+      "value": 2.725,
+      "threshold": 45.0,
+      "detail": "mean sudden death 2.7 s (limit 45 s)"
+    },
+    {
+      "name": "pickups",
+      "passed": false,
+      "value": 0.0,
+      "threshold": 1.0,
+      "detail": "lowest 0.00 per fighter-minute in mvm (must exceed 1)"
+    },
+    {
+      "name": "blocked_share",
+      "passed": true,
+      "value": 0.219976218787158,
+      "threshold": 0.7,
+      "detail": "highest 0.22 in m_vs_cpu_hard (limit 0.7)"
+    },
+    {
+      "name": "ko_win_rate_easy",
+      "passed": true,
+      "value": 1.0,
+      "threshold": 0.6,
+      "detail": "1.00 KO wins over 24 matches (floor 0.6)"
+    },
+    {
+      "name": "shield_raises",
+      "passed": true,
+      "value": 6.98212407991588,
+      "threshold": 15.75,
+      "detail": "highest 6.98 raises per fighter-minute in m_vs_cpu_hard (limit 15.75)"
+    },
+    {
+      "name": "shield_tap_share",
+      "passed": true,
+      "value": 0.136363636363636,
+      "threshold": 0.5,
+      "detail": "highest 0.14 of shield holds under 15 ticks in m_vs_cpu_easy (limit 0.5)"
+    },
+    {
+      "name": "max_combo",
+      "passed": true,
+      "value": 4.0,
+      "threshold": 6.0,
+      "detail": "longest combo 4 hits in regulation/cpu_hard_vs_cpu_hard (limit 6)"
+    },
+    {
+      "name": "max_hurt_seconds",
+      "passed": false,
+      "value": 1.51666666666667,
+      "threshold": 1.5,
+      "detail": "longest continuous Hurt 1.52 s in regulation/m_vs_cpu_hard (limit 1.5 s)"
+    },
+    {
+      "name": "multi_hit_combos",
+      "passed": true,
+      "value": 129.0,
+      "threshold": 5.0,
+      "detail": "fewest 2+ hit combos 129 in mvm (floor 5)"
+    },
+    {
+      "name": "kit_win_share",
+      "passed": false,
+      "value": 0.05,
+      "threshold": 0.4,
+      "detail": "Rafael wins 0.05 in mvm (band 0.4-0.6; mvm 0.05, cpu_hard_vs_cpu_hard 0.25)"
+    },
+    {
+      "name": "combo_damage_gap",
+      "passed": true,
+      "value": 0.04410060482940128,
+      "threshold": 0.2,
+      "detail": "mean multi-hit combo damage differs by 4.41% between kits (limit 20%)"
+    },
+    {
+      "name": "min_matches",
+      "passed": true,
+      "value": 20.0,
+      "threshold": 24.0,
+      "detail": "every matchup has at least the required matches"
+    }
+  ],
+  "passed": false
+}
