@@ -27,6 +27,12 @@ func _run() -> void:
 	# Lambdas capture locals by value: the longest combo lives in an Array.
 	var longest := [0]
 	var seconds := 0.0
+	# Per kit: stocks lost, damage % at the loss, and losses with no hit received in the last 2 s
+	# (self-KOs and unforced ring-outs).
+	var kos := {0: 0, 1: 0}
+	var ko_percent := {0: 0.0, 1: 0.0}
+	var unforced := {0: 0, 1: 0}
+	var side_wins := [0, 0]
 	for index in matches:
 		GameRng.seed_all(base_seed * 100003 + index)
 		var game: Node2D = s.spawn_game(NAN, NAN, false, true)
@@ -37,6 +43,16 @@ func _run() -> void:
 		for side in 2:
 			s.set_cpu(fighters[side], level, base_seed * 1000 + index * 2 + side)
 		for victim in fighters:
+			var last_hit := [-1000]
+			victim.hit_received.connect(func(_hit, _outcome) -> void: last_hit[0] = Engine.get_physics_frames())
+			victim.stocks_changed.connect(func(who: Fighter, left: int) -> void:
+				if left >= Fighter.MAX_STOCKS:
+					return
+				var kit: int = who.profile.kit_id
+				kos[kit] += 1
+				ko_percent[kit] += who.damage_percent
+				if Engine.get_physics_frames() - last_hit[0] > 120:
+					unforced[kit] += 1)
 			victim.combo_ended.connect(func(hits: int, damage: float, by: Fighter) -> void:
 				longest[0] = maxi(longest[0], hits)
 				if hits >= 2:
@@ -54,6 +70,7 @@ func _run() -> void:
 			draws += 1
 		else:
 			wins[winner.profile.kit_id] += 1
+			side_wins[0 if winner == fighters[0] else 1] += 1
 		paused = false
 		Combat.cancel_hit_stop()
 		await s.despawn(game)
@@ -63,6 +80,7 @@ func _run() -> void:
 	var mean_m: float = _mean(combo_damage[1])
 	var gap := absf(mean_r - mean_m) / maxf(0.001, maxf(mean_r, mean_m))
 	print("KIT_BALANCE level=%s matches=%d decided=%d draws=%d mean_match_seconds=%.1f rafael_wins=%d matilde_wins=%d rafael_win_share=%.3f combos_rafael=%d combos_matilde=%d mean_combo_damage_rafael=%.2f mean_combo_damage_matilde=%.2f combo_damage_gap=%.3f longest_combo=%d" % [OS.get_environment("KIT_LEVEL"), matches, decided, draws, seconds / float(matches), wins[0], wins[1], share, combo_damage[0].size(), combo_damage[1].size(), mean_r, mean_m, gap, longest[0]])
+	print("KIT_BALANCE_KOS rafael_losses=%d rafael_mean_pct=%.1f rafael_unforced=%d matilde_losses=%d matilde_mean_pct=%.1f matilde_unforced=%d fighter1_wins=%d fighter2_wins=%d" % [kos[0], ko_percent[0] / maxf(1.0, float(kos[0])), unforced[0], kos[1], ko_percent[1] / maxf(1.0, float(kos[1])), unforced[1], side_wins[0], side_wins[1]])
 	s.finish()
 
 func _mean(values: Array) -> float:

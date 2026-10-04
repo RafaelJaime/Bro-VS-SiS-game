@@ -253,7 +253,7 @@ func _set_profile_refresh(s: RefCounted) -> void:
 func _kit_data(s: RefCounted) -> void:
 	var r := FighterKits.by_id(0)
 	var m := FighterKits.by_id(1)
-	s.check("Rafael: heavy and slow (run 270, jumps -820 / -720, knockback scale 1.0 after the balance pass)", is_equal_approx(r.run_speed, 270.0) and is_equal_approx(r.jump_velocity, -820.0) and is_equal_approx(r.double_jump_velocity, -720.0) and is_equal_approx(r.knockback_scale, 1.0))
+	s.check("Rafael: heavy and slow (run 270, jumps -820 / -720, knockback scale 0.92 after the S6 balance pass)", is_equal_approx(r.run_speed, 270.0) and is_equal_approx(r.jump_velocity, -820.0) and is_equal_approx(r.double_jump_velocity, -720.0) and is_equal_approx(r.knockback_scale, 0.92))
 	s.check("Matilde: light and fast (run 340, jumps -900 / -780, knockback scale 1.0 after the balance pass)", is_equal_approx(m.run_speed, 340.0) and is_equal_approx(m.jump_velocity, -900.0) and is_equal_approx(m.double_jump_velocity, -780.0) and is_equal_approx(m.knockback_scale, 1.0))
 	s.check("Rafael: 2-hit jab (3.5 then the 7 damage finisher), single air jab, single 10", r.jab_chain.size() == 2 and is_equal_approx(r.jab_chain[0].damage, 3.5) and is_equal_approx(r.jab_chain[1].damage, 7.0) and r.air_jab_chain.size() == 1 and is_equal_approx(r.neutral_single.damage, 10.0))
 	s.check("Matilde: 3-hit jab (2.5, 2.5, finisher 6), 2-hit air jab, single 6", m.jab_chain.size() == 3 and is_equal_approx(m.jab_chain[0].damage, 2.5) and is_equal_approx(m.jab_chain[1].damage, 2.5) and is_equal_approx(m.jab_chain[2].damage, 6.0) and m.air_jab_chain.size() == 2 and is_equal_approx(m.neutral_single.damage, 6.0))

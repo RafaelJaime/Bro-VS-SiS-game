@@ -67,7 +67,7 @@ cooldown_ticks = 0
 [sub_resource type="Resource" id="Resource_so5sv"]
 script = ExtResource("1_6jlii")
 damage = 6.0
-knockback = Vector2(20, -430)
+knockback = Vector2(20, -470)
 hitbox_offset = Vector2(30, -70)
 hitbox_size = Vector2(120, 80)
 direction = &"up"
