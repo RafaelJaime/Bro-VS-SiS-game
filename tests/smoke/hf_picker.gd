@@ -104,6 +104,12 @@ func _username_search(picker: Control, ai: Control, chosen: Array) -> void:
 	DirAccess.remove_absolute(manager.prefs_path)
 	s.check("the username box is the main input of step 1, with the placeholder", picker.author_edit.placeholder_text == "Hugging Face username" and picker.user_page.is_ancestor_of(picker.author_edit))
 	s.check("nothing is remembered yet", manager.load_last_author() == "")
+	s.check("Back and Continue show their art without a caption", picker.back_button.get_node_or_null("Caption") == null and picker.search_button.get_node_or_null("Caption") == null)
+	var art: Image = (load("res://assets/images/ui/buttons/button6.png") as Texture2D).get_image()
+	var flipped := art.duplicate() as Image
+	flipped.flip_x()
+	var shown: Image = picker.search_button.icon.get_image()
+	s.check("Continue's art is mirrored to point right", art.get_data() != flipped.get_data() and shown.get_data() == flipped.get_data())
 
 	# search by Search button
 	fake.urls.clear()
