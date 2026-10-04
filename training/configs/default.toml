@@ -43,7 +43,7 @@ mode = "random"
 # game/ai/training/reward_config.gd for the defaults. The combat-depth terms are signal-driven
 # (pickups, food hits, shield breaks, a long shield hold); the last two keys are parameters.
 [reward]
-pickup = 0.05
+pickup = 0.12
 food_hit = 0.15
 shield_break_dealt = 0.4
 shield_break_taken = -0.4
@@ -53,7 +53,7 @@ pickup_cap = 20               # rewarded pickups per episode
 # Character-kits terms (signal driven): a small reward per extra hit of a combo I deal, capped per
 # combo (combo_hit_cap extra hits) and per episode (combo_episode_cap), and a small cost per shield
 # raise (the lever against shield spam; 0.0 in code, so a missing key changes nothing).
-combo_hit = 0.02
+combo_hit = 0.04
 combo_hit_cap = 4
 combo_episode_cap = 1.0
 shield_raise = -0.002
@@ -75,11 +75,12 @@ kit_win_share_min = 0.40             # Rafael's win share band in mvm and the CP
 kit_win_share_max = 0.60
 max_combo_damage_gap = 0.20          # abs(R - M) / max(R, M) of the mean multi-hit combo damage
 # Shield raises per fighter-minute in mvm and m_vs_cpu_hard (design D15). Measured by
-# `uv run python -m bvs_training.harness --baseline` at seed 1 with kits rm, before any retrain:
-# R_cpu 10.50 (CPU Hard mirror), R_old 5.85 (bundled schema 3 model), so 0.5 * R_old < R_cpu and
-# T = max(1.5 * R_cpu, R_cpu + 2.0) = 15.75 (see reports/shield-baseline.md). Changed only by a new
-# measurement that a report explains.
-max_shield_raises_per_fighter_minute = 15.75
+# `uv run python -m bvs_training.harness --baseline` at seed 1 with kits rm, before any retrain.
+# Re-measured in S6 after the Rafael kit-data balance pass (D15): R_cpu 9.77 (CPU Hard mirror),
+# R_old 5.83 (bundled schema 3 model), so 0.5 * R_old < R_cpu and T = max(1.5 * R_cpu, R_cpu + 2.0)
+# = 14.66 (first measurement before the balance pass: 10.50, 5.85, 15.75; see reports/shield-baseline.md).
+# Changed only by a new measurement that a report explains.
+max_shield_raises_per_fighter_minute = 14.66
 # Share of finished shield holds shorter than 15 ticks (0.25 s), in every matchup with the model
 # (mvm, m_vs_cpu_*): the "shield tapped between other actions" pattern. CPU Hard's share is reported
 # for information only.
