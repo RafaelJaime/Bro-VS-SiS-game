@@ -28,9 +28,11 @@ strict_tdd=false; smoke checks first where feasible; full suite green per task.
 - [x] T2 Aerial punch keeps jump momentum with smoke checks — route: delegated (same writer)
 - [x] T3 Shield bubble uses the player's color — route: delegated (same writer)
 - [~] T4 Harness metric + gate: shield raises per fighter-minute; retrain default model; gates; bundle — route: delegated. FOLDED into SDD change `character-kits-combos` (slice S6: single retrain covering shield fixes and kits; baseline measurement in S5)
-- [ ] T5 PR; after merge and user confirmation: upload model (replay.mp4) and Space
+- [x] T5 PR; after merge and user confirmation: upload model (replay.mp4) and Space
 
 ## Progress / Evidence
+
+- T5 done 2026-10-04 via `character-kits-combos`: PR #15 merged (`dc766cf`); model `RafaelJaime/BVS-default` HF `e4d33fd` (schema 4, MIT, replay.mp4); Space `RafaelJaime/BroVSister` HF `0b8b855` (RUNNING).
 
 ### T1-T3 (delegated writer, direct route, strict_tdd=false)
 - T1 `a5e7b8b`: new `ShieldDrop` state (11 ticks, no actions, planted, bubble shrinks), `shield_min_hold` 4 ticks, `shield_raise_cost` 4 meter, jump out of shield allowed (Smash; skips the lag), CPU treats ShieldDrop as a no-action state. A hit during the lag is a normal hit (not Protect). Checks: `tests/smoke/shield_spam.gd` (18).
