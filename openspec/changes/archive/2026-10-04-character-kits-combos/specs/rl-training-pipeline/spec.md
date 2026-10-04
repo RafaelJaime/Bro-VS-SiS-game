@@ -51,6 +51,13 @@ A numeric threshold for shield raises per fighter-minute MUST be derived in desi
 - WHEN promotion is considered
 - THEN promotion is blocked and the missing threshold is reported
 
+## RENAMED Requirements
+
+### Requirement: Golden parity before commit for schema 3 → Golden parity before commit for schema 4
+
+(Reason: the bundled default model moves to schema 4, so golden parity now gates the v4 export.)
+(Migration: references to "golden parity for schema 3" read "golden parity for schema 4"; the v2 and v3 frozen paths keep their own unedited checks.)
+
 ## MODIFIED Requirements
 
 ### Requirement: Reward components
