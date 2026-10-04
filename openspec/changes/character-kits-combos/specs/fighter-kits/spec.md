@@ -32,7 +32,7 @@ Each fighter MUST receive the `FighterProfile` of its selected character at spaw
 
 ### Requirement: Rafael kit (heavy, slow)
 
-The initial Rafael values MUST be: run speed 270; knockback scale as victim 0.9; jump velocity -820; double jump -720; 2-hit neutral jab (step 1 4 damage, finisher 8 damage that launches); neutral single punch 10 damage (the charged grounded neutral; human-only, since the CPU and policies never charge); up punch is a heavy launcher (9 damage, endlag 0.55 s); side punch 13 damage with knockback (360, -90); down air spike 11 damage with knockback (40, 460); air jab is a single hit; link slack is tighter than Matilde's (2 to 3 ticks).
+The as-shipped Rafael values (after the S4 balance pass; the `.tres` data is authoritative) are: run speed 270; knockback scale as victim 1.0; jump velocity -820; double jump -720; 2-hit neutral jab (step 1 3.5 damage with knockback (70, -30), hit-stop scale 0.6, finisher 7 damage with knockback (220, -160) that launches); neutral single punch 10 damage with knockback (220, -140) (the charged grounded neutral; human-only, since the CPU and policies never charge); up punch is a heavy launcher (8 damage, knockback (40, -520), endlag 0.55 s); side punch 12 damage with knockback (300, -90); down air spike 11 damage with knockback (40, 460); air jab is a single hit (5 damage, knockback (120, -120)); recovery velocity -900 and drift 220; link slack is tighter than Matilde's (2 ticks at 0%). The jab step carries a negative hitstun growth per px/s of knockback (`hitstun_kb_growth` -0.03, base stun 13 ticks), so the chain links through 60% and stops from 70%.
 
 #### Scenario: Jab length
 - GIVEN Rafael mashes neutral attack at 0%
@@ -42,7 +42,7 @@ The initial Rafael values MUST be: run speed 270; knockback scale as victim 0.9;
 #### Scenario: Heavy up launcher
 - GIVEN Rafael presses up plus attack and it connects
 - WHEN damage and endlag are measured
-- THEN damage is 9 and the attacker's endlag is 0.55 s
+- THEN damage is 8 and the attacker's endlag is 0.55 s
 
 #### Scenario: Down air spike
 - GIVEN Rafael is airborne and presses down plus attack and it connects
@@ -56,7 +56,7 @@ The initial Rafael values MUST be: run speed 270; knockback scale as victim 0.9;
 
 ### Requirement: Matilde kit (light, fast)
 
-The initial Matilde values MUST be: run speed 340; knockback scale as victim 1.1; jump velocity -900; double jump -780; 3-hit neutral jab (2.5, 2.5, finisher 4 that launches); neutral single punch 6 damage where the kit uses a single neutral hit; up punch is a combo launcher (6 damage, hitstun 0.55 s, endlag 0.30 s) intended to link into air follow-ups; side punch 8 damage with knockback (260, -90); down air spike 7 damage with knockback (30, 380); air jab is a 2-hit chain; link slack is looser than Rafael's (3 to 4 ticks); recovery (up special reach) is longer than Rafael's.
+The as-shipped Matilde values (after the S4 balance pass; the `.tres` data is authoritative) are: run speed 340; knockback scale as victim 1.0; jump velocity -900; double jump -780; 3-hit neutral jab (2.5 with knockback (50, -20), 2.5 with knockback (50, -20), finisher 6 damage with knockback (300, -220) that launches; hit-stop scale 0.5 on the first two steps); neutral single punch 6 damage with knockback (200, -120) where the kit uses a single neutral hit; up punch is a combo launcher (6 damage, knockback (20, -430), hitstun 33 ticks = 0.55 s, endlag 0.30 s) intended to link into air follow-ups; side punch 9 damage with knockback (320, -90); down air spike 7 damage with knockback (30, 380); air jab is a 2-hit chain (A1 3 damage with knockback (40, -40) and stun 12, A2 4 damage with knockback (180, -160)); recovery velocity -1050 and drift 290 (longer than Rafael's); link slack is looser than Rafael's (4 and 3 ticks at 0%). The jab steps carry a negative hitstun growth per px/s of knockback (`hitstun_kb_growth` -0.08 on step 1, -0.058 on step 2), so the 3-hit string links through 50% and stops from 60%. The launcher into air jab connects at 0 to 30% and its window narrows at 60% and closes by 90% (probe: 7 of 11 press offsets at 0, 20 and 30%, 3 of 11 at 60%, 0 of 11 at 90%).
 
 #### Scenario: Jab length
 - GIVEN Matilde mashes neutral attack at 0%
