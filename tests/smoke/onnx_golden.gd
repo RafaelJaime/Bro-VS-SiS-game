@@ -309,9 +309,9 @@ func _check_default_cost(s: Smoke) -> void:
 	print("INFO bundled default model inference cost: %.1f us per inference (%d runs, headless)" % [per_run, PERF_RUNS])
 	s.check("default cost: the bundled model infers under %d us" % int(MAX_INFERENCE_USEC), per_run <= MAX_INFERENCE_USEC, "%.1f us" % per_run)
 
-## The registered schema (2 or 3) whose observation has `obs_dim` floats, or null.
+## The registered schema (2, 3 or 4) whose observation has `obs_dim` floats, or null.
 func _schema_for_dim(obs_dim: int) -> Object:
-	for version in [2, 3]:
+	for version in [2, 3, 4]:
 		var schema := BvsSchema.get_schema(version)
 		if schema != null and int(schema.OBS_DIM) == obs_dim:
 			return schema
