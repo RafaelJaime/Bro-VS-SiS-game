@@ -331,8 +331,9 @@ func _check_golden(s: Smoke, path: String) -> void:
 	if loaded.model == null:
 		return
 	var model: OnnxPolicyModel = loaded.model
-	# The golden names its observation width; the schema that has it (2 or 3) is the one
-	# the model must fit, so a schema 3 export is checked before it is bundled.
+	# The golden names its observation width; the registered schema that has it (2, 3 or 4)
+	# is the one the model must fit, so an export is checked before it is bundled, whatever
+	# its registered schema.
 	var schema := _schema_for_dim(int(golden.get("obs_dim", 102)))
 	s.check("golden: obs_dim %d belongs to a registered schema" % int(golden.get("obs_dim", 102)), schema != null)
 	if schema == null:

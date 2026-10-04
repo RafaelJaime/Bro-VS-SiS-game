@@ -269,7 +269,7 @@ func _run() -> void:
 	await s.frames(2)
 
 	# A snapshot row: the opponent is a PolicyController running the frozen model.
-	var snapshot_path := "res://tests/fixtures/onnx/random_policy_v3.onnx"
+	var snapshot_path := "res://tests/fixtures/onnx/random_policy_v4.onnx"
 	var snapshot_arena := TrainArena.new()
 	snapshot_arena.name = "SnapshotTrain"
 	snapshot_arena.position = Vector2(0.0, 80000.0)

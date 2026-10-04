@@ -1,7 +1,7 @@
 {
   "format": "bvs-model/1",
-  "schema_version": 3,
-  "obs_dim": 136,
+  "schema_version": 4,
+  "obs_dim": 149,
   "action_branches": [
     {
       "name": "a0_move",
@@ -43,21 +43,21 @@
     "output": "logits",
     "opset": 17
   },
-  "trained_on_commit": "7bf9e3aee3236473f5d8483e1a8a23be04228940",
+  "trained_on_commit": "f7129e7fe2fb23320acd933b70cc21ff3a4ec05a",
   "label": "BVS default",
-  "difficulty_hint": "hard",
+  "difficulty_hint": "easy",
   "eval": {
     "vs_cpu_easy": {
-      "matches": 40,
+      "matches": 20,
       "win_rate": 1.0
     },
     "vs_cpu_normal": {
-      "matches": 40,
+      "matches": 20,
       "win_rate": 1.0
     },
     "vs_cpu_hard": {
-      "matches": 40,
-      "win_rate": 0.95
+      "matches": 20,
+      "win_rate": 1.0
     }
   }
 }

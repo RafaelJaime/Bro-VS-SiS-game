@@ -9,11 +9,13 @@ extends RefCounted
 ## edits an older version.
 
 ## The playable schema (what the picker, the model manager and the bundled default
-## accept). It flipped to 3 in the commit that bundled the retrained schema 3 model
-## after every acceptance gate passed; schema 2 stays registered and frozen. Schema 4
-## is registered (training and tools run it) but is not playable yet: it becomes
-## current in the commit that bundles the gated schema 4 model.
-const CURRENT_VERSION := 3
+## accept). It flipped to 4 in the commit that bundled the retrained schema 4 model,
+## promoted under the character-kits-combos Resolved Decision (b): the time box (4
+## full runs) was exhausted with one gate still failing (`kit_win_share` 0.88 in
+## model-vs-model, band 0.4-0.6; the CPU Hard mirror stayed in band at 0.47), and the
+## user chose to promote the best candidate with the failure reported rather than
+## iterate further or defer the retrain. Schema 2 and 3 stay registered and frozen.
+const CURRENT_VERSION := 4
 
 ## Version -> schema script / action decoder script. Only the test hooks below
 ## touch them at run time (and never for the built-in versions).

@@ -29,14 +29,15 @@ const REPO := "alice/bvs-brawler"
 const SHA1 := "1111111111111111111111111111111111111111"
 const SHA2 := "2222222222222222222222222222222222222222"
 const SHA3 := "3333333333333333333333333333333333333333"
-const ONNX_PATH := "res://tests/fixtures/onnx/random_policy_v3.onnx"
-const SIDECAR_PATH := "res://tests/fixtures/onnx/random_policy_v3.bvs.json"
+const ONNX_PATH := "res://tests/fixtures/onnx/random_policy_v4.onnx"
+const SIDECAR_PATH := "res://tests/fixtures/onnx/random_policy_v4.bvs.json"
 const OPS_DIR := "res://tests/fixtures/onnx/ops/"
 
-## alice's own BVS models (server-side author query).
+## alice's own BVS models (server-side author query): one schema-4 (current, Compatible) and
+## one schema-3 (now "Trained for an older version").
 const ALICE_BODY := """[
-	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-3"]},
-	{"id": "alice/bvs-v0", "author": "alice", "downloads": 20, "tags": ["onnx", "BVS", "bvs-schema-2"]}
+	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-4"]},
+	{"id": "alice/bvs-v0", "author": "alice", "downloads": 20, "tags": ["onnx", "BVS", "bvs-schema-3"]}
 ]"""
 ## zed has no BVS model; the second query lists the other RL models.
 const ZED_RL_BODY := """[
@@ -47,10 +48,10 @@ const ZED_RL_BODY := """[
 ## Hub listing as the API returns it (most downloaded first), plus a model that
 ## lost its BVS tag (never listed).
 const FIXTURE := """[
-	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-3"]},
+	{"id": "alice/bvs-brawler", "author": "alice", "downloads": 3400, "tags": ["onnx", "BVS", "bvs-schema-4"]},
 	{"id": "RafaelJaime/BVS_SB3", "author": "RafaelJaime", "downloads": 87, "tags": ["stable-baselines3", "BVS", "BVS.1"]},
 	{"id": "bob/old-fighter", "downloads": 12, "tags": ["BVS", "bvs-schema-0"]},
-	{"id": "carol/from-the-future", "author": "carol", "downloads": 2, "tags": ["BVS", "bvs-schema-4"]},
+	{"id": "carol/from-the-future", "author": "carol", "downloads": 2, "tags": ["BVS", "bvs-schema-5"]},
 	{"id": "dave/not-ours", "author": "dave", "downloads": 9000, "tags": ["onnx"]}
 ]"""
 
@@ -450,7 +451,7 @@ func _model_loading() -> void:
 	wrong_dim["obs_dim"] = 13
 	_serve("carol/sidecar13", SHA1, JSON.stringify(wrong_dim).to_utf8_buffer(), onnx)
 	await _request(0, "carol/sidecar13")
-	s.check("failure SCHEMA_MISMATCH when the sidecar declares another obs_dim", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects 13 inputs; this game provides 136"), manager.message_of(0))
+	s.check("failure SCHEMA_MISMATCH when the sidecar declares another obs_dim", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects 13 inputs; this game provides 149"), manager.message_of(0))
 	var wrong_schema: Dictionary = JSON.parse_string(sidecar.get_string_from_utf8())
 	wrong_schema["schema_version"] = 1
 	_serve("carol/schema1", SHA1, JSON.stringify(wrong_schema).to_utf8_buffer(), onnx)
@@ -461,7 +462,7 @@ func _model_loading() -> void:
 	plain_sidecar.erase("onnx")
 	_serve("carol/small", SHA1, JSON.stringify(plain_sidecar).to_utf8_buffer(), small_model)
 	await _request(0, "carol/small")
-	s.check("failure SCHEMA_MISMATCH when the ONNX takes another input size", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects") and manager.message_of(0).contains("this game provides 136"), manager.message_of(0))
+	s.check("failure SCHEMA_MISMATCH when the ONNX takes another input size", manager.failure_of(0) == Failure.SCHEMA_MISMATCH and manager.message_of(0).contains("expects") and manager.message_of(0).contains("this game provides 149"), manager.message_of(0))
 	_serve("carol/lstm", SHA1, sidecar, FileAccess.get_file_as_bytes(OPS_DIR + "reject_unknown_op_lstm.onnx"))
 	await _request(0, "carol/lstm")
 	s.check("failure UNSUPPORTED_OP names the operation", manager.failure_of(0) == Failure.UNSUPPORTED_OP and manager.message_of(0).contains("LSTM"), manager.message_of(0))
@@ -637,13 +638,13 @@ func _run() -> void:
 	_install_fake()
 
 	# --- the listing logic, without any UI
-	s.check("the current schema version is a constant", HubModel.BVS_SCHEMA_VERSION == 3 and HubModel.BVS_SCHEMA_VERSION == BvsSchema.CURRENT_VERSION)
+	s.check("the current schema version is a constant", HubModel.BVS_SCHEMA_VERSION == 4 and HubModel.BVS_SCHEMA_VERSION == BvsSchema.CURRENT_VERSION)
 	s.check("discovery is by tag, most downloaded first, no username", HubModel.DISCOVERY_URL == EXPECTED_URL and not HubModel.DISCOVERY_URL.contains("author="), HubModel.DISCOVERY_URL)
 	var models: Array = HubModel.parse_list(FIXTURE)
 	s.check("the parser keeps the BVS-tagged models in the Hub's order", models.map(func(m: HubModel): return m.id) == ["alice/bvs-brawler", "RafaelJaime/BVS_SB3", "bob/old-fighter", "carol/from-the-future"])
 	s.check("compat comes from the bvs-schema-N tag", models[0].compat() == HubModel.Compat.COMPATIBLE and models[1].compat() == HubModel.Compat.OLDER and models[2].compat() == HubModel.Compat.OLDER and models[3].compat() == HubModel.Compat.NEWER)
 	var v2_listing: Array = HubModel.parse_list("[{\"id\": \"erin/bvs-v2\", \"author\": \"erin\", \"tags\": [\"BVS\", \"bvs-schema-2\"]}]")
-	s.check("a schema 2 model is 'Trained for an older version' now that the game uses schema 3", v2_listing.size() == 1 and v2_listing[0].compat() == HubModel.Compat.OLDER and v2_listing[0].badge_text() == "Trained for an older version" and not v2_listing[0].is_compatible())
+	s.check("a schema 2 model is 'Trained for an older version' now that the game uses schema 4", v2_listing.size() == 1 and v2_listing[0].compat() == HubModel.Compat.OLDER and v2_listing[0].badge_text() == "Trained for an older version" and not v2_listing[0].is_compatible())
 	s.check("RafaelJaime/BVS_SB3 (tags BVS, BVS.1) is 'trained for an older version'", models[1].schema == -1 and models[1].badge_text() == "Trained for an older version")
 	s.check("the author falls back to the repo owner", models[2].author == "bob")
 	s.check("downloads read well", HubModel.format_downloads(87) == "87" and HubModel.format_downloads(3400) == "3.4k" and HubModel.format_downloads(2500000) == "2.5M")

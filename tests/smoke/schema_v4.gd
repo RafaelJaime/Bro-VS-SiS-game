@@ -237,12 +237,14 @@ func _check_registry(s: RefCounted) -> void:
 	s.check("decoders come from the registry by version", BvsSchema.new_decoder(2) is BvsActionDecoderV2 and BvsSchema.new_decoder(3) is BvsActionDecoderV3 and BvsSchema.new_decoder(4) is BvsActionDecoderV4)
 	s.check("two requests give two independent v4 decoders", BvsSchema.new_decoder(4) != BvsSchema.new_decoder(4) and BvsSchemaV4.new_decoder() is BvsActionDecoderV4)
 	s.check("2, 3 and 4 are built in, 5 and 99 are not", BvsSchema.is_builtin(2) and BvsSchema.is_builtin(3) and BvsSchema.is_builtin(4) and not BvsSchema.is_builtin(5) and not BvsSchema.is_builtin(99))
-	s.check("the playable version is still 3 until the schema 4 model is bundled", BvsSchema.CURRENT_VERSION == 3 and BvsSchema.current() == BvsSchemaV3)
+	s.check("the playable version flipped to 4 once the schema 4 model was bundled", BvsSchema.CURRENT_VERSION == 4 and BvsSchema.current() == BvsSchemaV4)
 
 	var template := BvsSchemaV4.sidecar_template()
 	s.check("the v4 sidecar template validates against schema 4", BvsSchema.validate_sidecar_for(template, 4) == "", BvsSchema.validate_sidecar_for(template, 4))
 	s.check("the v4 template is not valid for schema 3 and names the mismatch", BvsSchema.validate_sidecar_for(template, 3).contains("schema"), BvsSchema.validate_sidecar_for(template, 3))
-	s.check("a v4 sidecar is registered but not playable and says which schema the game uses", BvsSchema.validate_sidecar(template).contains("this game uses schema 3"), BvsSchema.validate_sidecar(template))
+	s.check("the v4 sidecar template is now current and playable", BvsSchema.validate_sidecar(template) == "", BvsSchema.validate_sidecar(template))
+	var older_template := BvsSchemaV3.sidecar_template()
+	s.check("a schema 3 sidecar is registered but not playable and says which schema the game uses", BvsSchema.validate_sidecar(older_template).contains("this game uses schema 4"), BvsSchema.validate_sidecar(older_template))
 	var lying := template.duplicate(true)
 	lying["obs_dim"] = 136
 	s.check("a schema-4 sidecar with 136 inputs says what the model expects and what the game provides", BvsSchema.validate_sidecar_for(lying, 4).contains("expects 136 inputs") and BvsSchema.validate_sidecar_for(lying, 4).contains("provides 149"), BvsSchema.validate_sidecar_for(lying, 4))

@@ -1,9 +1,9 @@
 extends SceneTree
 ## In-game policy inference (headless, no Sync node anywhere): a PolicyController
-## running the random-weight fixture model (tests/fixtures/onnx/random_policy_v3.onnx)
+## running the random-weight fixture model (tests/fixtures/onnx/random_policy_v4.onnx)
 ## plays a full match against the scripted CPU.
 ##
-## Checks: the model loads and fits the current schema (3); a whole match runs with decisions
+## Checks: the model loads and fits the current schema (4); a whole match runs with decisions
 ## flowing and no script errors; the model runs exactly once per ACTION_REPEAT
 ## frames with the intent held in between; two policy fighters never infer on the
 ## same frame; the observation of the play path (PolicyController) equals the one
@@ -12,8 +12,8 @@ extends SceneTree
 ## neutral; a policy fighter with no model and no training source stays neutral.
 
 const Smoke := preload("res://tests/smoke/smoke_util.gd")
-const MODEL_PATH := "res://tests/fixtures/onnx/random_policy_v3.onnx"
-const SIDECAR_PATH := "res://tests/fixtures/onnx/random_policy_v3.bvs.json"
+const MODEL_PATH := "res://tests/fixtures/onnx/random_policy_v4.onnx"
+const SIDECAR_PATH := "res://tests/fixtures/onnx/random_policy_v4.bvs.json"
 ## A full match ends by the 99 s timer at the latest.
 const MATCH_LIMIT_SECONDS := 150.0
 
@@ -37,7 +37,7 @@ func _run() -> void:
 	if model == null:
 		s.finish()
 		return
-	s.check("it fits the current schema (136 inputs, 21 logits)", model.validate(BvsSchema.current()) == "", model.validate(BvsSchema.current()))
+	s.check("it fits the current schema (149 inputs, 21 logits)", model.validate(BvsSchema.current()) == "", model.validate(BvsSchema.current()))
 	s.check("the scene tree has no Sync node", root.find_child("Sync", true, false) == null)
 
 	await _cadence(s, model)
@@ -119,7 +119,7 @@ func _parity(s: RefCounted, model: OnnxPolicyModel) -> void:
 		var same: bool = controller.last_obs.size() == obs_dim and training_obs.size() == obs_dim
 		for i in controller.last_obs.size():
 			same = same and is_equal_approx(controller.last_obs[i], float(training_obs[i]))
-		s.check("fighter %d: the play observation equals the training observation (136 values)" % (side + 1), same)
+		s.check("fighter %d: the play observation equals the training observation (149 values)" % (side + 1), same)
 	await s.despawn(game)
 
 func _errors(s: RefCounted, model: OnnxPolicyModel) -> void:
