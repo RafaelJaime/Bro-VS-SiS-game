@@ -56,7 +56,7 @@ pickup_cap = 8                # rewarded pickups per episode
 combo_hit = 0.04
 combo_hit_cap = 4
 combo_episode_cap = 1.0
-shield_raise = -0.002
+shield_raise = -0.01   # R4 lever (S6): 5x R1-R3's -0.002, targets the mvm shield_tap_share fail
 
 # Acceptance gates of the harness (training/bvs_training/harness.py). A retrained model only
 # replaces the bundled one, and the playable schema only moves, when every gate passes.
