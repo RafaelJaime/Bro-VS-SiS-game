@@ -23,11 +23,25 @@ A fighter policy for Bro vs Sis, trained with PPO (stable-baselines3) and export
 - Output `logits`: `[1, 21]`, the concatenated logits of eight discrete branches `[3, 3, 2, 5, 2, 2, 2, 2]` (`a0_move`, `a1_vertical`, `a2_jump`, `a3_attack`, `a4_special`, `a5_throw`, `a6_block`, `a7_dash`). The game takes the argmax of each branch, one decision every 4 physics frames. While holding food, `a5_throw` is exclusive (a punch and a throw never fire together), and in the air `a6_block` is the air dodge.
 - `bvs.json` declares the schema version, observation size, action layout and `action_repeat`; a model whose sidecar does not match is refused with a visible reason.
 
+## Fighter kits
+
+Both Rafael (`kit_id` 0) and Matilde (`kit_id` 1) are played on both sides during training (random per
+episode and per side, mirrors included); the observation carries each fighter's kit one-hot, so one
+policy plays both kits and both match-ups.
+
 ## Evaluation
 
 Played in the game with the same interpreter players use, full matches versus the scripted CPU, sides alternating.
 
 $results_table
+
+## Acceptance harness (combo and shield-spam gates)
+
+172 matches (model vs model, model vs CPU, CPU vs CPU; both kits on both sides) against the acceptance
+gates of `training/configs/default.toml` (sudden death length, food pickups, blocking, KO win rate,
+shield-raise and shield-tap rate, combo length and duration, kit win-share balance, combo-damage balance).
+
+$harness_table
 
 ## Files
 
