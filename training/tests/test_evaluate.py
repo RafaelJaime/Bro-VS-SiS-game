@@ -44,3 +44,27 @@ def test_the_markdown_report_holds_the_combat_table_after_play_quality() -> None
 def test_the_markdown_report_of_an_old_json_still_renders() -> None:
     markdown = evaluate.render_markdown("old", {"easy": level_report()}, GATE)
     assert "## Combat depth" not in markdown
+
+
+KITS = {
+    "kits_mode": "rm", "shield_raises_per_fighter_minute": 3.5, "max_combo": 4, "multi_hit_combos": 11,
+    "combo_histogram": {"1": 30, "2": 8, "3": 2, "4": 1, "5": 0, "6": 0, "7+": 0}, "max_hurt_seconds": 1.1,
+    "combo_damage_by_kit": {"rafael": 12.5, "matilde": 10.0},
+    "by_kit": {"rafael": {"matches": 10, "wins": 7, "losses": 3, "draws": 0}, "matilde": {"matches": 10, "wins": 6, "losses": 4, "draws": 0}},
+}
+
+
+def test_the_kits_table_lists_combos_shields_and_the_results_by_kit() -> None:
+    text = "\n".join(evaluate.render_kits({"easy": level_report(**KITS)}))
+    assert "## Kits and combos" in text
+    assert "| easy | rm | 3.50 | 4 | 11 | 30 / 8 / 2 / 1 / 0 / 0 / 0 | 1.10 | 12.5 | 10.0 |" in text
+    assert "| easy | rafael | 10 | 7 | 3 | 0 |" in text and "| easy | matilde | 10 | 6 | 4 | 0 |" in text
+
+
+def test_reports_without_kit_fields_skip_the_kits_table() -> None:
+    assert evaluate.render_kits({"easy": level_report()}) == []
+
+
+def test_the_markdown_report_holds_the_kits_table_after_the_combat_table() -> None:
+    markdown = evaluate.render_markdown("demo", {"easy": level_report(**COMBAT, **KITS)}, GATE)
+    assert markdown.index("## Combat depth") < markdown.index("## Kits and combos")

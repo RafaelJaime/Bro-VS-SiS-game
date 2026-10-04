@@ -6,6 +6,7 @@ extends SceneTree
 ##
 ##   BVS_EVAL_MODEL=<model.onnx> BVS_EVAL_LEVEL=easy BVS_EVAL_MATCHES=20 \
 ##   BVS_EVAL_OUT=<report.json> [BVS_EVAL_OBS_DUMP=<obs.json>] [BVS_EVAL_SIDECAR=<bvs.json>] \
+##   [BVS_EVAL_KITS=rm] \
 ##   godot --headless --path . --fixed-fps 60 --script res://tests/smoke/policy_eval.gd
 ##
 ## The model fighter alternates sides every match. Prints one `BVS_EVAL {json}`
@@ -13,7 +14,15 @@ extends SceneTree
 ## BVS_EVAL_OBS_DUMP receives a sample of real observations (`{"observations": [...]}`)
 ## for the golden parity fixtures. The report also carries the combat-depth metrics
 ## (MatchMetrics.aggregate): pickups and throws per fighter-minute, blocked share,
-## damage by source, shield breaks and the sudden-death lengths.
+## damage by source, shield breaks and the sudden-death lengths, and the
+## character-kits metrics (shield raises per fighter-minute, combo histogram and
+## maximum, longest Hurt, damage and combo damage by kit).
+##
+## BVS_EVAL_KITS: `rm` (default) gives the model Rafael on matches 0-1 (mod 4) and
+## Matilde on matches 2-3, the CPU the other kit, while the sides alternate, so both
+## kits are played on both sides; `character` keeps the scene kits (Fighter1 Rafael,
+## Fighter2 Matilde). The report adds `kits_mode` and `by_kit`: matches, wins and
+## losses of the model per kit it played.
 
 const Smoke := preload("res://tests/smoke/smoke_util.gd")
 const LEVELS := {"easy": CpuDifficulty.Level.EASY, "normal": CpuDifficulty.Level.NORMAL, "hard": CpuDifficulty.Level.HARD}
@@ -25,6 +34,8 @@ const APPROACH_DISTANCE := 150.0
 const OBS_SAMPLE_EVERY := 25
 const OBS_SAMPLE_CAP := 256
 const MIN_MATCHES := 20
+const KIT_MODES := ["character", "rm"]
+const KIT_NAMES := ["rafael", "matilde"]
 
 ## The shipped PolicyController (same loop as in a match: one inference per decision
 ## window, argmax per branch, the stateful decoder every frame), plus the counters the
@@ -101,6 +112,10 @@ func _run() -> void:
 	if matches < 1:
 		_fail("BVS_EVAL_MATCHES must be at least 1 (evaluate.py enforces %d for reports)" % MIN_MATCHES)
 		return
+	var kits_mode := OS.get_environment("BVS_EVAL_KITS") if OS.get_environment("BVS_EVAL_KITS") != "" else "rm"
+	if not KIT_MODES.has(kits_mode):
+		_fail("BVS_EVAL_KITS must be one of %s (got '%s')" % [str(KIT_MODES), kits_mode])
+		return
 	var model := _load_model(model_path)
 	if model == null:
 		return
@@ -123,7 +138,7 @@ func _run() -> void:
 	var per_match: Array = []
 	var match_metrics: Array = []
 	for i in matches:
-		var record := await _play_match(s, model, LEVELS[level_name], i)
+		var record := await _play_match(s, model, LEVELS[level_name], i, kits_mode)
 		if record.has("error"):
 			_fail(String(record["error"]))
 			return
@@ -135,8 +150,19 @@ func _run() -> void:
 		for branch in histogram.size():
 			for index in histogram[branch].size():
 				histogram[branch][index] += record["histogram"][branch][index]
+	var by_kit := {}
+	for summary: Dictionary in per_match:
+		var kit_name := String(summary["kit"])
+		var entry: Dictionary = by_kit.get(kit_name, {"matches": 0, "wins": 0, "losses": 0, "draws": 0})
+		entry["matches"] += 1
+		entry["wins"] += 1 if summary["outcome"] == "win" else 0
+		entry["losses"] += 1 if summary["outcome"] == "loss" else 0
+		entry["draws"] += 1 if summary["outcome"] == "draw" else 0
+		by_kit[kit_name] = entry
 	var played := float(matches)
 	var report := {
+		"kits_mode": kits_mode,
+		"by_kit": by_kit,
 		"model": model_path,
 		"level": level_name,
 		"matches": matches,
@@ -218,12 +244,16 @@ func _write(path: String, text: String) -> void:
 
 ## Plays one full match; the model fighter takes side 0 on even matches and side 1
 ## on odd ones. Returns {"summary", "totals", "observations"} or {"error"}.
-func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) -> Dictionary:
-	var game: Node2D = s.spawn_game()
+func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int, kits_mode: String) -> Dictionary:
+	var game: Node2D = s.spawn_game(NAN, NAN, false, true)
 	var agent_side := index % 2
 	var fighters: Array[Fighter] = [game.get_node("Fighter1"), game.get_node("Fighter2")]
 	var me := fighters[agent_side]
 	var foe := fighters[1 - agent_side]
+	if kits_mode == "rm":
+		var model_kit := (index / 2) % 2
+		me.set_profile(FighterKits.by_id(model_kit))
+		foe.set_profile(FighterKits.by_id(1 - model_kit))
 	var controller := EvalPolicyController.new(model)
 	me.set_controller(controller)
 	s.set_cpu(foe, level, 1000 + index)
@@ -266,6 +296,7 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 	# A win by elimination leaves the loser at zero stocks; otherwise the clock decided it.
 	var by_ko: bool = fighters[0].stocks <= 0 or fighters[1].stocks <= 0
 	metrics.stop()
+	var model_kit_name := String(me.profile.kit_name)
 	var observations := controller.observations
 	var error := controller.error
 	paused = false
@@ -295,7 +326,7 @@ func _play_match(s: RefCounted, model: OnnxPolicyModel, level: int, index: int) 
 		"distance_sum": distance_sum,
 	}
 	return {
-		"summary": {"match": index, "side": agent_side + 1, "outcome": outcome, "seconds": seconds,
+		"summary": {"match": index, "side": agent_side + 1, "kit": model_kit_name, "outcome": outcome, "seconds": seconds,
 			"stocks_taken": totals["stocks_taken"], "stocks_lost": totals["stocks_lost"]},
 		"totals": totals,
 		"observations": observations,

@@ -6,7 +6,9 @@ extends SceneTree
 ##     -- model=res://game/ai/models/bvs_default/model.onnx level=easy out=/some/dir [seconds=45] [seed=1000] [side=0]
 ##
 ## `opponent=model` plays the same model on both sides (model versus model) instead of a
-## scripted CPU of `level`. Add `--write-movie out.avi` to the engine arguments to record a movie.
+## scripted CPU of `level`. `kits=character` (default) keeps the scene kits (Fighter1 Rafael,
+## Fighter2 Matilde); `kits=rm` gives the model fighter Rafael and the other one Matilde,
+## `kits=mr` the reverse (the replay of the schema 4 model uses `opponent=model kits=rm`). Add `--write-movie out.avi` to the engine arguments to record a movie.
 ##
 ## User arguments after `--` are used instead of environment variables because a
 ## macOS `open -g` launch (see run_all.sh) does not forward the shell environment.
@@ -33,7 +35,12 @@ func _run() -> void:
 	var cpu_seed := int(_arg(args, "seed", "1000"))
 	var side := int(_arg(args, "side", "0"))
 	var mirror := _arg(args, "opponent", "cpu") == "model"
+	var kits_arg := _arg(args, "kits", "character")
 	var s := Smoke.new(self, float(seconds) + 60.0)
+	if not ["character", "rm", "mr"].has(kits_arg):
+		s.check("kits is character, rm or mr", false, kits_arg)
+		s.finish()
+		return
 	if not mirror and not LEVELS.has(level_name):
 		s.check("level is easy, normal or hard", false, level_name)
 		s.finish()
@@ -48,8 +55,12 @@ func _run() -> void:
 		s.finish()
 		return
 	DirAccess.make_dir_recursive_absolute(out_dir)
-	var game: Node2D = s.spawn_game()
+	var game: Node2D = s.spawn_game(NAN, NAN, false, true)
 	var fighters: Array[Fighter] = [game.get_node("Fighter1"), game.get_node("Fighter2")]
+	if kits_arg != "character":
+		var policy_kit := 0 if kits_arg == "rm" else 1
+		fighters[side].set_profile(FighterKits.by_id(policy_kit))
+		fighters[1 - side].set_profile(FighterKits.by_id(1 - policy_kit))
 	var controller := PolicyController.new(loaded.model)
 	fighters[side].set_controller(controller)
 	var other_controller: PolicyController = null

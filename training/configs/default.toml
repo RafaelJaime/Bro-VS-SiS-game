@@ -32,6 +32,13 @@ net_arch_vf = [64, 64]
 sudden_death = true
 sd_safety_cap = 60.0
 
+# Fighter kits of the training rows (BVS_TRAIN_CONFIG.kits). `random` draws a kit (Rafael or
+# Matilde) for each side of each row at build time and at every episode end, from a per-row
+# generator seeded `seed * 1009 + row`, so both kits appear on both sides (mirrors included);
+# `character` keeps the scene kits. `seed` defaults to run.seed.
+[kits]
+mode = "random"
+
 # Reward overrides (data only). Keys are RewardConfig fields; see
 # game/ai/training/reward_config.gd for the defaults. The combat-depth terms are signal-driven
 # (pickups, food hits, shield breaks, a long shield hold); the last two keys are parameters.
@@ -43,15 +50,32 @@ shield_break_taken = -0.4
 shield_hold = -0.003
 shield_hold_threshold = 1.5   # seconds of continuous shielding before shield_hold applies
 pickup_cap = 20               # rewarded pickups per episode
+# Character-kits terms (signal driven): a small reward per extra hit of a combo I deal, capped per
+# combo (combo_hit_cap extra hits) and per episode (combo_episode_cap), and a small cost per shield
+# raise (the lever against shield spam; 0.0 in code, so a missing key changes nothing).
+combo_hit = 0.02
+combo_hit_cap = 4
+combo_episode_cap = 1.0
+shield_raise = -0.002
 
-# Acceptance gates of the combat-depth harness (training/bvs_training/harness.py). A retrained
-# model only replaces the bundled one, and the playable schema only moves, when every gate passes.
+# Acceptance gates of the harness (training/bvs_training/harness.py). A retrained model only
+# replaces the bundled one, and the playable schema only moves, when every gate passes.
 [acceptance]
 max_mean_sd_seconds = 45             # forced sudden death, model vs model
 min_pickups_per_fighter_minute = 1.0 # regulation matches with the model
 max_blocked_share = 0.70             # (blocked + broke) / (full + blocked + broke), bombs excluded
 min_ko_win_rate_easy = 0.60          # model vs CPU Easy, won by KO
-min_matches = 20                     # per matchup
+min_matches = 24                     # per matchup
+min_matches_share = 40               # matchups that decide the kit shares (mvm, cpu_hard_vs_cpu_hard)
+min_matches_forced_sd = 20           # forced sudden-death mvm
+max_combo = 6                        # longest combo (hits), every matchup
+max_hurt_seconds = 1.5               # longest continuous Hurt of any victim, every matchup
+min_multi_hit_combos = 5             # 2+ hit combos per matchup (mvm, cpu_normal and cpu_hard mirrors)
+kit_win_share_min = 0.40             # Rafael's win share band in mvm and the CPU Hard mirror
+kit_win_share_max = 0.60
+max_combo_damage_gap = 0.20          # abs(R - M) / max(R, M) of the mean multi-hit combo damage
+# max_shield_raises_per_fighter_minute (mvm and m_vs_cpu_hard) is recorded by
+# `uv run python -m bvs_training.harness --baseline` before the retrain (see reports/shield-baseline.md).
 
 [[phase]]
 name = "P1"

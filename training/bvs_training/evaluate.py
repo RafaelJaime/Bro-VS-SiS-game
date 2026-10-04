@@ -7,7 +7,10 @@ Launches `tests/smoke/policy_eval.gd` once per level, renders
 `reports/<name>-eval.md` (and keeps `<name>-eval.json`), and exits non-zero when the
 win rate versus CPU Easy (the gate level) is below `--min-win-rate`. The report also
 carries the combat-depth metrics (sudden-death length, pickups and throws per
-fighter-minute, blocked share, damage by source, shield breaks).
+fighter-minute, blocked share, damage by source, shield breaks) and the character-kits
+metrics (shield raises per fighter-minute, combo histogram and maximum, longest Hurt,
+combo damage by kit, and the model's results by kit). `--kits rm` (default) plays both
+kits on both sides, `--kits character` keeps the scene kits.
 """
 
 from __future__ import annotations
@@ -31,13 +34,14 @@ def godot_bin() -> str:
     return os.environ.get("GODOT_BIN", str(DEFAULT_GODOT))
 
 
-def run_level(model: Path, level: str, matches: int, work_dir: Path, dump: Path | None) -> dict:
+def run_level(model: Path, level: str, matches: int, work_dir: Path, dump: Path | None, kits: str = "rm") -> dict:
     out = work_dir.resolve() / f"eval_{level}.json"
     env = dict(os.environ)
     env.update(
         BVS_EVAL_MODEL=str(model.resolve()),
         BVS_EVAL_LEVEL=level,
         BVS_EVAL_MATCHES=str(matches),
+        BVS_EVAL_KITS=kits,
         BVS_EVAL_OUT=str(out),
     )
     if dump is not None:
@@ -77,6 +81,35 @@ def render_combat_depth(reports: dict[str, dict]) -> list[str]:
     return lines if rows else []
 
 
+def render_kits(reports: dict[str, dict]) -> list[str]:
+    """Combos, shield raises and the model's results by kit. Reports written before the kits lack these fields."""
+    lines = ["", "## Kits and combos", "",
+             "| Level | Kits | Shield raises / fighter-min | Max combo | 2+ hit combos | Combo histogram (1..6, 7+) | Longest Hurt (s) | Combo damage: Rafael | Matilde |",
+             "|-------|------|-----------------------------|-----------|---------------|----------------------------|------------------|----------------------|---------|"]
+    rows = 0
+    for level, r in reports.items():
+        if "shield_raises_per_fighter_minute" not in r:
+            continue
+        histogram = r.get("combo_histogram", {})
+        buckets = " / ".join(str(histogram.get(bucket, 0)) for bucket in ("1", "2", "3", "4", "5", "6", "7+"))
+        damage = r.get("combo_damage_by_kit", {})
+        lines.append(
+            f"| {level} | {r.get('kits_mode', 'n/a')} | {r['shield_raises_per_fighter_minute']:.2f} | {r.get('max_combo', 0)} | "
+            f"{r.get('multi_hit_combos', 0)} | {buckets} | {r.get('max_hurt_seconds', 0.0):.2f} | "
+            f"{damage.get('rafael', 0.0):.1f} | {damage.get('matilde', 0.0):.1f} |"
+        )
+        rows += 1
+    if not rows:
+        return []
+    lines += ["", "### Model results by kit played", "",
+              "| Level | Kit | Matches | Wins | Losses | Draws |",
+              "|-------|-----|---------|------|--------|-------|"]
+    for level, r in reports.items():
+        for kit, entry in sorted(r.get("by_kit", {}).items()):
+            lines.append(f"| {level} | {kit} | {entry['matches']} | {entry['wins']} | {entry['losses']} | {entry['draws']} |")
+    return lines
+
+
 def render_markdown(name: str, reports: dict[str, dict], gate: dict) -> str:
     lines = [f"# Evaluation: {name}", "", "Played in Godot with the shipped GDScript ONNX interpreter, full matches versus the scripted CPU, sides alternating.", ""]
     lines += [
@@ -105,6 +138,7 @@ def render_markdown(name: str, reports: dict[str, dict], gate: dict) -> str:
             f"{r.get('off_stage_events', 0)} | {r.get('recovery_success_rate', 0.0):.2f} | {r.get('special_presses', 0)} | {r.get('mean_distance', 0.0):.0f} |"
         )
     lines += render_combat_depth(reports)
+    lines += render_kits(reports)
     for level, r in reports.items():
         lines += ["", f"## Action distribution vs {level} (share of decisions per branch index, entropy in bits)", "",
                   "| Branch | Shares | Entropy |", "|--------|--------|---------|"]
@@ -126,6 +160,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--name", help="report name (default: the model's folder or stem)")
     parser.add_argument("--report-dir", type=Path, default=REPORT_DIR)
     parser.add_argument("--obs-dump", type=Path, help="write recorded observations (first level only)")
+    parser.add_argument("--kits", choices=("rm", "character"), default="rm", help="BVS_EVAL_KITS (default rm: both kits on both sides)")
     parser.add_argument("--smoke", action="store_true", help="allow fewer than 20 matches (pipeline checks only)")
     args = parser.parse_args(argv)
 
@@ -139,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
     reports: dict[str, dict] = {}
     for position, level in enumerate(levels):
         dump = args.obs_dump if position == 0 else None
-        reports[level] = run_level(model, level, args.matches, args.report_dir, dump)
+        reports[level] = run_level(model, level, args.matches, args.report_dir, dump, args.kits)
         r = reports[level]
         print(f"{level}: win_rate={r['win_rate']:.2f} ({r['wins']}W {r['losses']}L {r['draws']}D over {r['matches']})")
         (args.report_dir / f"eval_{level}.json").unlink(missing_ok=True)
