@@ -136,8 +136,8 @@ func _attempt(s: RefCounted, percent: float, jump_tick: int, jab_offset: int) ->
 	return result
 
 # Matilde's up launcher into her air jab on a Rafael victim: the jab has to connect at
-# low damage (a window of several ticks), thin out as the launch grows with the damage
-# and whiff at 90 %.
+# low damage (a window of several ticks) and whiff once the launch has grown with the
+# damage (60 % and above).
 func _probe_matilde_launcher(s: RefCounted) -> void:
 	var windows := {}
 	for percent in [0.0, 20.0, 30.0, 60.0, 90.0]:
@@ -160,7 +160,7 @@ func _probe_matilde_launcher(s: RefCounted) -> void:
 		if offsets.size() > 0:
 			s.check("launcher probe %d%%: every air jab hit is the second hit of the combo" % int(percent), combo_ok)
 	s.check("launcher probe: the air jab connects at 0 to 30 % with a window of at least 5 press ticks", windows[0] >= 5 and windows[20] >= 5 and windows[30] >= 5, "windows=%s" % [windows])
-	s.check("launcher probe: the window thins out at 60 %% and the follow-up whiffs at 90 %%", windows[60] < windows[20] and windows[90] == 0, "windows=%s" % [windows])
+	s.check("launcher probe: the follow-up whiffs from 60 %% on", windows[60] == 0 and windows[90] == 0, "windows=%s" % [windows])
 
 # --------------------------------------------------------------- assignment
 
@@ -243,7 +243,7 @@ func _set_profile_refresh(s: RefCounted) -> void:
 	s.check("set_profile refills the shield", is_equal_approx(fighter.shield.ratio(), 1.0), "ratio=%.2f" % fighter.shield.ratio())
 	s.check("set_profile restores the air jump and the air dash", fighter.jumps_left == custom.max_air_jumps and fighter.air_dash_available)
 	s.check("set_profile rebuilds the pickup area from the new profile", is_equal_approx(size.x, 300.0) and is_equal_approx(size.y, 120.0), "size=%s" % [size])
-	s.check("set_profile makes the fighter read the new numbers at once", fighter.profile == custom and is_equal_approx(fighter.get_knockback_scale(), 1.1))
+	s.check("set_profile makes the fighter read the new numbers at once", fighter.profile == custom and is_equal_approx(fighter.get_knockback_scale(), 1.0))
 	fighter.set_profile(null)
 	s.check("set_profile(null) falls back to the default profile", fighter.profile.kit_id == -1)
 	await s.despawn(arena["game"])
@@ -253,12 +253,12 @@ func _set_profile_refresh(s: RefCounted) -> void:
 func _kit_data(s: RefCounted) -> void:
 	var r := FighterKits.by_id(0)
 	var m := FighterKits.by_id(1)
-	s.check("Rafael: heavy and slow (run 270, jumps -820 / -720, knockback scale 0.9)", is_equal_approx(r.run_speed, 270.0) and is_equal_approx(r.jump_velocity, -820.0) and is_equal_approx(r.double_jump_velocity, -720.0) and is_equal_approx(r.knockback_scale, 0.9))
-	s.check("Matilde: light and fast (run 340, jumps -900 / -780, knockback scale 1.1)", is_equal_approx(m.run_speed, 340.0) and is_equal_approx(m.jump_velocity, -900.0) and is_equal_approx(m.double_jump_velocity, -780.0) and is_equal_approx(m.knockback_scale, 1.1))
-	s.check("Rafael: 2-hit jab (4 then the 8 damage finisher), single air jab, single 10", r.jab_chain.size() == 2 and is_equal_approx(r.jab_chain[0].damage, 4.0) and is_equal_approx(r.jab_chain[1].damage, 8.0) and r.air_jab_chain.size() == 1 and is_equal_approx(r.neutral_single.damage, 10.0))
-	s.check("Matilde: 3-hit jab (2.5, 2.5, finisher 4), 2-hit air jab, single 6", m.jab_chain.size() == 3 and is_equal_approx(m.jab_chain[0].damage, 2.5) and is_equal_approx(m.jab_chain[1].damage, 2.5) and is_equal_approx(m.jab_chain[2].damage, 4.0) and m.air_jab_chain.size() == 2 and is_equal_approx(m.neutral_single.damage, 6.0))
-	s.check("Rafael: heavy up launcher (9) with a 0.55 s endlag, side 13 (360, -90), spike 11 (40, 460)", is_equal_approx(r.attack_up.damage, 9.0) and r.attack_up.resolved_frames(r)["endlag"] == CombatClock.ticks(0.55) and is_equal_approx(r.attack_side.damage, 13.0) and r.attack_side.knockback == Vector2(360.0, -90.0) and is_equal_approx(r.attack_down_air.damage, 11.0) and r.attack_down_air.knockback == Vector2(40.0, 460.0))
-	s.check("Matilde: combo launcher (6, hitstun 0.55 s, endlag 0.30 s), side 8 (260, -90), spike 7 (30, 380)", is_equal_approx(m.attack_up.damage, 6.0) and m.attack_up.hitstun_ticks == CombatClock.ticks(0.55) and m.attack_up.resolved_frames(m)["endlag"] == CombatClock.ticks(0.30) and is_equal_approx(m.attack_side.damage, 8.0) and m.attack_side.knockback == Vector2(260.0, -90.0) and is_equal_approx(m.attack_down_air.damage, 7.0) and m.attack_down_air.knockback == Vector2(30.0, 380.0))
+	s.check("Rafael: heavy and slow (run 270, jumps -820 / -720, knockback scale 1.0 after the balance pass)", is_equal_approx(r.run_speed, 270.0) and is_equal_approx(r.jump_velocity, -820.0) and is_equal_approx(r.double_jump_velocity, -720.0) and is_equal_approx(r.knockback_scale, 1.0))
+	s.check("Matilde: light and fast (run 340, jumps -900 / -780, knockback scale 1.0 after the balance pass)", is_equal_approx(m.run_speed, 340.0) and is_equal_approx(m.jump_velocity, -900.0) and is_equal_approx(m.double_jump_velocity, -780.0) and is_equal_approx(m.knockback_scale, 1.0))
+	s.check("Rafael: 2-hit jab (3.5 then the 7 damage finisher), single air jab, single 10", r.jab_chain.size() == 2 and is_equal_approx(r.jab_chain[0].damage, 3.5) and is_equal_approx(r.jab_chain[1].damage, 7.0) and r.air_jab_chain.size() == 1 and is_equal_approx(r.neutral_single.damage, 10.0))
+	s.check("Matilde: 3-hit jab (2.5, 2.5, finisher 6), 2-hit air jab, single 6", m.jab_chain.size() == 3 and is_equal_approx(m.jab_chain[0].damage, 2.5) and is_equal_approx(m.jab_chain[1].damage, 2.5) and is_equal_approx(m.jab_chain[2].damage, 6.0) and m.air_jab_chain.size() == 2 and is_equal_approx(m.neutral_single.damage, 6.0))
+	s.check("Rafael: heavy up launcher (8) with a 0.55 s endlag, side 12 (300, -90), spike 11 (40, 460)", is_equal_approx(r.attack_up.damage, 8.0) and r.attack_up.resolved_frames(r)["endlag"] == CombatClock.ticks(0.55) and is_equal_approx(r.attack_side.damage, 12.0) and r.attack_side.knockback == Vector2(300.0, -90.0) and is_equal_approx(r.attack_down_air.damage, 11.0) and r.attack_down_air.knockback == Vector2(40.0, 460.0))
+	s.check("Matilde: combo launcher (6, hitstun 0.55 s, endlag 0.30 s), side 9 (320, -90), spike 7 (30, 380)", is_equal_approx(m.attack_up.damage, 6.0) and m.attack_up.hitstun_ticks == CombatClock.ticks(0.55) and m.attack_up.resolved_frames(m)["endlag"] == CombatClock.ticks(0.30) and is_equal_approx(m.attack_side.damage, 9.0) and m.attack_side.knockback == Vector2(320.0, -90.0) and is_equal_approx(m.attack_down_air.damage, 7.0) and m.attack_down_air.knockback == Vector2(30.0, 380.0))
 	s.check("the kits chain only on a neutral press and never past 3 steps", r.jab_chain.back().link_window_ticks == 0 and m.jab_chain.back().link_window_ticks == 0 and m.jab_chain.size() <= 3 and m.air_jab_chain.back().link_window_ticks == 0)
 	var every_attack_free := true
 	for kit in [r, m]:
