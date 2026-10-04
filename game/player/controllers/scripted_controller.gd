@@ -27,13 +27,21 @@ extends FighterController
 ##            once the opponent has turtled behind its shield)
 ##   ATTACK   opponent in punch range: punch
 ##   APPROACH walk toward the opponent, never past the stage edge
+##   FOLLOWUP the up launcher just connected (kit hint `launcher_followup = air_jab`,
+##            Hard): jump after the victim and throw the air jab
 ## Between decisions the held flags (move, block, jump) persist. Pressed flags are
 ## one-frame latches that wait for their precondition (facing, a free frame) and
 ## are always followed by a release frame. The bot never charges: attack_held
 ## stays false. Normal and Hard also use directional punches and the up-recovery
 ## (CpuDifficulty.use_directional / use_up_recovery).
+##
+## Combos are event-driven, not decision-driven: the bot listens to the opponent's
+## `hit_received`. When one of its jab steps connects it rolls `chain_chance` and presses
+## neutral attack again after `chain_press_delay` (a tap; the press waits in the attack
+## buffer until the link opens, so a 0.40 s reaction time cannot miss the window). When
+## its up launcher connects it may follow up (FOLLOWUP). Easy never chains.
 
-enum Plan { IDLE, LEDGE, RECOVER, DODGE_BOMB, PUNISH, DEFEND, THROW, PICKUP, ATTACK, APPROACH }
+enum Plan { IDLE, LEDGE, RECOVER, DODGE_BOMB, PUNISH, DEFEND, THROW, PICKUP, ATTACK, APPROACH, FOLLOWUP }
 
 ## States in which the fighter cannot act; presses would only be swallowed.
 const NO_ACTION_STATES: Array[String] = ["Hurt", "Defeated", "Dizzy", "ShieldDrop"]
@@ -77,6 +85,14 @@ const VERTICAL_STRIKE_DX := 80.0
 ## The side punch is for opponents above this damage % near a table end.
 const SIDE_PUNCH_DAMAGE := 60.0
 const SIDE_PUNCH_EDGE_DISTANCE := 140.0
+## Launcher follow-up: how long the bot keeps trying after the launcher connects, the
+## vertical window (dy from the bot to the victim, negative is above, predicted to the
+## tick the air jab hits) and the horizontal reach in which it throws the air jab.
+const FOLLOWUP_TIMEOUT := 0.7
+const FOLLOWUP_DY := Vector2(-170.0, 40.0)
+const FOLLOWUP_DX := 110.0
+## Ticks from the air jab press to its hit (3 startup ticks and the engine's detection).
+const FOLLOWUP_HIT_LATENCY := 5.0 / 60.0
 
 var difficulty: CpuDifficulty
 var plan: Plan = Plan.IDLE
@@ -124,6 +140,14 @@ var _hang_time := 0.0
 var _face_dir := 0
 var _release_frame := false
 
+# Combos (see the header). `_chain_delay` counts down to the chain press (-1 = none);
+# `_want_chain` is the press waiting for a chain step that accepts it.
+var _bound_enemy: Fighter
+var _chain_delay := -1.0
+var _want_chain := 0.0
+var _followup_left := 0.0
+var _followup_jumped := false
+
 var _threat_active := false
 var _pickup_tries := 0
 var _pickup_blocked_until := 0.0
@@ -156,6 +180,15 @@ func kind_name() -> String:
 func bind(f: Fighter) -> void:
 	super.bind(f)
 	_read_body_geometry()
+	_bind_enemy()
+
+# The opponent's hit_received tells the bot when its own hits connect.
+func _bind_enemy() -> void:
+	if is_instance_valid(_bound_enemy) and _bound_enemy.hit_received.is_connected(_on_enemy_hit):
+		_bound_enemy.hit_received.disconnect(_on_enemy_hit)
+	_bound_enemy = fighter.enemy as Fighter if fighter != null else null
+	if _bound_enemy != null:
+		_bound_enemy.hit_received.connect(_on_enemy_hit)
 
 func sample(delta: float) -> FighterIntent:
 	var intent := FighterIntent.new()
@@ -171,6 +204,7 @@ func sample(delta: float) -> FighterIntent:
 	if _think_left <= 0.0:
 		_think()
 	_tick_timers(delta)
+	_update_combo(delta)
 	_fill_intent(intent)
 	return intent
 
@@ -250,6 +284,8 @@ func _choose_plan() -> Plan:
 		return Plan.LEDGE
 	if _plan_recover():
 		return Plan.RECOVER
+	if _plan_followup():
+		return Plan.FOLLOWUP
 	if _plan_dodge_bomb():
 		return Plan.DODGE_BOMB
 	if _plan_punish():
@@ -277,6 +313,9 @@ func _clear_flags() -> void:
 	_want_special = 0.0
 	_ledge_decision = 0.0
 	_dodge_dir = 0.0
+	_chain_delay = -1.0
+	_want_chain = 0.0
+	_followup_left = 0.0
 
 # --- LEDGE -----------------------------------------------------------------
 
@@ -696,6 +735,88 @@ func _plan_approach() -> void:
 		_want_jump = PRESS_PATIENCE
 		_jump_hold_left = JUMP_HOLD
 
+# --- Combos --------------------------------------------------------------------
+
+# The launcher follow-up keeps the bot busy: it walks under the victim and ignores the
+# other plans until the air jab is thrown, the bot is hit or the timeout runs out.
+func _plan_followup() -> bool:
+	if _followup_left <= 0.0:
+		return false
+	var dx: float = fighter.enemy.position.x - fighter.position.x
+	_move_x = signf(dx) if absf(dx) > 30.0 else 0.0
+	_block_left = 0.0
+	return true
+
+# One of this bot's punches reached the opponent (a full hit, not a block).
+func _on_enemy_hit(hit: Hit, outcome: int) -> void:
+	if fighter == null or outcome != Combat.Outcome.FULL or hit.attacker != fighter or hit.source != Hit.Source.PUNCH:
+		return
+	_roll_chain()
+	_roll_followup(hit)
+
+# A jab step connected and the chain has a next step: roll the chain press. No dice are
+# thrown when the difficulty never chains (Easy) or the kit has no chain, so those
+# matches draw the same numbers as before combos existed.
+func _roll_chain() -> void:
+	if difficulty.chain_chance <= 0.0:
+		return
+	var punch = fighter.state_machine.state_map.get("Punch")
+	if punch == null or _state_name() != "Punch":
+		return
+	var step: int = punch.chain_step()
+	if step <= 0 or step >= punch.chain_length():
+		return
+	if _rng.randf() < difficulty.chain_chance:
+		_chain_delay = difficulty.chain_press_delay
+
+# The up launcher connected and the kit pairs it with an air jab: roll the follow-up.
+func _roll_followup(hit: Hit) -> void:
+	if difficulty.launcher_followup_chance <= 0.0 or hit.attack == null or hit.attack.direction != &"up":
+		return
+	if fighter.profile.launcher_followup != &"air_jab" or not fighter.is_on_floor():
+		return
+	if _rng.randf() < difficulty.launcher_followup_chance:
+		_followup_left = FOLLOWUP_TIMEOUT
+		_followup_jumped = false
+
+# Per frame: the chain press once its reaction delay has passed, and the follow-up steps.
+func _update_combo(delta: float) -> void:
+	if _chain_delay >= 0.0:
+		_chain_delay -= delta
+		if _chain_delay <= 0.0:
+			_chain_delay = -1.0
+			_want_chain = PRESS_PATIENCE
+	_want_chain = maxf(0.0, _want_chain - delta)
+	if _followup_left > 0.0:
+		_followup_left -= delta
+		_update_followup()
+
+# Launcher follow-up: wait for the endlag to end (the jump key is then pressed on the
+# first actionable tick, a full hop), then throw the neutral air jab when the victim is
+# inside the window the air jab reaches, predicted to the tick it would hit.
+func _update_followup() -> void:
+	if NO_ACTION_STATES.has(_state_name()) or fighter.enemy.get("stocks") == 0:
+		_followup_left = 0.0
+		return
+	if not _followup_jumped:
+		if fighter.is_on_floor() and (_state_name() == "Idle" or _state_name() == "Run"):
+			_want_jump = PRESS_PATIENCE
+			_jump_hold_left = JUMP_HOLD
+			_followup_jumped = true
+		return
+	if fighter.is_on_floor():
+		return
+	var enemy: Fighter = fighter.enemy as Fighter
+	var dx: float = enemy.position.x - fighter.position.x
+	var dy: float = enemy.position.y - fighter.position.y
+	dy += (enemy.velocity.y - fighter.velocity.y) * FOLLOWUP_HIT_LATENCY
+	if absf(dx) > FOLLOWUP_DX or dy < FOLLOWUP_DY.x or dy > FOLLOWUP_DY.y:
+		return
+	_want_attack = PRESS_PATIENCE
+	_attack_aim = FighterIntent.Aim.NEUTRAL
+	_face_dir = 1 if dx >= 0.0 else -1
+	_followup_left = 0.0
+
 # ---------------------------------------------------------------------------
 # Per-frame output
 # ---------------------------------------------------------------------------
@@ -761,7 +882,13 @@ func _fill_intent(intent: FighterIntent) -> void:
 	# One press per frame, by priority; the rest wait (or expire). A press is only
 	# emitted when the current state accepts that action, so a queued jump is not
 	# swallowed by a punch that is still running.
-	if _want_jump > 0.0 and _accepts("jump"):
+	if _want_chain > 0.0 and _accepts_chain_press():
+		# A tap during a chain step that has a next one; the attack buffer holds it
+		# until the link window opens.
+		intent.attack_pressed = true
+		intent.aim = FighterIntent.Aim.NEUTRAL
+		_want_chain = 0.0
+	elif _want_jump > 0.0 and _accepts("jump"):
 		intent.jump_pressed = true
 		intent.jump_held = true
 		_want_jump = 0.0
@@ -794,6 +921,13 @@ func _accepts(action: String) -> bool:
 		return false
 	var actions = machine.current_state.get("available_actions")
 	return actions != null and actions.has(action)
+
+# The fighter is on a jab-chain step that a neutral press would still advance.
+func _accepts_chain_press() -> bool:
+	if _state_name() != "Punch":
+		return false
+	var punch = fighter.state_machine.state_map.get("Punch")
+	return punch != null and punch.accepts_chain_press()
 
 func _facing_ok() -> bool:
 	return _face_dir == 0 or fighter.facing == _face_dir
