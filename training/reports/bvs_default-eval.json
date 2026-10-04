@@ -3,213 +3,576 @@
     "easy": {
       "action_distribution": [
         {
-          "entropy_bits": 1.55447172693253,
+          "entropy_bits": 1.52223283522899,
           "name": "a0_move",
           "shares": [
-            0.267391496508442,
-            0.429550075134801,
-            0.303058428356758
+            0.236341500532643,
+            0.471008978846446,
+            0.29264952062091
           ]
         },
         {
-          "entropy_bits": 1.37910458517126,
+          "entropy_bits": 0.923200651905641,
           "name": "a1_vertical",
           "shares": [
-            0.428710333244939,
-            0.466012551931406,
-            0.105277114823654
+            0.157814640085223,
+            0.786942626693045,
+            0.0552427332217319
           ]
         },
         {
-          "entropy_bits": 0.409905950815589,
+          "entropy_bits": 0.966286688555814,
           "name": "a2_jump",
           "shares": [
-            0.917793688676744,
-            0.0822063113232564
+            0.60767006543905,
+            0.39232993456095
           ]
         },
         {
-          "entropy_bits": 1.92598909833895,
+          "entropy_bits": 1.77002696783215,
           "name": "a3_attack",
           "shares": [
-            0.359542119685318,
-            0.0160876867320781,
-            0.154158932201892,
-            0.111641474409971,
-            0.358569786970742
+            0.049916298889058,
+            0.304672043828945,
+            0.00136965454268757,
+            0.235276213666109,
+            0.4087657890732
           ]
         },
         {
-          "entropy_bits": 0.894238883643187,
+          "entropy_bits": 0.980169263405029,
           "name": "a4_special",
           "shares": [
-            0.68907451604349,
-            0.31092548395651
+            0.417288084005479,
+            0.582711915994521
           ]
         },
         {
-          "entropy_bits": 0.819951674925292,
+          "entropy_bits": 0.988094864860433,
           "name": "a5_throw",
           "shares": [
-            0.744453283832759,
-            0.255546716167241
+            0.435854512250799,
+            0.564145487749201
           ]
         },
         {
-          "entropy_bits": 0.927007665531664,
+          "entropy_bits": 0.999999983293649,
           "name": "a6_block",
           "shares": [
-            0.657694687527623,
-            0.342305312472377
+            0.499923908080962,
+            0.500076091919038
           ]
         },
         {
-          "entropy_bits": 0.921791079674053,
+          "entropy_bits": 0.830521036802219,
           "name": "a7_dash",
           "shares": [
-            0.663130911340935,
-            0.336869088659065
+            0.737482879318216,
+            0.262517120681784
           ]
         }
       ],
-      "approach_ratio": 0.200106075003867,
-      "attack_presses": 16599,
-      "blocked_share": 0.147239263803681,
+      "approach_ratio": 0.292982723190502,
+      "attack_presses": 6303,
+      "blocked_share": 0.00879765395894428,
+      "by_kit": {
+        "matilde": {
+          "draws": 0,
+          "losses": 0,
+          "matches": 10,
+          "wins": 10
+        },
+        "rafael": {
+          "draws": 0,
+          "losses": 0,
+          "matches": 10,
+          "wins": 10
+        }
+      },
+      "combo_count_by_kit": {
+        "matilde": 4
+      },
+      "combo_damage_by_kit": {
+        "matilde": 20.0
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 80.0
+      },
+      "combo_histogram": {
+        "1": 330,
+        "2": 4,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 1446.0,
+        "rafael": 1447.0
+      },
       "damage_by_source": {
         "bomb": 0.0,
-        "food": 2308.25,
+        "food": 270.0,
         "ledge": 0.0,
-        "punch": 6673.5
+        "punch": 2632.0
       },
-      "damage_dealt_mean": 150.3625,
+      "damage_dealt_mean": 125.65,
       "draws": 0,
-      "idle_ratio": 0.0812578727541933,
+      "hurt_over_cap": 0,
+      "idle_ratio": 0.00323464495014841,
+      "kits_mode": "rm",
       "ko_losses": 0,
-      "ko_wins": 40,
+      "ko_wins": 20,
       "level": "easy",
       "losses": 0,
-      "matches": 40,
+      "matches": 20,
+      "max_combo": 2,
+      "max_hurt_seconds": 0.85,
       "max_sd_seconds": 0.0,
-      "mean_distance": 260.605477705059,
-      "mean_match_seconds": 37.7091666666667,
+      "mean_distance": 214.474754133402,
+      "mean_match_seconds": 21.8983333333333,
       "mean_sd_seconds": 0.0,
-      "model": "/Users/rafael/Documents/workspace/autonomo/Bro-VS-SiS-game/training/out/s3_r1/model/model.onnx",
-      "off_stage_events": 70,
+      "model": "/Users/rafael/Documents/workspace/autonomo/Bro-VS-SiS-game/game/ai/models/bvs_default/model.onnx",
+      "multi_hit_combos": 4,
+      "off_stage_events": 2,
       "per_match": [
         {
+          "kit": "rafael",
           "match": 0,
           "outcome": "win",
-          "seconds": 37.5,
+          "seconds": 14.1166666666667,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 1,
           "outcome": "win",
-          "seconds": 35.5333333333333,
+          "seconds": 21.5666666666667,
           "side": 2,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 2,
           "outcome": "win",
-          "seconds": 31.2833333333333,
+          "seconds": 18.0,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 3,
           "outcome": "win",
-          "seconds": 47.8,
+          "seconds": 31.3833333333333,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 4,
           "outcome": "win",
-          "seconds": 36.1,
+          "seconds": 18.6166666666667,
           "side": 1,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 5,
           "outcome": "win",
-          "seconds": 29.7,
+          "seconds": 16.05,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 6,
           "outcome": "win",
-          "seconds": 24.5833333333333,
+          "seconds": 24.6833333333333,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 7,
           "outcome": "win",
-          "seconds": 40.2,
+          "seconds": 21.8666666666667,
           "side": 2,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 8,
           "outcome": "win",
-          "seconds": 36.4833333333333,
+          "seconds": 21.2,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 9,
           "outcome": "win",
-          "seconds": 43.95,
+          "seconds": 19.7166666666667,
           "side": 2,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 10,
           "outcome": "win",
-          "seconds": 35.05,
+          "seconds": 32.45,
           "side": 1,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 11,
           "outcome": "win",
-          "seconds": 49.2333333333333,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 12,
-          "outcome": "win",
-          "seconds": 56.7166666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 13,
-          "outcome": "win",
-          "seconds": 44.7,
+          "seconds": 21.4666666666667,
           "side": 2,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
+          "match": 12,
+          "outcome": "win",
+          "seconds": 18.6,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 13,
+          "outcome": "win",
+          "seconds": 18.85,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
           "match": 14,
+          "outcome": "win",
+          "seconds": 25.9166666666667,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 15,
+          "outcome": "win",
+          "seconds": 25.7833333333333,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 16,
+          "outcome": "win",
+          "seconds": 17.5166666666667,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 17,
+          "outcome": "win",
+          "seconds": 21.0666666666667,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 18,
+          "outcome": "win",
+          "seconds": 23.0666666666667,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 19,
+          "outcome": "win",
+          "seconds": 26.05,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        }
+      ],
+      "pickups_per_fighter_minute": 5.54836745566634,
+      "recoveries": 2,
+      "recovery_success_rate": 1.0,
+      "schema_version": 4,
+      "sd_matches": 0,
+      "self_ko_share": 0.0,
+      "self_kos": 0,
+      "shield_breaks": 0,
+      "shield_holds": 17,
+      "shield_raises": 17,
+      "shield_raises_per_fighter_minute": 1.16447218205343,
+      "shield_tap_share": 0.411764705882353,
+      "shield_taps": 7,
+      "special_presses": 3829,
+      "stocks_lost_mean": 0.0,
+      "stocks_taken_mean": 3.0,
+      "throws_per_fighter_minute": 4.79488545551412,
+      "timeout_losses": 0,
+      "timeout_wins": 0,
+      "win_rate": 1.0,
+      "wins": 20
+    },
+    "normal": {
+      "action_distribution": [
+        {
+          "entropy_bits": 1.51057779090718,
+          "name": "a0_move",
+          "shares": [
+            0.194353809050929,
+            0.442190381614413,
+            0.363455809334657
+          ]
+        },
+        {
+          "entropy_bits": 0.814907305018118,
+          "name": "a1_vertical",
+          "shares": [
+            0.140871045538374,
+            0.82025819265144,
+            0.0388707618101858
+          ]
+        },
+        {
+          "entropy_bits": 0.978390292341403,
+          "name": "a2_jump",
+          "shares": [
+            0.586324301319336,
+            0.413675698680664
+          ]
+        },
+        {
+          "entropy_bits": 1.84695532110907,
+          "name": "a3_attack",
+          "shares": [
+            0.0839835437650731,
+            0.236345580933466,
+            0.00383033054333948,
+            0.249680805788055,
+            0.426159738970067
+          ]
+        },
+        {
+          "entropy_bits": 0.989110274490888,
+          "name": "a4_special",
+          "shares": [
+            0.438643779259469,
+            0.561356220740531
+          ]
+        },
+        {
+          "entropy_bits": 0.978390292341403,
+          "name": "a5_throw",
+          "shares": [
+            0.413675698680664,
+            0.586324301319336
+          ]
+        },
+        {
+          "entropy_bits": 0.998271373243781,
+          "name": "a6_block",
+          "shares": [
+            0.475528443750887,
+            0.524471556249113
+          ]
+        },
+        {
+          "entropy_bits": 0.853759756020264,
+          "name": "a7_dash",
+          "shares": [
+            0.721237054901404,
+            0.278762945098596
+          ]
+        }
+      ],
+      "approach_ratio": 0.312429098128191,
+      "attack_presses": 6595,
+      "blocked_share": 0.1,
+      "by_kit": {
+        "matilde": {
+          "draws": 0,
+          "losses": 0,
+          "matches": 10,
+          "wins": 10
+        },
+        "rafael": {
+          "draws": 0,
+          "losses": 0,
+          "matches": 10,
+          "wins": 10
+        }
+      },
+      "combo_count_by_kit": {
+        "matilde": 24,
+        "rafael": 5
+      },
+      "combo_damage_by_kit": {
+        "matilde": 10.5208333333333,
+        "rafael": 14.5
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 252.5,
+        "rafael": 72.5
+      },
+      "combo_histogram": {
+        "1": 391,
+        "2": 19,
+        "3": 10,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 1873.5,
+        "rafael": 1852.5
+      },
+      "damage_by_source": {
+        "bomb": 0.0,
+        "food": 618.0,
+        "ledge": 100.0,
+        "punch": 3139.25
+      },
+      "damage_dealt_mean": 136.6625,
+      "draws": 0,
+      "hurt_over_cap": 0,
+      "idle_ratio": 0.0045022688598979,
+      "kits_mode": "rm",
+      "ko_losses": 0,
+      "ko_wins": 20,
+      "level": "normal",
+      "losses": 0,
+      "matches": 20,
+      "max_combo": 3,
+      "max_hurt_seconds": 0.85,
+      "max_sd_seconds": 0.0,
+      "mean_distance": 220.23292972527,
+      "mean_match_seconds": 23.5066666666667,
+      "mean_sd_seconds": 0.0,
+      "model": "/Users/rafael/Documents/workspace/autonomo/Bro-VS-SiS-game/game/ai/models/bvs_default/model.onnx",
+      "multi_hit_combos": 29,
+      "off_stage_events": 8,
+      "per_match": [
+        {
+          "kit": "rafael",
+          "match": 0,
+          "outcome": "win",
+          "seconds": 20.6833333333333,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 1,
+          "outcome": "win",
+          "seconds": 20.0833333333333,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 2,
+          "outcome": "win",
+          "seconds": 22.9833333333333,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 3,
+          "outcome": "win",
+          "seconds": 25.8333333333333,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 4,
+          "outcome": "win",
+          "seconds": 19.0833333333333,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 5,
+          "outcome": "win",
+          "seconds": 16.4666666666667,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 6,
+          "outcome": "win",
+          "seconds": 30.0166666666667,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 7,
+          "outcome": "win",
+          "seconds": 32.1666666666667,
+          "side": 2,
+          "stocks_lost": 1,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 8,
+          "outcome": "win",
+          "seconds": 22.7833333333333,
+          "side": 1,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "rafael",
+          "match": 9,
+          "outcome": "win",
+          "seconds": 19.1,
+          "side": 2,
+          "stocks_lost": 0,
+          "stocks_taken": 3
+        },
+        {
+          "kit": "matilde",
+          "match": 10,
           "outcome": "win",
           "seconds": 30.3833333333333,
           "side": 1,
@@ -217,1097 +580,458 @@
           "stocks_taken": 3
         },
         {
-          "match": 15,
-          "outcome": "win",
-          "seconds": 50.45,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 16,
-          "outcome": "win",
-          "seconds": 33.1666666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 17,
-          "outcome": "win",
-          "seconds": 35.25,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 18,
-          "outcome": "win",
-          "seconds": 30.2166666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 19,
-          "outcome": "win",
-          "seconds": 37.0166666666667,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 20,
-          "outcome": "win",
-          "seconds": 37.6333333333333,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 21,
-          "outcome": "win",
-          "seconds": 37.6666666666667,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 22,
-          "outcome": "win",
-          "seconds": 28.3,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 23,
-          "outcome": "win",
-          "seconds": 33.1,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 24,
-          "outcome": "win",
-          "seconds": 45.1166666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 25,
-          "outcome": "win",
-          "seconds": 29.5166666666667,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 26,
-          "outcome": "win",
-          "seconds": 21.2666666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 27,
-          "outcome": "win",
-          "seconds": 59.9333333333333,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 28,
-          "outcome": "win",
-          "seconds": 44.9666666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 29,
-          "outcome": "win",
-          "seconds": 45.6666666666667,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 30,
-          "outcome": "win",
-          "seconds": 32.9833333333333,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 31,
-          "outcome": "win",
-          "seconds": 36.2833333333333,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 32,
-          "outcome": "win",
-          "seconds": 28.4,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 33,
-          "outcome": "win",
-          "seconds": 28.0166666666667,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 34,
-          "outcome": "win",
-          "seconds": 23.0166666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 35,
-          "outcome": "win",
-          "seconds": 34.8166666666667,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 36,
-          "outcome": "win",
-          "seconds": 33.3333333333333,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 37,
-          "outcome": "win",
-          "seconds": 52.2,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 38,
-          "outcome": "win",
-          "seconds": 42.5333333333333,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 39,
-          "outcome": "win",
-          "seconds": 48.3,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        }
-      ],
-      "pickups_per_fighter_minute": 6.28494397913858,
-      "recoveries": 53,
-      "recovery_success_rate": 0.757142857142857,
-      "schema_version": 3,
-      "sd_matches": 0,
-      "self_ko_share": 0.0588235294117647,
-      "self_kos": 1,
-      "shield_breaks": 18,
-      "special_presses": 7035,
-      "stocks_lost_mean": 0.425,
-      "stocks_taken_mean": 3.0,
-      "throws_per_fighter_minute": 5.05182205918101,
-      "timeout_losses": 0,
-      "timeout_wins": 0,
-      "win_rate": 1.0,
-      "wins": 40
-    },
-    "normal": {
-      "action_distribution": [
-        {
-          "entropy_bits": 1.53949430215528,
-          "name": "a0_move",
-          "shares": [
-            0.266207867365293,
-            0.454211308360053,
-            0.279580824274654
-          ]
-        },
-        {
-          "entropy_bits": 1.36433110156031,
-          "name": "a1_vertical",
-          "shares": [
-            0.429928833972003,
-            0.471572691014311,
-            0.0984984750136858
-          ]
-        },
-        {
-          "entropy_bits": 0.447126337327362,
-          "name": "a2_jump",
-          "shares": [
-            0.906780323766325,
-            0.0932196762336748
-          ]
-        },
-        {
-          "entropy_bits": 1.94694138089695,
-          "name": "a3_attack",
-          "shares": [
-            0.369946038945804,
-            0.0175177915069993,
-            0.172675373426136,
-            0.108977868147337,
-            0.330882927973723
-          ]
-        },
-        {
-          "entropy_bits": 0.919127756745945,
-          "name": "a4_special",
-          "shares": [
-            0.665832486118714,
-            0.334167513881286
-          ]
-        },
-        {
-          "entropy_bits": 0.885728271991228,
-          "name": "a5_throw",
-          "shares": [
-            0.696332212403222,
-            0.303667787596778
-          ]
-        },
-        {
-          "entropy_bits": 0.935391535169368,
-          "name": "a6_block",
-          "shares": [
-            0.648510205677641,
-            0.351489794322359
-          ]
-        },
-        {
-          "entropy_bits": 0.920598446279046,
-          "name": "a7_dash",
-          "shares": [
-            0.664346602017674,
-            0.335653397982326
-          ]
-        }
-      ],
-      "approach_ratio": 0.255462250593882,
-      "attack_presses": 18678,
-      "blocked_share": 0.255899705014749,
-      "damage_by_source": {
-        "bomb": 0.0,
-        "food": 2652.5,
-        "ledge": 90.0,
-        "punch": 8399.25
-      },
-      "damage_dealt_mean": 172.8,
-      "draws": 0,
-      "idle_ratio": 0.0919319992570362,
-      "ko_losses": 0,
-      "ko_wins": 40,
-      "level": "normal",
-      "losses": 0,
-      "matches": 40,
-      "max_sd_seconds": 0.0,
-      "mean_distance": 250.933615602875,
-      "mean_match_seconds": 42.6220833333333,
-      "mean_sd_seconds": 0.0,
-      "model": "/Users/rafael/Documents/workspace/autonomo/Bro-VS-SiS-game/training/out/s3_r1/model/model.onnx",
-      "off_stage_events": 108,
-      "per_match": [
-        {
-          "match": 0,
-          "outcome": "win",
-          "seconds": 41.4833333333333,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 1,
-          "outcome": "win",
-          "seconds": 52.0333333333333,
-          "side": 2,
-          "stocks_lost": 2,
-          "stocks_taken": 3
-        },
-        {
-          "match": 2,
-          "outcome": "win",
-          "seconds": 45.0333333333333,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 3,
-          "outcome": "win",
-          "seconds": 35.0833333333333,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 4,
-          "outcome": "win",
-          "seconds": 38.2666666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 5,
-          "outcome": "win",
-          "seconds": 49.5666666666667,
-          "side": 2,
-          "stocks_lost": 2,
-          "stocks_taken": 3
-        },
-        {
-          "match": 6,
-          "outcome": "win",
-          "seconds": 50.1833333333333,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 7,
-          "outcome": "win",
-          "seconds": 37.95,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 8,
-          "outcome": "win",
-          "seconds": 48.0,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 9,
-          "outcome": "win",
-          "seconds": 40.8666666666667,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 10,
-          "outcome": "win",
-          "seconds": 31.4333333333333,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
+          "kit": "matilde",
           "match": 11,
           "outcome": "win",
-          "seconds": 69.6333333333333,
+          "seconds": 22.7666666666667,
           "side": 2,
-          "stocks_lost": 2,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 12,
           "outcome": "win",
-          "seconds": 28.8,
+          "seconds": 17.05,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 13,
           "outcome": "win",
-          "seconds": 57.8,
+          "seconds": 20.2166666666667,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 14,
           "outcome": "win",
-          "seconds": 27.05,
+          "seconds": 17.4666666666667,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 15,
           "outcome": "win",
-          "seconds": 47.9666666666667,
+          "seconds": 26.8666666666667,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 16,
           "outcome": "win",
-          "seconds": 35.0333333333333,
+          "seconds": 17.2166666666667,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 17,
           "outcome": "win",
-          "seconds": 45.1166666666667,
+          "seconds": 20.7,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 18,
           "outcome": "win",
-          "seconds": 23.2,
+          "seconds": 35.45,
           "side": 1,
-          "stocks_lost": 0,
+          "stocks_lost": 1,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 19,
           "outcome": "win",
-          "seconds": 40.2166666666667,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 20,
-          "outcome": "win",
-          "seconds": 37.6666666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 21,
-          "outcome": "win",
-          "seconds": 60.5833333333333,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 22,
-          "outcome": "win",
-          "seconds": 43.8,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 23,
-          "outcome": "win",
-          "seconds": 40.9,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 24,
-          "outcome": "win",
-          "seconds": 38.0333333333333,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 25,
-          "outcome": "win",
-          "seconds": 56.2,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 26,
-          "outcome": "win",
-          "seconds": 43.9166666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 27,
-          "outcome": "win",
-          "seconds": 29.7166666666667,
+          "seconds": 32.8166666666667,
           "side": 2,
           "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 28,
-          "outcome": "win",
-          "seconds": 52.15,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 29,
-          "outcome": "win",
-          "seconds": 29.95,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 30,
-          "outcome": "win",
-          "seconds": 37.8166666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 31,
-          "outcome": "win",
-          "seconds": 51.6,
-          "side": 2,
-          "stocks_lost": 2,
-          "stocks_taken": 3
-        },
-        {
-          "match": 32,
-          "outcome": "win",
-          "seconds": 42.1,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 33,
-          "outcome": "win",
-          "seconds": 54.6666666666667,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 34,
-          "outcome": "win",
-          "seconds": 32.9166666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 35,
-          "outcome": "win",
-          "seconds": 44.9833333333333,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 36,
-          "outcome": "win",
-          "seconds": 43.1666666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 37,
-          "outcome": "win",
-          "seconds": 54.45,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 38,
-          "outcome": "win",
-          "seconds": 29.85,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 39,
-          "outcome": "win",
-          "seconds": 35.7,
-          "side": 2,
-          "stocks_lost": 1,
           "stocks_taken": 3
         }
       ],
-      "pickups_per_fighter_minute": 7.23216642389997,
-      "recoveries": 80,
-      "recovery_success_rate": 0.740740740740741,
-      "schema_version": 3,
+      "pickups_per_fighter_minute": 6.44498014747589,
+      "recoveries": 6,
+      "recovery_success_rate": 0.75,
+      "schema_version": 4,
       "sd_matches": 0,
       "self_ko_share": 0.0,
       "self_kos": 0,
-      "shield_breaks": 38,
-      "special_presses": 8546,
-      "stocks_lost_mean": 0.7,
+      "shield_breaks": 0,
+      "shield_holds": 80,
+      "shield_raises": 80,
+      "shield_raises_per_fighter_minute": 5.10493477027794,
+      "shield_tap_share": 0.3,
+      "shield_taps": 24,
+      "special_presses": 3957,
+      "stocks_lost_mean": 0.1,
       "stocks_taken_mean": 3.0,
-      "throws_per_fighter_minute": 6.38753384884596,
+      "throws_per_fighter_minute": 6.06211003970505,
       "timeout_losses": 0,
       "timeout_wins": 0,
       "win_rate": 1.0,
-      "wins": 40
+      "wins": 20
     },
     "hard": {
       "action_distribution": [
         {
-          "entropy_bits": 1.5374855518157,
+          "entropy_bits": 1.50167479665882,
           "name": "a0_move",
           "shares": [
-            0.249633870323525,
-            0.45320197044335,
-            0.297164159233125
+            0.188491823137492,
+            0.453543307086614,
+            0.357964869775893
           ]
         },
         {
-          "entropy_bits": 1.40734155816423,
+          "entropy_bits": 0.784944436919083,
           "name": "a1_vertical",
           "shares": [
-            0.468745839435495,
-            0.41086406603648,
-            0.120390094528026
+            0.129376135675348,
+            0.831738340399758,
+            0.038885523924894
           ]
         },
         {
-          "entropy_bits": 0.435250994373973,
+          "entropy_bits": 0.997035719060126,
           "name": "a2_jump",
           "shares": [
-            0.910364798295833,
-            0.0896352017041672
+            0.532041187159297,
+            0.467958812840703
           ]
         },
         {
-          "entropy_bits": 1.95705678413054,
+          "entropy_bits": 1.85043815648606,
           "name": "a3_attack",
           "shares": [
-            0.366029822926375,
-            0.0192717347889762,
-            0.157236053787778,
-            0.120623086140328,
-            0.336839302356544
+            0.100908540278619,
+            0.195760145366445,
+            0.00545124167171411,
+            0.245305875227135,
+            0.452574197456087
           ]
         },
         {
-          "entropy_bits": 0.923121879359475,
+          "entropy_bits": 0.991235660230736,
           "name": "a4_special",
           "shares": [
-            0.661762747969645,
-            0.338237252030355
+            0.444942459115687,
+            0.555057540884313
           ]
         },
         {
-          "entropy_bits": 0.893340904028396,
+          "entropy_bits": 0.993796217383302,
           "name": "a5_throw",
           "shares": [
-            0.689854879510052,
-            0.310145120489948
+            0.45366444579043,
+            0.54633555420957
           ]
         },
         {
-          "entropy_bits": 0.95163121714663,
+          "entropy_bits": 0.999675795514333,
           "name": "a6_block",
           "shares": [
-            0.628744508054853,
-            0.371255491945147
+            0.489400363416111,
+            0.510599636583889
           ]
         },
         {
-          "entropy_bits": 0.932891398893185,
+          "entropy_bits": 0.958306815613795,
           "name": "a7_dash",
           "shares": [
-            0.6513114099321,
-            0.3486885900679
+            0.619624470018171,
+            0.380375529981829
           ]
         }
       ],
-      "approach_ratio": 0.316675403343235,
-      "attack_presses": 22243,
-      "blocked_share": 0.317653890824623,
+      "approach_ratio": 0.389121085468532,
+      "attack_presses": 7507,
+      "blocked_share": 0.222695035460993,
+      "by_kit": {
+        "matilde": {
+          "draws": 0,
+          "losses": 0,
+          "matches": 10,
+          "wins": 10
+        },
+        "rafael": {
+          "draws": 0,
+          "losses": 0,
+          "matches": 10,
+          "wins": 10
+        }
+      },
+      "combo_count_by_kit": {
+        "matilde": 47,
+        "rafael": 21
+      },
+      "combo_damage_by_kit": {
+        "matilde": 11.5212765957447,
+        "rafael": 11.8809523809524
+      },
+      "combo_damage_sum_by_kit": {
+        "matilde": 541.5,
+        "rafael": 249.5
+      },
+      "combo_histogram": {
+        "1": 375,
+        "2": 37,
+        "3": 25,
+        "4": 6,
+        "5": 0,
+        "6": 0,
+        "7+": 0
+      },
+      "damage_by_kit": {
+        "matilde": 2185.0,
+        "rafael": 2086.0
+      },
       "damage_by_source": {
         "bomb": 0.0,
-        "food": 3009.5,
-        "ledge": 57.5,
-        "punch": 10087.75
+        "food": 805.75,
+        "ledge": 60.0,
+        "punch": 3813.25
       },
-      "damage_dealt_mean": 186.85625,
+      "damage_dealt_mean": 154.05,
       "draws": 0,
-      "idle_ratio": 0.0981087175390862,
-      "ko_losses": 2,
-      "ko_wins": 38,
+      "hurt_over_cap": 0,
+      "idle_ratio": 0.0011206008843661,
+      "kits_mode": "rm",
+      "ko_losses": 0,
+      "ko_wins": 20,
       "level": "hard",
-      "losses": 2,
-      "matches": 40,
+      "losses": 0,
+      "matches": 20,
+      "max_combo": 4,
+      "max_hurt_seconds": 1.03333333333333,
       "max_sd_seconds": 0.0,
-      "mean_distance": 239.930251461267,
-      "mean_match_seconds": 50.07625,
+      "mean_distance": 206.052884347543,
+      "mean_match_seconds": 27.515,
       "mean_sd_seconds": 0.0,
-      "model": "/Users/rafael/Documents/workspace/autonomo/Bro-VS-SiS-game/training/out/s3_r1/model/model.onnx",
-      "off_stage_events": 138,
+      "model": "/Users/rafael/Documents/workspace/autonomo/Bro-VS-SiS-game/game/ai/models/bvs_default/model.onnx",
+      "multi_hit_combos": 68,
+      "off_stage_events": 18,
       "per_match": [
         {
+          "kit": "rafael",
           "match": 0,
           "outcome": "win",
-          "seconds": 39.0833333333333,
+          "seconds": 19.15,
           "side": 1,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 1,
           "outcome": "win",
-          "seconds": 45.5666666666667,
+          "seconds": 27.7,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 2,
           "outcome": "win",
-          "seconds": 32.5333333333333,
+          "seconds": 27.45,
           "side": 1,
-          "stocks_lost": 0,
+          "stocks_lost": 1,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 3,
           "outcome": "win",
-          "seconds": 69.95,
+          "seconds": 20.4333333333333,
           "side": 2,
-          "stocks_lost": 2,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 4,
           "outcome": "win",
-          "seconds": 38.05,
+          "seconds": 23.25,
           "side": 1,
           "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 5,
           "outcome": "win",
-          "seconds": 62.6333333333333,
+          "seconds": 24.7166666666667,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 6,
-          "outcome": "loss",
-          "seconds": 56.85,
+          "outcome": "win",
+          "seconds": 21.1833333333333,
           "side": 1,
-          "stocks_lost": 3,
-          "stocks_taken": 2
+          "stocks_lost": 0,
+          "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 7,
           "outcome": "win",
-          "seconds": 58.2166666666667,
+          "seconds": 37.8666666666667,
           "side": 2,
           "stocks_lost": 1,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 8,
           "outcome": "win",
-          "seconds": 51.3166666666667,
+          "seconds": 31.6666666666667,
           "side": 1,
-          "stocks_lost": 2,
+          "stocks_lost": 1,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 9,
           "outcome": "win",
-          "seconds": 62.3833333333333,
+          "seconds": 25.7833333333333,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 10,
           "outcome": "win",
-          "seconds": 43.5666666666667,
+          "seconds": 34.0333333333333,
           "side": 1,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 11,
           "outcome": "win",
-          "seconds": 62.75,
+          "seconds": 31.8833333333333,
           "side": 2,
-          "stocks_lost": 2,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 12,
           "outcome": "win",
-          "seconds": 46.9166666666667,
+          "seconds": 25.6333333333333,
           "side": 1,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 13,
           "outcome": "win",
-          "seconds": 53.3833333333333,
+          "seconds": 38.85,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 14,
           "outcome": "win",
-          "seconds": 43.6333333333333,
+          "seconds": 29.65,
           "side": 1,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 15,
           "outcome": "win",
-          "seconds": 66.7,
+          "seconds": 27.5833333333333,
           "side": 2,
-          "stocks_lost": 2,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 16,
           "outcome": "win",
-          "seconds": 52.8666666666667,
+          "seconds": 23.2666666666667,
           "side": 1,
-          "stocks_lost": 2,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "rafael",
           "match": 17,
           "outcome": "win",
-          "seconds": 54.1,
+          "seconds": 34.5,
           "side": 2,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 18,
           "outcome": "win",
-          "seconds": 43.4166666666667,
+          "seconds": 24.75,
           "side": 1,
-          "stocks_lost": 1,
+          "stocks_lost": 0,
           "stocks_taken": 3
         },
         {
+          "kit": "matilde",
           "match": 19,
           "outcome": "win",
-          "seconds": 49.45,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 20,
-          "outcome": "loss",
-          "seconds": 55.2833333333333,
-          "side": 1,
-          "stocks_lost": 3,
-          "stocks_taken": 2
-        },
-        {
-          "match": 21,
-          "outcome": "win",
-          "seconds": 51.6333333333333,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 22,
-          "outcome": "win",
-          "seconds": 43.6,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 23,
-          "outcome": "win",
-          "seconds": 50.9166666666667,
+          "seconds": 20.95,
           "side": 2,
           "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 24,
-          "outcome": "win",
-          "seconds": 36.3666666666667,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 25,
-          "outcome": "win",
-          "seconds": 33.6166666666667,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 26,
-          "outcome": "win",
-          "seconds": 39.0166666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 27,
-          "outcome": "win",
-          "seconds": 48.35,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 28,
-          "outcome": "win",
-          "seconds": 59.6,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 29,
-          "outcome": "win",
-          "seconds": 46.35,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 30,
-          "outcome": "win",
-          "seconds": 70.8166666666667,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 31,
-          "outcome": "win",
-          "seconds": 39.7,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 32,
-          "outcome": "win",
-          "seconds": 62.0333333333333,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 33,
-          "outcome": "win",
-          "seconds": 44.2,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 34,
-          "outcome": "win",
-          "seconds": 35.85,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 35,
-          "outcome": "win",
-          "seconds": 51.65,
-          "side": 2,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 36,
-          "outcome": "win",
-          "seconds": 47.5833333333333,
-          "side": 1,
-          "stocks_lost": 1,
-          "stocks_taken": 3
-        },
-        {
-          "match": 37,
-          "outcome": "win",
-          "seconds": 44.7666666666667,
-          "side": 2,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 38,
-          "outcome": "win",
-          "seconds": 47.0833333333333,
-          "side": 1,
-          "stocks_lost": 0,
-          "stocks_taken": 3
-        },
-        {
-          "match": 39,
-          "outcome": "win",
-          "seconds": 61.2666666666667,
-          "side": 2,
-          "stocks_lost": 1,
           "stocks_taken": 3
         }
       ],
-      "pickups_per_fighter_minute": 6.7397219240658,
-      "recoveries": 99,
-      "recovery_success_rate": 0.717391304347826,
-      "schema_version": 3,
+      "pickups_per_fighter_minute": 7.0870434308559,
+      "recoveries": 15,
+      "recovery_success_rate": 0.833333333333333,
+      "schema_version": 4,
       "sd_matches": 0,
       "self_ko_share": 0.0,
       "self_kos": 0,
-      "shield_breaks": 44,
-      "special_presses": 10162,
-      "stocks_lost_mean": 1.0,
-      "stocks_taken_mean": 2.95,
-      "throws_per_fighter_minute": 6.09570405132174,
+      "shield_breaks": 1,
+      "shield_holds": 147,
+      "shield_raises": 147,
+      "shield_raises_per_fighter_minute": 8.01381064873705,
+      "shield_tap_share": 0.0952380952380952,
+      "shield_taps": 14,
+      "special_presses": 4582,
+      "stocks_lost_mean": 0.15,
+      "stocks_taken_mean": 3.0,
+      "throws_per_fighter_minute": 6.65091768126477,
       "timeout_losses": 0,
       "timeout_wins": 0,
-      "win_rate": 0.95,
-      "wins": 38
+      "win_rate": 1.0,
+      "wins": 20
     }
   },
   "gate": {
     "level": "easy",
     "min_win_rate": 0.6,
     "win_rate": 1.0,
-    "matches": 40,
+    "matches": 20,
     "passed": true
   }
 }
