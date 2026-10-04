@@ -43,8 +43,8 @@ In training mode, the episode MUST end on every match resolution (elimination, t
 
 ### Requirement: Reward components
 
-Per step, the training reward MUST be the sum of tunable components: damage dealt (+), damage taken (-), KO given (+), KO taken (-), stock lost (-), win (+), loss (-), small shaping terms (for example approaching the opponent, edge/recovery penalties), and the combat-depth terms: food pickup (+), food hit landed (+), shield break dealt (+), shield break taken (-), and a small penalty for holding the shield too long (-). Each component MUST be logged separately and MUST be changeable through data without code edits. Rewards MUST be derived from the damage, stock, match, pickup, food-hit and shield-break signals, not from observation reads.
-(Previously: no food or shield terms.)
+Per step, the training reward MUST be the sum of tunable components: damage dealt (+), damage taken (-), KO given (+), KO taken (-), stock lost (-), win (+), loss (-), small shaping terms (for example approaching the opponent, edge/recovery penalties), the combat-depth terms: food pickup (+), food hit landed (+), shield break dealt (+), shield break taken (-), a small penalty for holding the shield too long (-), and a small combo term (+) per additional combo hit dealt, capped per episode and per combo. Each component MUST be logged separately and MUST be changeable through data without code edits. Rewards MUST be derived from the damage, stock, match, pickup, food-hit, shield-break and combat (combo) signals, not from observation reads.
+(Previously: no combo term.)
 
 #### Scenario: Damage reward
 - GIVEN fighter A hits fighter B for 12%
@@ -81,10 +81,20 @@ Per step, the training reward MUST be the sum of tunable components: damage deal
 - WHEN steps are processed
 - THEN a small negative term accrues each step beyond the threshold and none below it
 
+#### Scenario: Combo term is capped
+- GIVEN fighter A lands a 5-hit combo and many more combos in the same episode
+- WHEN rewards are summed
+- THEN the combo term per combo and per episode never exceeds its configured cap
+
+#### Scenario: Combo term from combat signals
+- GIVEN fighter A's second consecutive hit lands during hitstun
+- WHEN the step is processed
+- THEN A's reward includes the combo term, derived from the combat signal and not from observation reads
+
 #### Scenario: Observable in logs
 - GIVEN a training run
 - WHEN its log is inspected
-- THEN KO, stock, win, pickup, food-hit and shield-break components appear as separate entries
+- THEN KO, stock, win, pickup, food-hit, shield-break and combo components appear as separate entries
 
 #### Scenario: Weights are data
 - GIVEN a reward weight changed in the data file
@@ -131,8 +141,8 @@ Each training row MUST select its opponent: TRAINING (self-play, policy shared a
 
 ### Requirement: Python training project
 
-The repo MUST contain a uv-managed Python 3.12 project under `training/` with pinned versions of `godot-rl`, `stable-baselines3`, `torch`, `onnx`, and `onnxruntime`, and scripts to train (PPO, Godot headless on `train.tscn`, curriculum including sudden-death episodes), export, generate golden fixtures, evaluate, and upload. A documented one-command setup MUST work from a clean checkout. Documentation MUST state the MLP-only constraint, the schema contract (schema 3), and the tags (`BVS` / `bvs-schema-3`).
-(Previously: curriculum without sudden-death episodes; documentation stated schema 2 and `bvs-schema-2`.)
+The repo MUST contain a uv-managed Python 3.12 project under `training/` with pinned versions of `godot-rl`, `stable-baselines3`, `torch`, `onnx`, and `onnxruntime`, and scripts to train (PPO, Godot headless on `train.tscn`, curriculum including sudden-death episodes and kit randomization), export, generate golden fixtures, evaluate, and upload. A documented one-command setup MUST work from a clean checkout. Documentation MUST state the MLP-only constraint, the schema contract (schema 4), and the tags (`BVS` / `bvs-schema-4`).
+(Previously: stated schema 3 and `bvs-schema-3`; no kit randomization.)
 
 #### Scenario: Reproducible environment
 - GIVEN a clean checkout
@@ -142,7 +152,7 @@ The repo MUST contain a uv-managed Python 3.12 project under `training/` with pi
 #### Scenario: Handshake with Godot
 - GIVEN Godot headless running `train.tscn`
 - WHEN the trainer connects
-- THEN the handshake succeeds and observations of length v3 `obs_dim` are received
+- THEN the handshake succeeds and observations of length v4 `obs_dim` (149) are received
 
 #### Scenario: Train loads with sudden death
 - GIVEN `train.tscn` with sudden death enabled
@@ -152,17 +162,17 @@ The repo MUST contain a uv-managed Python 3.12 project under `training/` with pi
 #### Scenario: Documented constraints
 - GIVEN the trainer docs
 - WHEN reviewed
-- THEN they state MLP-only, the schema 3 contract, and the `BVS` / `bvs-schema-3` tags
+- THEN they state MLP-only, the schema 4 contract, and the `BVS` / `bvs-schema-4` tags
 
 ### Requirement: Export contract
 
-The export script MUST emit an MLP ONNX at opset 17 with constants folded, using only whitelisted ops, an input dimension equal to the schema `obs_dim`, and a deterministic output head from which the eight branch indices of the current schema are derived. It MUST verify the exported graph against the whitelist before writing, and MUST fail rather than emit a graph with an unsupported op. The sidecar MUST carry the current schema version.
-(Previously: the head derived the seven schema-2 branch indices and the sidecar carried `schema_version` 2.)
+The export script MUST emit an MLP ONNX at opset 17 with constants folded, using only whitelisted ops, an input dimension equal to the schema `obs_dim`, and a deterministic output head from which the eight branch indices of the current schema are derived. It MUST verify the exported graph against the whitelist before writing, and MUST fail rather than emit a graph with an unsupported op. The sidecar MUST carry the current schema version (4).
+(Previously: sidecar carried `schema_version` 3 and v3 `obs_dim`.)
 
 #### Scenario: Clean export
 - GIVEN a trained checkpoint
 - WHEN exported
-- THEN the file's ops are a subset of the whitelist and its input dimension equals the v3 `obs_dim`
+- THEN the file's ops are a subset of the whitelist and its input dimension equals the v4 `obs_dim` (149)
 
 #### Scenario: Unsupported op fails export
 - GIVEN a model whose export would include `Gather`
@@ -172,17 +182,17 @@ The export script MUST emit an MLP ONNX at opset 17 with constants folded, using
 #### Scenario: Sidecar emitted
 - GIVEN a successful export
 - WHEN the output directory is listed
-- THEN `bvs.json` exists with `schema_version` 3, `obs_dim`, the action layout, `action_repeat`, and `trained_on_commit`
+- THEN `bvs.json` exists with `schema_version` 4, `obs_dim` 149, the action layout, `action_repeat`, and `trained_on_commit`
 
 ### Requirement: Evaluation
 
-An evaluation script MUST run the model versus CPU Easy and CPU Normal for at least N = 20 headless matches each and write a report with win rate, mean stocks taken, behavior indicators (approach, attacks thrown, recoveries, self-KO share of stocks lost, idle share) and the combat-depth metrics: sudden-death length, food pickups per minute, throws per minute, blocked-hit share, damage by source, and shield breaks. The report MUST be committed with the model.
-(Previously: no combat-depth metrics.)
+An evaluation script MUST run the model versus CPU Easy and CPU Normal for at least N = 20 headless matches each and write a report with win rate, mean stocks taken, behavior indicators (approach, attacks thrown, recoveries, self-KO share of stocks lost, idle share), the combat-depth metrics (sudden-death length, food pickups per minute, throws per minute, blocked-hit share, damage by source, shield breaks) and the combo and shield-spam metrics (see "Combo and shield-spam harness metrics"). The report MUST be committed with the model.
+(Previously: no combo or shield-raise metrics.)
 
 #### Scenario: Report produced
 - GIVEN the default model
 - WHEN the evaluation runs
-- THEN a report lists matches played, win rate versus Easy and Normal, the behavior indicators and the combat-depth metrics
+- THEN a report lists matches played, win rate versus Easy and Normal, the behavior indicators, the combat-depth metrics and the combo and shield-spam metrics
 
 #### Scenario: Default model success criterion
 - GIVEN the committed report
@@ -197,16 +207,17 @@ An evaluation script MUST run the model versus CPU Easy and CPU Normal for at le
 #### Scenario: Criterion not met
 - GIVEN a candidate model below 60% versus CPU Easy, or failing any harness acceptance metric
 - WHEN promotion to default is considered
-- THEN it is NOT committed as the default, the previous bundled model is kept, and the failure is reported
+- THEN it is NOT committed as the default, the previous bundled model is kept in the repo until a passing model exists, and the failure is reported
 
 ### Requirement: Default model artifacts
 
-After parity (the `onnx-mlp-inference` golden checks) and evaluation pass, the project MUST commit the default model ONNX, its `bvs.json`, the golden fixtures, and the evaluation report. The bundled model MUST live under `res://` so it can be selected offline (see `hub-model-distribution`).
+After parity (the `onnx-mlp-inference` golden checks) and evaluation pass, the project MUST commit the default model ONNX, its `bvs.json` (schema 4), the golden fixtures (v4 added, v2 and v3 kept), the evaluation report and the replay `replay.mp4`. The bundled model MUST live under `res://` so it can be selected offline (see `hub-model-distribution`).
+(Previously: no replay and no schema-4 or v3-kept fixtures.)
 
 #### Scenario: Artifacts present
 - GIVEN the change applied
 - WHEN the repo is listed
-- THEN the model, `bvs.json`, fixtures, and report exist at their documented paths
+- THEN the model, `bvs.json`, v4 fixtures, report and `replay.mp4` exist at their documented paths
 
 #### Scenario: Gate order
 - GIVEN a model that fails golden parity
@@ -229,12 +240,24 @@ The exploration harness MUST be a committed, repeatable eval scenario (model vs 
 
 ### Requirement: Harness acceptance metrics
 
-A retrained default model MUST be promoted to the bundled default only if the harness rerun shows all of: model-vs-model sudden death ends in under about 45 s on average (measured from sudden-death start); food pickups exceed 1 per minute per fighter; the blocked-hit share is at most 70% (and well under the pre-change 99%); and the model wins at least 60% by KO versus CPU Easy over at least 20 matches with non-trivial play. If a gate fails, the old bundled model MUST be kept and the failure reported after iterating reward weights only within the time box.
+A retrained default model MUST be promoted to the bundled default only if the harness rerun (100+ matches covering model vs model, model vs CPU and CPU vs CPU, both kits on both sides) shows all of:
+1. model-vs-model sudden death ends in under about 45 s on average (from sudden-death start);
+2. food pickups exceed 1 per minute per fighter;
+3. blocked-hit share at most 70%;
+4. the model wins at least 60% by KO versus CPU Easy over at least 20 matches with non-trivial play;
+5. shield raises per fighter-minute at or under the threshold recorded in design;
+6. 2+ hit combos occur in CPU Normal, CPU Hard and model matches;
+7. maximum combo is at most 6;
+8. no victim spends more than 1.5 s continuously in Hurt;
+9. Rafael's win share is between 40% and 60% in the CPU Hard mirror and in model vs model;
+10. combo damage differs by at most 20% between kits.
+If a gate fails, iteration MUST continue (reward weights, curriculum, steps, kit data) within the time box and the change MUST NOT merge until every gate passes. If the time box is exhausted with a gate still failing, work MUST STOP and the user MUST choose between merging the best candidate with the failed gate reported and merging the gameplay slices on schema 3 with schema 4 and the retrain moved to a follow-up.
+(Previously: four gates only; on failure the old bundled model was kept and the failure reported.)
 
 #### Scenario: All gates pass
 - GIVEN a candidate whose harness rerun meets every gate
 - WHEN promotion is considered
-- THEN it is committed as the default with `bvs.json`, fixtures and report
+- THEN it is committed as the default with `bvs.json`, fixtures, report and `replay.mp4`
 
 #### Scenario: Sudden-death gate
 - GIVEN the model-vs-model matches
@@ -251,33 +274,60 @@ A retrained default model MUST be promoted to the bundled default only if the ha
 - WHEN blocked hits over total hits is computed
 - THEN it is at most 70%
 
-#### Scenario: Gate failure keeps old model
-- GIVEN a candidate failing one gate
+#### Scenario: Shield-raise gate
+- GIVEN the harness output
+- WHEN shield raises per fighter-minute are computed
+- THEN they are at most the recorded threshold
+
+#### Scenario: Combo gate
+- GIVEN the harness output
+- WHEN combo statistics are read
+- THEN 2+ hit combos occur, the maximum combo is at most 6 and no victim spent more than 1.5 s continuously in Hurt
+
+#### Scenario: Balance gate
+- GIVEN the harness output
+- WHEN win share and combo damage by kit are read
+- THEN Rafael's win share is 40% to 60% in CPU Hard mirror and model vs model, and combo damage differs by at most 20%
+
+#### Scenario: Gate failure keeps iterating
+- GIVEN a candidate failing one gate within the time box
 - WHEN promotion is considered
-- THEN the v2 bundled model is kept and the result is reported
+- THEN it is not promoted, iteration continues, and the failure is reported
 
-### Requirement: Golden parity before commit for schema 3
+#### Scenario: Time box exhausted
+- GIVEN the time box is exhausted with a gate still failing
+- WHEN the pipeline decides what to do
+- THEN work stops and asks the user to choose between merging the best candidate with the failure reported and merging the gameplay slices on schema 3
 
-Before the bundled model is replaced, v3 golden parity (the `onnx-mlp-inference` golden checks against the v3 fixtures) MUST pass. The frozen v2 path (v2 module, v2 decoder, v2 fixtures) MUST stay byte-identical and its checks MUST pass. Only checks that assert the CURRENT schema version or the BUNDLED model's schema (`schema_v2` registry check, `onnx_golden`, `policy_match`, `cpu_select`, `hf_picker`, `train_loads` bundled-model checks) move to the current schema when the version switches (amendment, orchestrator decision).
+### Requirement: Golden parity before commit for schema 4
+
+Before the bundled model is replaced, v4 golden parity (the `onnx-mlp-inference` golden checks against the v4 fixtures) MUST pass. The frozen v2 and v3 paths (modules, decoders, fixtures) MUST stay byte-identical and their layout, observation, decode and fixture checks MUST pass unedited (their registry test stub moves from version 4 to 5). Only checks that assert the CURRENT schema version or the BUNDLED model's schema (`onnx_golden`, `policy_match`, `cpu_select`, `hf_picker`, `train_loads` bundled-model checks, the current-version registry check) move to schema 4 when the version switches.
+(Previously: schema 3 current with only v2 frozen.)
 
 #### Scenario: Parity gate
-- GIVEN a candidate failing v3 golden parity
+- GIVEN a candidate failing v4 golden parity
 - WHEN commit of artifacts is attempted
 - THEN the procedure stops and reports the parity failure
 
-#### Scenario: v2 tests green
+#### Scenario: Frozen tests green
 - GIVEN the change applied
-- WHEN the v2 smoke checks run
-- THEN the frozen-v2 checks pass unedited, and the current-version and bundled-model checks pass against the current schema
+- WHEN the v2 and v3 smoke checks run
+- THEN the frozen layout/observation/decode/fixture checks pass unedited (registry stub version 5), and the current-version and bundled-model checks pass against schema 4
 
 ### Requirement: Remote operation authorization gate
 
-Publishing to Hugging Face and updating the Space are remote operations. They MUST NOT run, and the agent MUST NOT probe ambient authentication state (for example `hf auth whoami`) or the Space deploy method, before the user explicitly confirms, in the same session, all of: the destination (model repo `RafaelJaime/BVS-default` and, separately, Space `RafaelJaime/BroVSister`), the operation (files to upload, tags, visibility, which build to deploy), and the credential to use. Before asking, the agent MUST present the repo ids, files and tags (`BVS`, `bvs-schema-3`), credential, and the evaluation and harness results, and then STOP. A missing or ambiguous part MUST keep the work local, and confirming the model repo MUST NOT authorize the Space update (or the reverse). After upload, a read-only listing check MUST confirm the model appears under `filter=BVS` with the `bvs-schema-3` tag. The upload script MUST refuse to run without an explicit confirmation argument carrying the repo id. The agent MUST NOT perform remote cleanup or rollback without separate authorization.
+Publishing to Hugging Face and updating the Space are remote operations that happen only after the PR is merged. They MUST NOT run, and the agent MUST NOT probe ambient authentication state (for example `hf auth whoami`) or the Space deploy method, before the user explicitly confirms, in the same session, all of: the destination (model repo `RafaelJaime/BVS-default` and, separately, Space `RafaelJaime/BroVSister`), the operation (files to upload including `model.onnx`, `bvs.json`, the model card and `replay.mp4`, tags, visibility, which build to deploy), and the credential to use. Before asking, the agent MUST present the repo ids, files and tags (`BVS`, `bvs-schema-4`), credential, and the evaluation and harness results, and then STOP. A missing or ambiguous part MUST keep the work local, and confirming the model repo MUST NOT authorize the Space update (or the reverse). After upload, a read-only listing check MUST confirm the model appears under `filter=BVS` with the `bvs-schema-4` tag. The upload script MUST refuse to run without an explicit confirmation argument carrying the repo id. The agent MUST NOT perform remote cleanup or rollback without separate authorization.
+(Previously: tag `bvs-schema-3`, no replay file, no explicit merge-first precondition.)
 
 #### Scenario: No remote write without confirmation
 - GIVEN artifacts are committed and the user has not confirmed
-- WHEN the pipeline reaches S4
+- WHEN the pipeline reaches the upload step
 - THEN no network write, auth probe or deploy-method probe occurs and a confirmation request listing repo ids, files/tags, credential and results is presented, then the work STOPs
+
+#### Scenario: Not before merge
+- GIVEN the PR is not merged
+- WHEN the pipeline considers uploading
+- THEN no remote operation runs
 
 #### Scenario: Partial confirmation
 - GIVEN the user confirmed the repo id but not the credential
@@ -297,12 +347,12 @@ Publishing to Hugging Face and updating the Space are remote operations. They MU
 #### Scenario: Confirmed upload
 - GIVEN the user confirmed destination, operation and credential
 - WHEN the upload runs
-- THEN exactly the confirmed files and tags are uploaded to the confirmed repo id
+- THEN exactly the confirmed files (including `replay.mp4`) and tags are uploaded to the confirmed repo id
 
 #### Scenario: Post-upload verification
 - GIVEN a completed upload
 - WHEN the read-only Hub listing is queried with `filter=BVS`
-- THEN the repo appears with the `bvs-schema-3` tag, and the in-game picker marks it Compatible
+- THEN the repo appears with the `bvs-schema-4` tag, and the in-game picker marks it Compatible
 
 #### Scenario: Space updated after confirmation
 - GIVEN the user confirmed the Space destination, operation and credential
@@ -312,4 +362,51 @@ Publishing to Hugging Face and updating the Space are remote operations. They MU
 #### Scenario: Model card content
 - GIVEN the generated model card
 - WHEN reviewed
-- THEN it states the MLP-only schema 3 contract, the tags, the evaluation and harness results, and the license confirmed by the user
+- THEN it states the MLP-only schema 4 contract, the tags, the evaluation and harness results (including combo and balance metrics), and the license confirmed by the user
+### Requirement: Kit randomization per side
+
+Training rows MUST randomize the kit of each fighter per episode and per side (Rafael or Matilde on either side, including mirror matchups), configurable in data. The observation MUST carry the kit one-hot (see `ai-schema`). Kit assignment MUST be reproducible from the row seed.
+
+#### Scenario: Both kits seen on both sides
+- GIVEN a training run of many episodes
+- WHEN kit assignments are logged
+- THEN each kit appears on each side and mirror matchups occur
+
+#### Scenario: Seeded assignment
+- GIVEN a fixed row seed
+- WHEN two runs assign kits
+- THEN the assignments are identical
+
+#### Scenario: Train loads with kit randomization
+- GIVEN `train.tscn` with kit randomization enabled
+- WHEN loaded headless for a bounded number of frames
+- THEN no script errors occur and every row reaches a running match
+
+### Requirement: Combo and shield-spam harness metrics
+
+The committed harness and the evaluation MUST also report: shield raises per fighter-minute, the combo length histogram and maximum combo, the longest continuous time any victim spent in Hurt, win share by kit and by side, and combo damage by kit. Metrics MUST be machine-readable and summarized in the readable report.
+
+#### Scenario: Metrics present
+- GIVEN a harness run
+- WHEN the machine-readable output is inspected
+- THEN shield raises per fighter-minute, the combo histogram and maximum, the longest Hurt duration, win share by kit and side, and combo damage by kit are present
+
+#### Scenario: Both kits on both sides
+- GIVEN the harness configuration
+- WHEN the matchup list is read
+- THEN model vs model, model vs CPU and CPU vs CPU cover both kits on both sides
+
+### Requirement: Shield raise threshold recorded before the retrain
+
+A numeric threshold for shield raises per fighter-minute MUST be derived in design from measured baselines (CPU Hard and the current bundled model) and recorded before the retrain starts. Promotion MUST be blocked if the threshold is not recorded.
+
+#### Scenario: Threshold recorded
+- GIVEN the design is complete
+- WHEN the retrain is about to start
+- THEN the threshold value and its baselines are written in the design artifact
+
+#### Scenario: No threshold, no promotion
+- GIVEN a candidate with no recorded threshold
+- WHEN promotion is considered
+- THEN promotion is blocked and the missing threshold is reported
+
