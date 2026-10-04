@@ -547,7 +547,31 @@ func get_state_snapshot() -> Dictionary:
 		"dizzy_left": dizzy_seconds_left(),
 		"air_dodge_available": air_dodge_available,
 		"intangible": is_intangible(),
+		# Kit and combo state (additive keys, read by schema 4).
+		"kit_id": profile.kit_id if profile else -1,
+		"chain_step": _chain_step(),
+		"link_open": _link_open(),
+		"hitstun_left": _hitstun_left(),
+		"combo_hits": combo.hits if combo and combo.is_active() else 0,
+		"combo_damage": combo.damage if combo and combo.is_active() else 0.0,
 	}
+
+## 1-based jab chain step being thrown (0 outside a chain step).
+func _chain_step() -> int:
+	var punch = state_machine.state_map.get("Punch") if state_machine else null
+	return punch.chain_step() if punch != null else 0
+
+## True while a neutral press would advance the jab chain this tick.
+func _link_open() -> bool:
+	var punch = state_machine.state_map.get("Punch") if state_machine else null
+	return punch != null and punch.link_open()
+
+## Seconds of hitstun still to run (0 outside Hurt).
+func _hitstun_left() -> float:
+	var hurt = state_machine.state_map.get("Hurt") if state_machine else null
+	if hurt == null or _state_name() != "Hurt":
+		return 0.0
+	return CombatClock.seconds(maxi(0, hurt.ticks_left()))
 
 func _cooldown_left(state_name: String) -> float:
 	var state = state_machine.state_map.get(state_name) if state_machine else null

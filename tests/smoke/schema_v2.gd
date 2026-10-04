@@ -25,7 +25,7 @@ const PROJ1 := 94
 const TIMER := 100
 const SUDDEN := 101
 
-## Registered as schema 4 in the extensibility check, then removed again (versions 2
+## Registered as schema 5 in the extensibility check, then removed again (versions 2
 ## and 3 are built in).
 class StubSchemaV4 extends RefCounted:
 	const OBS_DIM := 7
@@ -346,12 +346,12 @@ func _check_registry(s: RefCounted) -> void:
 	# A test-only schema 4 must leave schema 2 untouched.
 	var snapshot := _snapshot(_fighter(), _fighter({"position": Vector2(630.0, 386.0)}), {"foods": [{"name": "pizza", "position": Vector2(480.0, 400.0)}]})
 	var before := BvsSchemaV2.build_obs(snapshot, 0)
-	BvsSchema.register_test_stub(4, StubSchemaV4)
+	BvsSchema.register_test_stub(5, StubSchemaV4)
 	var with_stub := BvsSchemaV2.build_obs(snapshot, 0)
-	s.check("a stub registered as version 4 is found by the registry", BvsSchema.get_schema(4) == StubSchemaV4)
-	s.check("schema 2 results are identical with the version 4 stub registered", with_stub == before and BvsSchema.validate_sidecar_for(template, 2) == "")
-	BvsSchema.unregister_test_stub(4)
-	s.check("the stub is gone again after the test", BvsSchema.get_schema(4) == null)
+	s.check("a stub registered as version 5 is found by the registry", BvsSchema.get_schema(5) == StubSchemaV4)
+	s.check("schema 2 results are identical with the version 5 stub registered", with_stub == before and BvsSchema.validate_sidecar_for(template, 2) == "")
+	BvsSchema.unregister_test_stub(5)
+	s.check("the stub is gone again after the test", BvsSchema.get_schema(5) == null)
 
 # ----------------------------------------------------------------- real game
 

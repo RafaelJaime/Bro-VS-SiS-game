@@ -40,8 +40,8 @@ const DIZZY_LEFT := 25
 const AIR_DODGE := 26
 const STATE_BASE := 27
 
-## Registered as schema 4 in the extensibility check, then removed again (versions 2
-## and 3 are built in).
+## Registered as schema 5 in the extensibility check, then removed again (versions 2,
+## 3 and 4 are built in).
 class StubSchemaV4 extends RefCounted:
 	const OBS_DIM := 7
 
@@ -454,7 +454,7 @@ func _check_registry(s: RefCounted) -> void:
 	s.check("an unregistered version is unsupported, not a default layout", BvsSchema.get_schema(99) == null and BvsSchema.new_decoder(99) == null and BvsSchema.get_schema(1) == null)
 	s.check("decoders come from the registry by version", BvsSchema.new_decoder(2) is BvsActionDecoderV2 and BvsSchema.new_decoder(3) is BvsActionDecoderV3)
 	s.check("two requests give two independent decoders", BvsSchema.new_decoder(3) != BvsSchema.new_decoder(3))
-	s.check("2 and 3 are built in", BvsSchema.is_builtin(2) and BvsSchema.is_builtin(3) and not BvsSchema.is_builtin(4) and not BvsSchema.is_builtin(99))
+	s.check("2 and 3 are built in", BvsSchema.is_builtin(2) and BvsSchema.is_builtin(3) and not BvsSchema.is_builtin(5) and not BvsSchema.is_builtin(99))
 	s.check("current() is the registered module of CURRENT_VERSION", BvsSchema.current() == BvsSchema.get_schema(BvsSchema.CURRENT_VERSION))
 
 	var template := BvsSchemaV3.sidecar_template()
@@ -485,13 +485,13 @@ func _check_registry(s: RefCounted) -> void:
 	var snapshot_2 := {"foods": [{"name": "pizza", "position": Vector2(480.0, 400.0)}]}
 	var obs_before_2 := BvsSchemaV2.build_obs(_v2_snapshot(snapshot_2), 0)
 	var obs_before_3 := BvsSchemaV3.build_obs(_snapshot(_fighter(), _fighter({"position": Vector2(630.0, 386.0)}), snapshot_2), 0)
-	BvsSchema.register_test_stub(4, StubSchemaV4)
+	BvsSchema.register_test_stub(5, StubSchemaV4)
 	var obs_with_2 := BvsSchemaV2.build_obs(_v2_snapshot(snapshot_2), 0)
 	var obs_with_3 := BvsSchemaV3.build_obs(_snapshot(_fighter(), _fighter({"position": Vector2(630.0, 386.0)}), snapshot_2), 0)
-	s.check("a stub registered as version 4 is found by the registry", BvsSchema.get_schema(4) == StubSchemaV4 and BvsSchema.new_decoder(4) == null)
+	s.check("a stub registered as version 5 is found by the registry", BvsSchema.get_schema(5) == StubSchemaV4 and BvsSchema.new_decoder(5) == null)
 	s.check("schema 2 and schema 3 results are identical with the stub registered", obs_with_2 == obs_before_2 and obs_with_3 == obs_before_3 and BvsSchema.get_schema(2) == BvsSchemaV2 and BvsSchema.get_schema(3) == BvsSchemaV3)
-	BvsSchema.unregister_test_stub(4)
-	s.check("the stub is gone again after the test", BvsSchema.get_schema(4) == null)
+	BvsSchema.unregister_test_stub(5)
+	s.check("the stub is gone again after the test", BvsSchema.get_schema(5) == null)
 	BvsSchema.unregister_test_stub(2)
 	BvsSchema.unregister_test_stub(3)
 	s.check("unregistering a built-in version is refused", BvsSchema.get_schema(2) == BvsSchemaV2 and BvsSchema.get_schema(3) == BvsSchemaV3)

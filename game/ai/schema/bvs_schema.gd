@@ -10,13 +10,15 @@ extends RefCounted
 
 ## The playable schema (what the picker, the model manager and the bundled default
 ## accept). It flipped to 3 in the commit that bundled the retrained schema 3 model
-## after every acceptance gate passed; schema 2 stays registered and frozen.
+## after every acceptance gate passed; schema 2 stays registered and frozen. Schema 4
+## is registered (training and tools run it) but is not playable yet: it becomes
+## current in the commit that bundles the gated schema 4 model.
 const CURRENT_VERSION := 3
 
 ## Version -> schema script / action decoder script. Only the test hooks below
 ## touch them at run time (and never for the built-in versions).
-static var _registry := {2: BvsSchemaV2, 3: BvsSchemaV3}
-static var _decoders := {2: BvsActionDecoderV2, 3: BvsActionDecoderV3}
+static var _registry := {2: BvsSchemaV2, 3: BvsSchemaV3, 4: BvsSchemaV4}
+static var _decoders := {2: BvsActionDecoderV2, 3: BvsActionDecoderV3, 4: BvsActionDecoderV4}
 
 ## The schema script for `version`, or null when the version is unsupported (never
 ## a default layout).
@@ -35,7 +37,7 @@ static func new_decoder(version: int) -> RefCounted:
 static func current() -> Object:
 	return get_schema(CURRENT_VERSION)
 
-## True for the versions this build ships (2 and 3); stubs are never built-in.
+## True for the versions this build ships (2, 3 and 4); stubs are never built-in.
 static func is_builtin(version: int) -> bool:
 	return _decoders.has(version)
 
