@@ -115,3 +115,5 @@ Feature complete. Remaining work is manual playtest/tuning in the editor (see ea
 - Full-branch review (ef6f2ad..b3d4911, lineage review-f31d474e226eab95): user granted; approved with no blocking findings; acknowledged. Same advisories as above plus:
   - [x] F7 Thrown food is freed when it touches the one-way platforms (Area2D body_entered ignores one_way_collision). `food_projectile.gd:52-53`
   - F1 + F7 fixed: 3s MAX_LIFETIME; body_shape_entered skips one-way platform shapes; double-hit guard.
+- Review review-3086dc6b0301448a (branch incl. 9d7bf0c): approved + acknowledged. New advisory:
+  - [x] F8 FoodPickup is a CharacterBody2D on the fighters' layer → resting food blocks fighters / can land on heads. `food_pickup.tscn:8-15`
