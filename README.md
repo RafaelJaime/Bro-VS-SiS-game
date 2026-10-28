@@ -9,20 +9,21 @@ A **2D fighting game** built in **Godot 4** designed specifically for **Reinforc
 ![Godot](https://img.shields.io/badge/Godot-4.7.2-blue?logo=godot-engine)
 ![ML-Agents](https://img.shields.io/badge/ML--Agents-Compatible-green)
 ![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-Space%20Ready-orange)
-![License](https://img.shields.io/badge/License-MIT-blue)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 ## 🌟 Features
 
 ### 🎮 Game Features
-- **2D Fighting Mechanics**: Classic fighting game with movement, jumping, and combat
-- **Multiple Characters**: Rafael and Matilde with unique sprites and animations (everyone is free to add Its own)
+- **2D Fighting Mechanics**: Movement, jumping, a double-tap dash, a drainable shield with a punishable "dizzy" break, an air dodge, and physics-based combat with collision detection
+- **Multiple Characters**: Rafael and Matilde have distinct combat kits, not only sprites — Rafael is lighter and chains a quick 2-hit jab, Matilde hits harder, chains 3 hits and follows up her up-launcher with an air jab (everyone is free to add their own)
+- **Combos**: per-attack frame data, jab chains and launcher follow-ups, with a combo counter and anti-infinite safeguards (hit cap, hitstun decay, knockback growth)
+- **Sudden death**: a tied timer sends both fighters to 300% damage and one stock, then escalating bombs fall on the table until someone is KO'd
 - **Dynamic Character System**: Modular character loading with animation frames
-- **Real-time Combat**: Physics-based fighting with collision detection
 
 ### 🤖 AI & Machine Learning
 - **Bundled opponent**: a trained "AI: BVS default" model ships with the game and works offline
 - **Train your own**: PPO training, ONNX export and evaluation live in [`training/`](training/README.md); the step-by-step guide is [docs/train-your-own-model.md](docs/train-your-own-model.md)
-- **Schema v2 (`bvs-schema-2`)**: a 102-float observation and 8 discrete action branches, frozen so published models keep working
+- **Schema v4 (`bvs-schema-4`)**: a 149-float observation (shield meter, dizzy, air dodge, food/projectile/bomb slots, fighter kits, jab-chain progress and combo state) and 8 discrete action branches; schemas v2 (102 floats) and v3 (136 floats) stay frozen so older published models keep working
 - **Built-in inference**: models run in a small GDScript ONNX interpreter (MLP only), with no native dependencies, also in the web export
 - **Hugging Face picker**: type a username to list their `BVS` models, or leave it empty to browse all of them
 
@@ -30,7 +31,7 @@ A **2D fighting game** built in **Godot 4** designed specifically for **Reinforc
 
 ### 🌐 Hugging Face Integration
 - **Community models**: browse models tagged `BVS` and fight them in the game
-- **Compatibility badges**: only models tagged `bvs-schema-2` are selectable; others show why they are not
+- **Compatibility badges**: only models tagged `bvs-schema-4` are selectable; others show why they are not
 - **Pinned downloads**: models are fetched at a fixed revision, validated, and cached locally
 - **ONNX**: a small, portable model format that runs on every platform the game exports to
 
@@ -56,7 +57,18 @@ A **2D fighting game** built in **Godot 4** designed specifically for **Reinforc
 
 3. **Play the game**:
    - Press `F5` or click the play button
-   - Use arrow keys + space for Player 1 controls
+   - Controls (keyboard, from `project.godot`):
+
+     | Action | Player 1 | Player 2 |
+     |--------|----------|----------|
+     | Move | `A` / `D` | `←` / `→` |
+     | Jump | `W` | `↑` |
+     | Shield (ground), air dodge (air) | `S` | `↓` |
+     | Punch | `F` | `J` |
+     | Throw held food | `G` | `K` |
+     | Aim up / down (directional punches, recovery) | `E` / `C` | `I` / `,` |
+
+     Double-tap left or right to dash. Up + punch while airborne is the recovery burst. While holding food, throw always beats punch and shield (only recovery, dash and jump outrank it).
    - Train AI opponents or play against friends!
 
 ### 🌐 Play Online (GitHub Pages)
@@ -86,18 +98,21 @@ Each player can be controlled by:
 - **🤗 Hugging Face model**: any compatible `BVS` model chosen in the picker
 - **🏋️ Training**: headless scene driven by the Python trainer through Godot RL Agents
 
-### Observation space (schema v2)
+### Observation space (schema v4)
 
-`[1, 102]` float32, built by the game from the match state, "me first, opponent second" (authoritative layout: `game/ai/schema/bvs_schema_v2.gd`):
+`[1, 149]` float32, built by the game from the match state, "me first, opponent second" (authoritative layout: `game/ai/schema/bvs_schema_v4.gd`; the frozen `v2` and `v3` modules keep older models working):
 
 | Values | Content |
 |--------|---------|
-| 0 to 34 | Own state: position, velocity, facing, damage, stocks, held food, cooldowns, jumps, state one-hot... |
-| 35 to 69 | The same 35 features for the opponent |
-| 70 to 75 | Relative position, opponent in front, off stage, ledge occupancy |
-| 76 to 87 | The 2 nearest foods |
-| 88 to 99 | The 2 nearest projectiles |
-| 100, 101 | Timer left, sudden death |
+| 0 to 42 | Own state: position, velocity, facing, damage, stocks, held food, cooldowns, jumps, shield meter, dizzy, air dodge, state one-hot... |
+| 43 to 85 | The same 43 features for the opponent |
+| 86 to 91 | Relative position, opponent in front, off stage, ledge occupancy |
+| 92 to 107 | The 2 nearest foods |
+| 108 to 119 | The 2 nearest projectiles |
+| 120 to 131 | The 2 nearest sudden-death bombs |
+| 132 to 135 | Timer left, sudden death, sudden-death phase, sudden-death elapsed |
+| 136 to 143 | Fighter kits, one-hot (me, then the opponent) |
+| 144 to 148 | Jab-chain step, link window, opponent hitstun, combo dealt, combo taken |
 
 ### Action space
 
@@ -136,16 +151,16 @@ The bundled **AI: BVS default** model is also in the controller dropdown and wor
 
 ### Model format
 
-A model repo contains `model.onnx`, `bvs.json` (schema sidecar) and a `README.md` with the tags `BVS` and `bvs-schema-2`. The graph must be an MLP using the supported ops only. See [the model contract](docs/train-your-own-model.md#the-model-contract).
+A model repo contains `model.onnx`, `bvs.json` (schema sidecar) and a `README.md` with the tags `BVS` and `bvs-schema-4`. The graph must be an MLP using the supported ops only. See [the model contract](docs/train-your-own-model.md#the-model-contract).
 
 ### Creating your own models
 
 1. **Train** with `training/` ([guide](docs/train-your-own-model.md))
 2. **Export** to ONNX with `bvs_training.export`
-3. **Publish** to the Hub with tags `BVS` and `bvs-schema-2`
+3. **Publish** to the Hub with tags `BVS` and `bvs-schema-4`
 4. **Play** against it by searching your username in the picker
 
-Reference model: [RafaelJaime/BVS-default](https://huggingface.co/RafaelJaime/BVS-default).
+Reference model (MIT-licensed): [RafaelJaime/BVS-default](https://huggingface.co/RafaelJaime/BVS-default). A live build runs on the Hugging Face Space [RafaelJaime/BroVSister](https://huggingface.co/spaces/RafaelJaime/BroVSister).
 
 ## 🏗️ Project Structure
 
@@ -154,7 +169,7 @@ bvs/
 ├── 🎮 game/                    # Core game logic
 │   ├── player/                 # Fighters and controllers
 │   ├── combat/, food/, stage/  # Combat, projectiles and stage
-│   └── ai/                     # AI: schema/ (v2 obs + actions), onnx/ (interpreter),
+│   └── ai/                     # AI: schema/ (v2-v4 obs + actions, current v4), onnx/ (interpreter),
 │                               #     models/ (bundled default), training/ (RL scene)
 ├── 🧠 autoload/                # Autoloads
 │   ├── model_manager.gd        # Hugging Face discovery, download and validation
@@ -205,10 +220,13 @@ Track your AI training progress:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Code and project-own assets**: MIT (see [LICENSE](LICENSE)).
+- **Artwork by Matilde Jaime Moreno**: all rights reserved.
+- **Third-party assets**: see [ASSETS_LICENSE.md](ASSETS_LICENSE.md) for the full per-asset breakdown (sources, authors and licenses).
 
 ## 🙏 Acknowledgments
 
+- **Matilde Jaime Moreno**: all character, UI and background art ([@mati_mola](https://linktr.ee/mati_mola))
 - **Godot Engine**: Amazing open-source game engine
 - **Godot RL Agents**: Edward Beeching's fantastic RL integration
 - **HuggingFace**: Platform for model sharing and deployment
