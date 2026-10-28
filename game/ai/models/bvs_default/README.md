@@ -76,3 +76,7 @@ stable kit-data imbalance (see `bvs_default-training.md`).
 
 The game loads these from `res://` with no network. The `export_presets.cfg`
 `include_filter` keeps them in the exported package.
+
+## License
+
+MIT, same as the rest of the project (see the repository [LICENSE](../../../../LICENSE)). The published Hugging Face twin [RafaelJaime/BVS-default](https://huggingface.co/RafaelJaime/BVS-default) is also MIT.
